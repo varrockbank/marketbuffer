@@ -179,9 +179,66 @@ func calculateOHLC(ticker string, year int, window string) OHLCResponse {
 	return response
 }
 
+func getDates() []int {
+	dateSet := make(map[int]bool)
+	for _, record := range stockData {
+		dateSet[int(record.DateKey)] = true
+	}
+
+	dates := make([]int, 0, len(dateSet))
+	for date := range dateSet {
+		dates = append(dates, date)
+	}
+	sort.Ints(dates)
+	return dates
+}
+
+func getTickerDataForDate(ticker string, dateKey int) *StockRecord {
+	ticker = strings.ToUpper(ticker)
+	for _, record := range stockData {
+		if record.Ticker == ticker && int(record.DateKey) == dateKey {
+			return &record
+		}
+	}
+	return nil
+}
+
 func getTickersJS(this js.Value, args []js.Value) interface{} {
 	tickers := getTickers()
 	result := map[string][]string{"tickers": tickers}
+	jsonBytes, _ := json.Marshal(result)
+	return string(jsonBytes)
+}
+
+func getDatesJS(this js.Value, args []js.Value) interface{} {
+	dates := getDates()
+	result := map[string][]int{"dates": dates}
+	jsonBytes, _ := json.Marshal(result)
+	return string(jsonBytes)
+}
+
+func getTickerForDateJS(this js.Value, args []js.Value) interface{} {
+	if len(args) < 2 {
+		return `{"error": "ticker and dateKey parameters are required"}`
+	}
+
+	ticker := args[0].String()
+	dateKey := args[1].Int()
+
+	record := getTickerDataForDate(ticker, dateKey)
+	if record == nil {
+		return `{"error": "no data found"}`
+	}
+
+	result := map[string]interface{}{
+		"ticker": record.Ticker,
+		"date":   record.DateKey,
+		"open":   record.StockOpen,
+		"high":   record.StockHigh,
+		"low":    record.StockLow,
+		"close":  record.StockClose,
+		"volume": record.Volume,
+	}
 	jsonBytes, _ := json.Marshal(result)
 	return string(jsonBytes)
 }
@@ -270,6 +327,8 @@ func main() {
 	js.Global().Set("getTickers", js.FuncOf(getTickersJS))
 	js.Global().Set("getOHLC", js.FuncOf(getOHLCJS))
 	js.Global().Set("getDaily", js.FuncOf(getDailyJS))
+	js.Global().Set("getDates", js.FuncOf(getDatesJS))
+	js.Global().Set("getTickerForDate", js.FuncOf(getTickerForDateJS))
 
 	println("WASM module initialized with", len(stockData), "records")
 

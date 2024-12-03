@@ -29,7 +29,11 @@ const ServerService = {
       // Wait for functions to be registered
       await new Promise((resolve) => {
         const check = () => {
-          if (typeof window.getTickers === 'function' && typeof window.getOHLC === 'function' && typeof window.getDaily === 'function') {
+          if (typeof window.getTickers === 'function' &&
+              typeof window.getOHLC === 'function' &&
+              typeof window.getDaily === 'function' &&
+              typeof window.getDates === 'function' &&
+              typeof window.getTickerForDate === 'function') {
             resolve();
           } else {
             setTimeout(check, 10);
