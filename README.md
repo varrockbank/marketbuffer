@@ -1,0 +1,1 @@
+This project is a financial terminal for quantitative finance.
