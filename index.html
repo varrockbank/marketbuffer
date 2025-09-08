@@ -133,6 +133,9 @@
       display: flex;
       align-items: center;
       height: 20px;
+    }
+
+    .window-draggable .window-title-bar {
       cursor: move;
     }
 
@@ -446,82 +449,194 @@
   </div>
 
   <!-- Desktop -->
-  <div class="desktop">
-    <!-- Desktop Icons -->
-    <!-- <div class="desktop-icons">
-      <div class="desktop-icon">
-        <div class="icon-image">
-          <div class="floppy-icon"></div>
-        </div>
-        <span class="icon-label">Marketbuffer HD</span>
-      </div>
-      <div class="desktop-icon">
-        <div class="icon-image">
-          <div class="trash-icon"></div>
-        </div>
-        <span class="icon-label">Trash</span>
-      </div>
-    </div> -->
-
-    <!-- Finder Window -->
-    <div class="window finder-window">
-      <div class="window-title-bar">
-        <div class="close-box"></div>
-        <span class="window-title">Marketbuffer HD</span>
-      </div>
-      <div class="finder-content">
-        <div class="finder-item">
-          <div class="folder-icon"></div>
-          <span class="finder-label">System</span>
-        </div>
-        <div class="finder-item">
-          <div class="folder-icon"></div>
-          <span class="finder-label">Applications</span>
-        </div>
-        <div class="finder-item">
-          <div class="folder-icon"></div>
-          <span class="finder-label">Documents</span>
-        </div>
-        <div class="finder-item">
-          <div class="folder-icon"></div>
-          <span class="finder-label">Utilities</span>
-        </div>
-        <div class="finder-item">
-          <div class="document-icon"></div>
-          <span class="finder-label">ReadMe</span>
-        </div>
-        <div class="finder-item">
-          <div class="document-icon"></div>
-          <span class="finder-label">Notes.txt</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- About Window -->
-    <div class="window about-window">
-      <div class="window-title-bar">
-        <div class="close-box"></div>
-        <span class="window-title">About This Marketbuffer</span>
-      </div>
-      <div class="about-content">
-        <div class="macket-icon">
-          <div class="macket-screen"></div>
-          <div class="macket-base"></div>
-        </div>
-        <div class="about-title">Marketbuffer System</div>
-        <div class="about-text">
-          System Software 7.0<br>
-          &copy; Marketbuffer Computer, Inc. 2025-2026
-        </div>
-        <hr class="about-divider">
-        <div class="about-text">
-          Built-in Memory: 4,096K<br>
-          Total Memory: 8,192K
-        </div>
-        <br>
-        <button class="macket-button">OK</button>
-      </div>
-    </div>
+  <div class="desktop" id="desktop">
+    <!-- Windows are rendered dynamically -->
   </div>
+
+  <script>
+    // Initial windows configuration
+    const initialWindows = [
+      {
+        id: 'finder',
+        title: 'Marketbuffer HD',
+        draggable: false,
+        top: 60,
+        left: 40,
+        width: 400,
+        content: `
+          <div class="finder-content">
+            <div class="finder-item">
+              <div class="folder-icon"></div>
+              <span class="finder-label">System</span>
+            </div>
+            <div class="finder-item">
+              <div class="folder-icon"></div>
+              <span class="finder-label">Applications</span>
+            </div>
+            <div class="finder-item">
+              <div class="folder-icon"></div>
+              <span class="finder-label">Documents</span>
+            </div>
+            <div class="finder-item">
+              <div class="folder-icon"></div>
+              <span class="finder-label">Utilities</span>
+            </div>
+            <div class="finder-item">
+              <div class="document-icon"></div>
+              <span class="finder-label">ReadMe</span>
+            </div>
+            <div class="finder-item">
+              <div class="document-icon"></div>
+              <span class="finder-label">Notes.txt</span>
+            </div>
+          </div>
+        `
+      },
+      {
+        id: 'about',
+        title: 'About This Marketbuffer',
+        draggable: true,
+        top: 120,
+        left: 120,
+        width: 340,
+        content: `
+          <div class="about-content">
+            <div class="macket-icon">
+              <div class="macket-screen"></div>
+              <div class="macket-base"></div>
+            </div>
+            <div class="about-title">Marketbuffer System</div>
+            <div class="about-text">
+              System Software 7.0<br>
+              &copy; Marketbuffer Computer, Inc. 2025-2026
+            </div>
+            <hr class="about-divider">
+            <div class="about-text">
+              Built-in Memory: 4,096K<br>
+              Total Memory: 8,192K
+            </div>
+            <br>
+            <button class="macket-button">OK</button>
+          </div>
+        `
+      }
+    ];
+
+    // Open windows list (copy from initial on load)
+    let openWindows = [];
+
+    // Dragging state
+    let activeWindow = null;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    // Initialize on page load
+    function init() {
+      // Copy initial windows to open windows
+      openWindows = initialWindows.map(win => ({ ...win }));
+      renderWindows();
+    }
+
+    // Render all open windows
+    function renderWindows() {
+      const desktop = document.getElementById('desktop');
+      desktop.innerHTML = '';
+
+      openWindows.forEach((win, index) => {
+        const windowEl = document.createElement('div');
+        windowEl.className = `window ${win.draggable ? 'window-draggable' : ''}`;
+        windowEl.dataset.windowId = win.id;
+        windowEl.style.top = win.top + 'px';
+        windowEl.style.left = win.left + 'px';
+        windowEl.style.width = win.width + 'px';
+        windowEl.style.zIndex = index + 1;
+
+        windowEl.innerHTML = `
+          <div class="window-title-bar">
+            <div class="close-box" data-window-id="${win.id}"></div>
+            <span class="window-title">${win.title}</span>
+          </div>
+          ${win.content}
+        `;
+
+        desktop.appendChild(windowEl);
+      });
+
+      attachEventListeners();
+    }
+
+    // Attach event listeners after rendering
+    function attachEventListeners() {
+      // Close button handlers
+      document.querySelectorAll('.close-box').forEach(closeBox => {
+        closeBox.addEventListener('click', (e) => {
+          const windowId = e.target.dataset.windowId;
+          closeWindow(windowId);
+        });
+      });
+
+      // Draggable window handlers
+      document.querySelectorAll('.window-draggable .window-title-bar').forEach(titleBar => {
+        titleBar.addEventListener('mousedown', (e) => {
+          if (e.target.classList.contains('close-box')) return;
+
+          activeWindow = titleBar.closest('.window');
+          const rect = activeWindow.getBoundingClientRect();
+          offsetX = e.clientX - rect.left;
+          offsetY = e.clientY - rect.top;
+
+          // Bring window to front
+          bringToFront(activeWindow);
+        });
+      });
+
+      // Click to bring window to front
+      document.querySelectorAll('.window-draggable').forEach(win => {
+        win.addEventListener('mousedown', () => {
+          bringToFront(win);
+        });
+      });
+    }
+
+    // Close a window
+    function closeWindow(windowId) {
+      openWindows = openWindows.filter(win => win.id !== windowId);
+      renderWindows();
+    }
+
+    // Bring window to front
+    function bringToFront(windowEl) {
+      document.querySelectorAll('.window').forEach(w => w.style.zIndex = 1);
+      windowEl.style.zIndex = 10;
+    }
+
+    // Mouse move handler for dragging
+    document.addEventListener('mousemove', (e) => {
+      if (!activeWindow) return;
+
+      const x = e.clientX - offsetX;
+      const y = e.clientY - offsetY;
+
+      // Keep window within bounds
+      const minY = 20; // Below menu bar
+      activeWindow.style.left = Math.max(0, x) + 'px';
+      activeWindow.style.top = Math.max(minY, y) + 'px';
+
+      // Update position in openWindows array
+      const windowId = activeWindow.dataset.windowId;
+      const win = openWindows.find(w => w.id === windowId);
+      if (win) {
+        win.left = Math.max(0, x);
+        win.top = Math.max(minY, y);
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      activeWindow = null;
+    });
+
+    // Initialize
+    init();
+  </script>
 </body>
 </html>
