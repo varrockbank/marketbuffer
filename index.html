@@ -55,6 +55,44 @@
       color: #fff;
     }
 
+    .menu-item-container {
+      position: relative;
+    }
+
+    .menu-dropdown {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: #fff;
+      border: 1px solid #000;
+      box-shadow: 2px 2px 0 #000;
+      min-width: 180px;
+      z-index: 1001;
+    }
+
+    .menu-dropdown.open {
+      display: block;
+    }
+
+    .menu-dropdown-item {
+      padding: 4px 12px 4px 24px;
+      cursor: pointer;
+      position: relative;
+      white-space: nowrap;
+    }
+
+    .menu-dropdown-item:hover {
+      background: #000;
+      color: #fff;
+    }
+
+    .menu-dropdown-item.checked::before {
+      content: '✓';
+      position: absolute;
+      left: 8px;
+    }
+
     /* Desktop */
     .desktop {
       padding-top: 24px;
@@ -124,6 +162,7 @@
       border: 2px solid #000;
       box-shadow: 2px 2px 0 #000;
       min-width: 300px;
+      left: auto;
     }
 
     .window-title-bar {
@@ -437,12 +476,157 @@
       background: #fff;
       border: 1px solid #000;
     }
+
+    /* HyperCard */
+    .hypercard-content {
+      padding: 0;
+      background: #fff;
+    }
+
+    .hypercard-card {
+      padding: 16px;
+      min-height: 200px;
+      border-bottom: 2px solid #000;
+    }
+
+    .hypercard-title {
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 16px;
+      text-decoration: underline;
+    }
+
+    .hypercard-text {
+      font-size: 12px;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+
+    .hypercard-button {
+      background: #fff;
+      border: 2px solid #000;
+      border-radius: 6px;
+      padding: 6px 16px;
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      margin: 4px;
+      box-shadow: 1px 1px 0 #000;
+    }
+
+    .hypercard-button:active {
+      background: #000;
+      color: #fff;
+    }
+
+    .hypercard-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      background: #e0e0e0;
+      border-top: 1px solid #000;
+    }
+
+    .hypercard-nav-btn {
+      background: #fff;
+      border: 1px solid #000;
+      padding: 4px 12px;
+      font-family: inherit;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .hypercard-nav-btn:hover {
+      background: #000;
+      color: #fff;
+    }
+
+    .hypercard-page {
+      font-size: 10px;
+    }
+
+    /* Tabbed Window */
+    .tabbed-window {
+      position: fixed;
+      background: #fff;
+      border: 1px solid #000;
+      padding: 5px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tabbed-window-inner {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+      border: 2px solid #000;
+    }
+
+    .tabbed-window-tabs {
+      display: flex;
+      background: #c0c0c0;
+      border-bottom: 2px solid #000;
+      min-height: 24px;
+    }
+
+    .tabbed-window-tab {
+      padding: 4px 16px;
+      background: #e0e0e0;
+      border-right: 1px solid #000;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .tabbed-window-tab:hover {
+      background: #fff;
+    }
+
+    .tabbed-window-tab.active {
+      background: #fff;
+      border-bottom: 2px solid #fff;
+      margin-bottom: -2px;
+    }
+
+    .tabbed-window-tab-add {
+      padding: 4px 12px;
+      background: #e0e0e0;
+      border-right: 1px solid #000;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .tabbed-window-tab-add:hover {
+      background: #fff;
+    }
+
+    .tabbed-close-box {
+      margin: 4px 8px 4px 8px;
+      align-self: center;
+    }
+
+    .first-tab-with-close {
+      border-left: 1px solid #000;
+    }
+
+    .tabbed-window-content {
+      flex: 1;
+      background: #fff;
+      padding: 12px;
+      overflow-y: auto;
+    }
   </style>
 </head>
 <body>
   <!-- Menu Bar -->
   <div class="menu-bar">
     <span class="apple-logo"></span>
+    <div class="menu-item-container">
+      <span class="menu-item" id="applications-menu">Applications</span>
+      <div class="menu-dropdown" id="applications-dropdown"></div>
+    </div>
     <span class="menu-item">Help</span>
     <span class="menu-item">Settings</span>
     <span class="menu-item">Logout</span>
@@ -457,11 +641,28 @@
     // Initial windows configuration
     const initialWindows = [
       {
+        id: 'tabbed-main',
+        title: 'Main',
+        tabbed: true,
+        draggable: false,
+        closeable: true,
+        zIndex: 50,
+        top: 20,
+        left: 20,
+        right: 20,
+        bottom: 20,
+        tabs: [
+          { id: 'tab-1', name: 'Tab 1', content: '' }
+        ]
+      },
+      {
         id: 'finder',
         title: 'Marketbuffer HD',
         draggable: false,
-        top: 60,
-        left: 40,
+        closeable: true,
+        zIndex: 100,
+        top: 80,
+        right: 20,
         width: 400,
         content: `
           <div class="finder-content">
@@ -496,8 +697,10 @@
         id: 'about',
         title: 'About This Marketbuffer',
         draggable: true,
-        top: 120,
-        left: 120,
+        closeable: true,
+        zIndex: 101,
+        top: 250,
+        right: 40,
         width: 340,
         content: `
           <div class="about-content">
@@ -517,6 +720,39 @@
             </div>
             <br>
             <button class="macket-button">OK</button>
+          </div>
+        `
+      },
+      {
+        id: 'hypercard',
+        title: 'HyperCard - Welcome Stack',
+        draggable: true,
+        closeable: true,
+        zIndex: 102,
+        top: 140,
+        right: 440,
+        width: 360,
+        content: `
+          <div class="hypercard-content">
+            <div class="hypercard-card">
+              <div class="hypercard-title">Welcome to HyperCard</div>
+              <div class="hypercard-text">
+                HyperCard is your gateway to creating interactive stacks of information.
+              </div>
+              <div class="hypercard-text">
+                Click the buttons below to explore:
+              </div>
+              <div style="text-align: center; margin-top: 20px;">
+                <button class="hypercard-button">Browse</button>
+                <button class="hypercard-button">Create</button>
+                <button class="hypercard-button">Learn</button>
+              </div>
+            </div>
+            <div class="hypercard-nav">
+              <button class="hypercard-nav-btn">&larr; Prev</button>
+              <span class="hypercard-page">Card 1 of 3</span>
+              <button class="hypercard-nav-btn">Next &rarr;</button>
+            </div>
           </div>
         `
       }
@@ -544,25 +780,72 @@
 
       openWindows.forEach((win, index) => {
         const windowEl = document.createElement('div');
-        windowEl.className = `window ${win.draggable ? 'window-draggable' : ''}`;
-        windowEl.dataset.windowId = win.id;
-        windowEl.style.top = win.top + 'px';
-        windowEl.style.left = win.left + 'px';
-        windowEl.style.width = win.width + 'px';
-        windowEl.style.zIndex = index + 1;
 
-        windowEl.innerHTML = `
-          <div class="window-title-bar">
-            <div class="close-box" data-window-id="${win.id}"></div>
-            <span class="window-title">${win.title}</span>
-          </div>
-          ${win.content}
-        `;
+        const menuBarHeight = 20;
+
+        if (win.tabbed) {
+          // Tabbed window - no title bar, positioned relative to viewport below menu bar
+          windowEl.className = 'tabbed-window';
+          windowEl.id = 'tabbed-window';
+          windowEl.dataset.windowId = win.id;
+          windowEl.style.zIndex = win.zIndex;
+          windowEl.style.top = (win.top + menuBarHeight) + 'px';
+          windowEl.style.left = win.left + 'px';
+          windowEl.style.right = win.right + 'px';
+          windowEl.style.bottom = win.bottom + 'px';
+
+          // Render tabs
+          const activeTab = win.activeTab || 0;
+          const tabsHtml = win.tabs.map((tab, i) => {
+            const isFirst = i === 0 && win.closeable;
+            const classes = `tabbed-window-tab ${i === activeTab ? 'active' : ''} ${isFirst ? 'first-tab-with-close' : ''}`;
+            return `<div class="${classes}" data-tab-index="${i}">${tab.name}</div>`;
+          }).join('');
+
+          // Close button for closeable tabbed windows
+          const closeBoxHtml = win.closeable
+            ? `<div class="close-box tabbed-close-box" data-window-id="${win.id}"></div>`
+            : '';
+
+          windowEl.innerHTML = `
+            <div class="tabbed-window-inner">
+              <div class="tabbed-window-tabs" id="tabbed-tabs">
+                ${closeBoxHtml}
+                ${tabsHtml}
+                <div class="tabbed-window-tab-add" id="add-tab">+</div>
+              </div>
+              <div class="tabbed-window-content" id="tabbed-content">
+                ${win.tabs[activeTab]?.content || ''}
+              </div>
+            </div>
+          `;
+        } else {
+          // Regular window - positioned relative to viewport below menu bar
+          windowEl.className = `window ${win.draggable ? 'window-draggable' : ''}`;
+          windowEl.dataset.windowId = win.id;
+          windowEl.style.top = (win.top + menuBarHeight) + 'px';
+          windowEl.style.right = win.right + 'px';
+          windowEl.style.width = win.width + 'px';
+          windowEl.style.zIndex = win.zIndex;
+
+          const closeBoxHtml = win.closeable
+            ? `<div class="close-box" data-window-id="${win.id}"></div>`
+            : '';
+
+          windowEl.innerHTML = `
+            <div class="window-title-bar">
+              ${closeBoxHtml}
+              <span class="window-title">${win.title}</span>
+            </div>
+            ${win.content}
+          `;
+        }
 
         desktop.appendChild(windowEl);
       });
 
       attachEventListeners();
+      setupTabbedWindowListeners();
     }
 
     // Attach event listeners after rendering
@@ -590,44 +873,82 @@
         });
       });
 
-      // Click to bring window to front
-      document.querySelectorAll('.window-draggable').forEach(win => {
+      // Click to bring window to front (all windows, not just draggable)
+      document.querySelectorAll('.window').forEach(win => {
         win.addEventListener('mousedown', () => {
           bringToFront(win);
         });
       });
     }
 
-    // Close a window
+    // Close a window (only if closeable)
     function closeWindow(windowId) {
+      const win = openWindows.find(w => w.id === windowId);
+      if (win && !win.closeable) return; // Can't close non-closeable windows
       openWindows = openWindows.filter(win => win.id !== windowId);
       renderWindows();
     }
 
     // Bring window to front
     function bringToFront(windowEl) {
-      document.querySelectorAll('.window').forEach(w => w.style.zIndex = 1);
-      windowEl.style.zIndex = 10;
+      const windowId = windowEl.dataset.windowId;
+
+      // Update zIndex in openWindows array
+      openWindows.forEach(w => {
+        if (w.tabbed) {
+          w.zIndex = 50;
+        } else {
+          w.zIndex = 100;
+        }
+      });
+      const win = openWindows.find(w => w.id === windowId);
+      if (win) win.zIndex = 200;
+
+      // Update DOM
+      document.querySelectorAll('.window').forEach(w => w.style.zIndex = 100);
+      const tabbedWin = document.getElementById('tabbed-window');
+      if (tabbedWin) tabbedWin.style.zIndex = 50;
+      windowEl.style.zIndex = 200;
+    }
+
+    // Bring tabbed window to front
+    function bringTabbedToFront() {
+      // Update zIndex in openWindows array
+      openWindows.forEach(w => {
+        if (w.tabbed) {
+          w.zIndex = 200;
+        } else {
+          w.zIndex = 100;
+        }
+      });
+
+      // Update DOM
+      document.querySelectorAll('.window').forEach(w => w.style.zIndex = 100);
+      const tabbedWin = document.getElementById('tabbed-window');
+      if (tabbedWin) tabbedWin.style.zIndex = 200;
     }
 
     // Mouse move handler for dragging
+    const menuBarHeight = 20;
     document.addEventListener('mousemove', (e) => {
       if (!activeWindow) return;
 
-      const x = e.clientX - offsetX;
       const y = e.clientY - offsetY;
+      const windowWidth = activeWindow.offsetWidth;
+      const rightPos = window.innerWidth - e.clientX - (windowWidth - offsetX);
 
-      // Keep window within bounds
-      const minY = 20; // Below menu bar
-      activeWindow.style.left = Math.max(0, x) + 'px';
-      activeWindow.style.top = Math.max(minY, y) + 'px';
+      // Keep window within viewport (below menu bar)
+      const minY = menuBarHeight;
+      const actualTop = Math.max(minY, y);
+      activeWindow.style.right = Math.max(0, rightPos) + 'px';
+      activeWindow.style.top = actualTop + 'px';
 
-      // Update position in openWindows array
+      // Update position in openWindows array (store relative to viewport, not absolute)
       const windowId = activeWindow.dataset.windowId;
       const win = openWindows.find(w => w.id === windowId);
       if (win) {
-        win.left = Math.max(0, x);
-        win.top = Math.max(minY, y);
+        win.right = Math.max(0, rightPos);
+        win.top = actualTop - menuBarHeight; // Store relative to viewport
       }
     });
 
@@ -637,6 +958,107 @@
 
     // Initialize
     init();
+
+    // Tabbed window functions
+    function switchTab(tabIndex) {
+      const tabbedWin = openWindows.find(w => w.tabbed);
+      if (tabbedWin) {
+        tabbedWin.activeTab = tabIndex;
+        renderWindows();
+      }
+    }
+
+    function addTab() {
+      const tabbedWin = openWindows.find(w => w.tabbed);
+      if (tabbedWin) {
+        const newIndex = tabbedWin.tabs.length;
+        tabbedWin.tabs.push({
+          id: `tab-${newIndex + 1}`,
+          name: `Tab ${newIndex + 1}`,
+          content: ''
+        });
+        tabbedWin.activeTab = newIndex;
+        renderWindows();
+      }
+    }
+
+    // Setup tabbed window listeners
+    function setupTabbedWindowListeners() {
+      const tabbedWin = document.getElementById('tabbed-window');
+      if (tabbedWin) {
+        tabbedWin.addEventListener('mousedown', bringTabbedToFront);
+      }
+
+      // Tab click handlers
+      document.querySelectorAll('.tabbed-window-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          const tabIndex = parseInt(tab.dataset.tabIndex);
+          switchTab(tabIndex);
+        });
+      });
+
+      // Add tab button
+      const addBtn = document.getElementById('add-tab');
+      if (addBtn) {
+        addBtn.addEventListener('click', addTab);
+      }
+    }
+
+    // Applications menu
+    function renderApplicationsMenu() {
+      const dropdown = document.getElementById('applications-dropdown');
+      dropdown.innerHTML = '';
+
+      initialWindows.forEach(win => {
+        const isOpen = openWindows.some(w => w.id === win.id);
+        const item = document.createElement('div');
+        item.className = `menu-dropdown-item ${isOpen ? 'checked' : ''}`;
+        item.textContent = win.title;
+        item.dataset.windowId = win.id;
+        item.addEventListener('click', () => {
+          openApplication(win.id);
+          closeApplicationsMenu();
+        });
+        dropdown.appendChild(item);
+      });
+    }
+
+    function openApplication(windowId) {
+      const isOpen = openWindows.some(w => w.id === windowId);
+      if (!isOpen) {
+        const win = initialWindows.find(w => w.id === windowId);
+        if (win) {
+          openWindows.push({ ...win });
+          renderWindows();
+        }
+      }
+    }
+
+    function toggleApplicationsMenu() {
+      const dropdown = document.getElementById('applications-dropdown');
+      const isOpen = dropdown.classList.contains('open');
+      if (isOpen) {
+        closeApplicationsMenu();
+      } else {
+        renderApplicationsMenu();
+        dropdown.classList.add('open');
+      }
+    }
+
+    function closeApplicationsMenu() {
+      const dropdown = document.getElementById('applications-dropdown');
+      dropdown.classList.remove('open');
+    }
+
+    // Applications menu event listeners
+    document.getElementById('applications-menu').addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleApplicationsMenu();
+    });
+
+    document.addEventListener('click', () => {
+      closeApplicationsMenu();
+    });
   </script>
 </body>
 </html>
