@@ -679,6 +679,18 @@
       border: 2px solid teal;
     }
 
+    .pane-split.parent-highlight {
+      background: rgba(0, 128, 128, 0.1);
+    }
+
+    .pane-multi.closing-highlight {
+      background: rgba(255, 0, 0, 0.2);
+    }
+
+    .pane-multi.sibling-highlight {
+      background: rgba(0, 128, 128, 0.2);
+    }
+
     .pane-title {
       position: absolute;
       top: -8px;
@@ -711,6 +723,70 @@
 
     .pane-split-horizontal {
       flex-direction: row;
+    }
+
+    /* Upgrade Alert Modal */
+    .alert-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    .alert-box {
+      background: #fff;
+      border: 2px solid #000;
+      box-shadow: 4px 4px 0 #000;
+      padding: 24px;
+      max-width: 320px;
+      text-align: center;
+    }
+
+    .alert-title {
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
+
+    .alert-message {
+      font-size: 12px;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .alert-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .alert-btn {
+      padding: 6px 16px;
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      border: 2px solid #000;
+      background: #fff;
+    }
+
+    .alert-btn:hover {
+      background: #e0e0e0;
+    }
+
+    .alert-btn-upgrade {
+      background: teal;
+      color: #fff;
+      border-color: teal;
+    }
+
+    .alert-btn-upgrade:hover {
+      background: #006666;
     }
   </style>
 </head>
@@ -754,7 +830,7 @@
         right: 20,
         bottom: 20,
         tabs: [
-          { id: 'tab-1', name: 'Tab 1', panes: { id: 'pane-1', title: 'Pane 1', content: '' } }
+          { id: 'tab-1', name: 'Tab 1', activePane: 'pane-1', panes: { id: 'pane-1', title: 'Pane 1', content: '' } }
         ],
         contextMenu: [
           { label: 'Split Vertical', action: 'split-vertical' },
@@ -946,18 +1022,21 @@
     }
 
     // Render panes recursively
-    function renderPanes(pane, isMultiple = false) {
+    let splitIdCounter = 0;
+    function renderPanes(pane, isMultiple = false, parentSplitId = null) {
       if (pane.direction) {
         // Split pane - children are in multiple pane mode
+        const splitId = `split-${splitIdCounter++}`;
         const dirClass = pane.direction === 'vertical' ? 'pane-split-vertical' : 'pane-split-horizontal';
-        const childrenHtml = pane.children.map(child => renderPanes(child, true)).join('');
-        return `<div class="pane-split ${dirClass}">${childrenHtml}</div>`;
+        const childrenHtml = pane.children.map(child => renderPanes(child, true, splitId)).join('');
+        return `<div class="pane-split ${dirClass}" data-split-id="${splitId}">${childrenHtml}</div>`;
       } else {
         // Leaf pane
         const multiClass = isMultiple ? 'pane-multi' : '';
         const focusedClass = isMultiple && pane.id === focusedPaneId ? 'focused' : '';
         const titleHtml = isMultiple && pane.title ? `<div class="pane-title">${pane.title}</div>` : '';
-        return `<div class="pane ${multiClass} ${focusedClass}" data-pane-id="${pane.id}">${titleHtml}<div class="pane-content">${pane.content || ''}</div></div>`;
+        const parentAttr = parentSplitId ? `data-parent-split="${parentSplitId}"` : '';
+        return `<div class="pane ${multiClass} ${focusedClass}" data-pane-id="${pane.id}" ${parentAttr}>${titleHtml}<div class="pane-content">${pane.content || ''}</div></div>`;
       }
     }
 
@@ -1187,6 +1266,15 @@
       const tabbedWin = openWindows.find(w => w.tabbed);
       if (tabbedWin) {
         tabbedWin.activeTab = tabIndex;
+        // Restore focusedPaneId from the tab's activePane
+        const tab = tabbedWin.tabs[tabIndex];
+        if (tab && tab.activePane) {
+          focusedPaneId = tab.activePane;
+        } else if (tab && tab.panes) {
+          // Default to first pane if no activePane set
+          const firstLeaf = findFirstLeafPane(tab.panes);
+          focusedPaneId = firstLeaf ? firstLeaf.id : null;
+        }
         saveState();
         renderWindows();
       }
@@ -1232,6 +1320,41 @@
       return `pane-${paneIdCounter++}`;
     }
 
+    // Show upgrade alert when pane limit is reached
+    function showUpgradeAlert() {
+      const overlay = document.createElement('div');
+      overlay.className = 'alert-overlay';
+      overlay.innerHTML = `
+        <div class="alert-box">
+          <div class="alert-title">Pane Limit Reached</div>
+          <div class="alert-message">
+            You cannot open more than 8 panes per tab on the free plan.
+            Upgrade to Pro for unlimited panes and advanced features.
+          </div>
+          <div class="alert-buttons">
+            <button class="alert-btn" id="alert-cancel">Cancel</button>
+            <button class="alert-btn alert-btn-upgrade" id="alert-upgrade">Upgrade</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+
+      document.getElementById('alert-cancel').addEventListener('click', () => {
+        overlay.remove();
+      });
+
+      document.getElementById('alert-upgrade').addEventListener('click', () => {
+        // Handle upgrade action
+        overlay.remove();
+      });
+
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          overlay.remove();
+        }
+      });
+    }
+
     function addTab() {
       const tabbedWin = openWindows.find(w => w.tabbed);
       if (tabbedWin) {
@@ -1240,9 +1363,11 @@
         tabbedWin.tabs.push({
           id: `tab-${newIndex + 1}`,
           name: `Tab ${newIndex + 1}`,
+          activePane: newPaneId,
           panes: { id: newPaneId, title: `Pane ${paneIdCounter}`, content: '' }
         });
         tabbedWin.activeTab = newIndex;
+        focusedPaneId = newPaneId;
         saveState();
         renderWindows();
       }
@@ -1313,6 +1438,18 @@
 
     function focusPane(paneId) {
       focusedPaneId = paneId;
+
+      // Save to the current tab's activePane
+      const tabbedWin = openWindows.find(w => w.tabbed);
+      if (tabbedWin) {
+        const activeTab = tabbedWin.activeTab || 0;
+        const tab = tabbedWin.tabs[activeTab];
+        if (tab) {
+          tab.activePane = paneId;
+          saveState();
+        }
+      }
+
       // Update UI without full re-render - only apply to multi-pane
       document.querySelectorAll('.pane-multi').forEach(p => {
         if (p.dataset.paneId === paneId) {
@@ -1346,9 +1483,21 @@
         menuItem.className = 'menu-dropdown-item';
         menuItem.textContent = item.label;
         menuItem.addEventListener('click', () => {
+          highlightParentSplit(false);
           executeContextMenuAction(win.id, item.action);
           closeActiveWindowMenu();
         });
+
+        // Add hover highlight for close-pane
+        if (item.action === 'close-pane') {
+          menuItem.addEventListener('mouseenter', () => {
+            highlightParentSplit(true);
+          });
+          menuItem.addEventListener('mouseleave', () => {
+            highlightParentSplit(false);
+          });
+        }
+
         dropdown.appendChild(menuItem);
       });
     }
@@ -1398,6 +1547,14 @@
       const activeTab = win.activeTab || 0;
       const tab = win.tabs[activeTab];
       if (!tab || !tab.panes) return;
+
+      // Check pane limit (8 per tab)
+      const tabPanes = [];
+      collectPaneIds(tab.panes, tabPanes);
+      if (tabPanes.length >= 8) {
+        showUpgradeAlert();
+        return;
+      }
 
       // If no pane is focused, focus the first leaf pane
       if (!focusedPaneId) {
@@ -1486,6 +1643,52 @@
       }
     }
 
+    function highlightParentSplit(show) {
+      // Remove any existing highlights
+      document.querySelectorAll('.parent-highlight').forEach(el => {
+        el.classList.remove('parent-highlight');
+      });
+      document.querySelectorAll('.closing-highlight').forEach(el => {
+        el.classList.remove('closing-highlight');
+      });
+      document.querySelectorAll('.sibling-highlight').forEach(el => {
+        el.classList.remove('sibling-highlight');
+      });
+
+      if (show && focusedPaneId) {
+        const paneEl = document.querySelector(`.pane[data-pane-id="${focusedPaneId}"]`);
+        if (paneEl) {
+          // Highlight active pane in red
+          paneEl.classList.add('closing-highlight');
+
+          const parentSplitId = paneEl.dataset.parentSplit;
+          if (parentSplitId) {
+            const parentEl = document.querySelector(`.pane-split[data-split-id="${parentSplitId}"]`);
+            if (parentEl) {
+              parentEl.classList.add('parent-highlight');
+
+              // Find and highlight sibling pane in teal
+              const siblingPanes = parentEl.querySelectorAll(`:scope > .pane[data-parent-split="${parentSplitId}"]`);
+              siblingPanes.forEach(sibling => {
+                if (sibling.dataset.paneId !== focusedPaneId) {
+                  sibling.classList.add('sibling-highlight');
+                }
+              });
+
+              // Also check for sibling splits (highlight their leaf panes)
+              const siblingSplits = parentEl.querySelectorAll(`:scope > .pane-split`);
+              siblingSplits.forEach(split => {
+                const leafPanes = split.querySelectorAll('.pane');
+                leafPanes.forEach(leaf => {
+                  leaf.classList.add('sibling-highlight');
+                });
+              });
+            }
+          }
+        }
+      }
+    }
+
     // Remove a pane by ID and collapse the parent split
     function removePaneById(pane, targetId) {
       if (!pane.direction) {
@@ -1533,6 +1736,7 @@
     function closeActiveWindowMenu() {
       const dropdown = document.getElementById('active-window-dropdown');
       dropdown.classList.remove('open');
+      highlightParentSplit(false);
     }
 
     // Applications menu
