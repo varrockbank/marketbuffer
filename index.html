@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Marketbuffer</title>
+  <script src="vendor/buffer.js"></script>
+  <link rel="stylesheet" href="vendor/buffer.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Chicago&display=swap');
 
@@ -643,6 +645,21 @@
       background: #fff;
       overflow: hidden;
       display: flex;
+      position: relative;
+    }
+
+    .tab-pane-container {
+      display: none;
+      flex: 1;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+
+    .tab-pane-container.active {
+      display: flex;
     }
 
     /* Panes */
@@ -671,7 +688,7 @@
       margin-top: 0;
     }
 
-    .tabbed-window-content > .pane-split {
+    .tab-pane-container > .pane-split {
       padding-top: 8px;
     }
 
@@ -830,7 +847,25 @@
         right: 20,
         bottom: 20,
         tabs: [
-          { id: 'tab-1', name: 'Tab 1', activePane: 'pane-1', panes: { id: 'pane-1', title: 'Pane 1', content: '' } }
+          { id: 'tab-1', name: 'Tab 1', activePane: 'pane-1', panes: { id: 'pane-1', title: 'Pane 1', content: `
+            <blockquote cite="" class="playground 💪 🍜 🥷 🌕 🪜 wb no-select" tabindex="0" id="editor-pane-1">
+              <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
+              <div class="💪">
+                <div class="wb-gutter"></div>
+                <div class="wb-lines 🌳 🥷"></div>
+              </div>
+              <div class="💪 wb-status 🦠">
+                <div class="wb-status-left 💪">
+                  <span class="wb-linecount"></span>
+                </div>
+                <div class="wb-status-right 💪">
+                  <span class="wb-coordinate"></span>
+                  <span>|</span>
+                  <span class="wb-indentation"></span>
+                </div>
+              </div>
+            </blockquote>
+          ` } }
         ],
         contextMenu: [
           { label: 'Split Vertical', action: 'split-vertical' },
@@ -960,6 +995,9 @@
     // Focused pane ID
     let focusedPaneId = null;
 
+    // Global panes registry - stores pane info and editor instances
+    window.paneRegistry = {};
+
     // Dragging state
     let activeWindow = null;
     let offsetX = 0;
@@ -1074,9 +1112,12 @@
             ? `<div class="close-box tabbed-close-box" data-window-id="${win.id}"></div>`
             : '';
 
-          // Render panes for active tab
-          const activeTabData = win.tabs[activeTab];
-          const panesHtml = activeTabData?.panes ? renderPanes(activeTabData.panes) : '';
+          // Render panes for ALL tabs (hidden unless active)
+          const allTabPanesHtml = win.tabs.map((tab, tabIdx) => {
+            const panesHtml = tab.panes ? renderPanes(tab.panes) : '';
+            const isActive = tabIdx === activeTab ? 'active' : '';
+            return `<div class="tab-pane-container ${isActive}" data-tab-index="${tabIdx}">${panesHtml}</div>`;
+          }).join('');
 
           windowEl.innerHTML = `
             <div class="tabbed-window-inner">
@@ -1086,7 +1127,7 @@
                 <div class="tabbed-window-tab-add" id="add-tab">+</div>
               </div>
               <div class="tabbed-window-content" id="tabbed-content">
-                ${panesHtml}
+                ${allTabPanesHtml}
               </div>
             </div>
           `;
@@ -1117,6 +1158,56 @@
 
       attachEventListeners();
       setupTabbedWindowListeners();
+      initializePaneEditors();
+    }
+
+    // Initialize editors for all panes after rendering
+    function initializePaneEditors() {
+      // Find all editor elements and initialize WarrenBuf
+      document.querySelectorAll('[id^="editor-pane-"]').forEach(editorEl => {
+        // Skip if already initialized (check data attribute on element)
+        if (editorEl.dataset.wbInitialized) return;
+
+        const paneId = editorEl.id.replace('editor-', '');
+        if (typeof WarrenBuf !== 'undefined') {
+          editorEl.dataset.wbInitialized = 'true';
+          window.paneRegistry[paneId] = {
+            id: paneId,
+            editorId: editorEl.id,
+            editor: new WarrenBuf(editorEl, {})
+          };
+        }
+      });
+    }
+
+    // Re-render only the active tab's pane container (preserves other tabs' editors)
+    function renderActiveTabPanes() {
+      const tabbedWin = openWindows.find(w => w.tabbed);
+      if (!tabbedWin) return;
+
+      const activeTab = tabbedWin.activeTab || 0;
+      const tab = tabbedWin.tabs[activeTab];
+      if (!tab) return;
+
+      const container = document.querySelector(`.tab-pane-container[data-tab-index="${activeTab}"]`);
+      if (!container) return;
+
+      // Re-render only this tab's panes
+      splitIdCounter = 0;
+      const panesHtml = tab.panes ? renderPanes(tab.panes) : '';
+      container.innerHTML = panesHtml;
+
+      // Re-attach pane click handlers for this container
+      container.querySelectorAll('.pane').forEach(pane => {
+        pane.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const paneId = pane.dataset.paneId;
+          focusPane(paneId);
+        });
+      });
+
+      // Initialize any new editors
+      initializePaneEditors();
     }
 
     // Attach event listeners after rendering
@@ -1276,7 +1367,35 @@
           focusedPaneId = firstLeaf ? firstLeaf.id : null;
         }
         saveState();
-        renderWindows();
+
+        // Update tab UI without re-rendering (preserve editor state)
+        document.querySelectorAll('.tabbed-window-tab').forEach(tabEl => {
+          const idx = parseInt(tabEl.dataset.tabIndex);
+          if (idx === tabIndex) {
+            tabEl.classList.add('active');
+          } else {
+            tabEl.classList.remove('active');
+          }
+        });
+
+        // Toggle pane container visibility
+        document.querySelectorAll('.tab-pane-container').forEach(container => {
+          const idx = parseInt(container.dataset.tabIndex);
+          if (idx === tabIndex) {
+            container.classList.add('active');
+          } else {
+            container.classList.remove('active');
+          }
+        });
+
+        // Update pane focus styling
+        document.querySelectorAll('.pane-multi').forEach(p => {
+          if (p.dataset.paneId === focusedPaneId) {
+            p.classList.add('focused');
+          } else {
+            p.classList.remove('focused');
+          }
+        });
       }
     }
 
@@ -1364,7 +1483,7 @@
           id: `tab-${newIndex + 1}`,
           name: `Tab ${newIndex + 1}`,
           activePane: newPaneId,
-          panes: { id: newPaneId, title: `Pane ${paneIdCounter}`, content: '' }
+          panes: { id: newPaneId, title: `Pane ${paneIdCounter}`, content: generateEditorHtml(newPaneId) }
         });
         tabbedWin.activeTab = newIndex;
         focusedPaneId = newPaneId;
@@ -1539,7 +1658,30 @@
       return { found, result: { ...pane, children: newChildren } };
     }
 
-    // Split the focused pane
+    // Generate editor HTML for a pane
+    function generateEditorHtml(paneId) {
+      return `
+        <blockquote cite="" class="playground 💪 🍜 🥷 🌕 🪜 wb no-select" tabindex="0" id="editor-${paneId}">
+          <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
+          <div class="💪">
+            <div class="wb-gutter"></div>
+            <div class="wb-lines 🌳 🥷"></div>
+          </div>
+          <div class="💪 wb-status 🦠">
+            <div class="wb-status-left 💪">
+              <span class="wb-linecount"></span>
+            </div>
+            <div class="wb-status-right 💪">
+              <span class="wb-coordinate"></span>
+              <span>|</span>
+              <span class="wb-indentation"></span>
+            </div>
+          </div>
+        </blockquote>
+      `;
+    }
+
+    // Split the focused pane (DOM-based to preserve existing editors)
     function splitPane(windowId, direction) {
       const win = openWindows.find(w => w.id === windowId);
       if (!win || !win.tabbed) return;
@@ -1564,13 +1706,20 @@
 
       if (!focusedPaneId) return;
 
-      // Find the focused pane and get its data
+      // Find the focused pane element in DOM
+      const paneEl = document.querySelector(`.pane[data-pane-id="${focusedPaneId}"]`);
+      if (!paneEl) return;
+
+      // Find the focused pane data
       const focusedPane = findPaneById(tab.panes, focusedPaneId);
       if (!focusedPane) return;
 
-      // Create replacement split with original pane and new pane
+      // Generate new pane
       const newPaneId = generatePaneId();
-      const newPane = { id: newPaneId, title: `Pane ${paneIdCounter}`, content: '' };
+      const newPaneTitle = `Pane ${paneIdCounter}`;
+      const newPane = { id: newPaneId, title: newPaneTitle, content: generateEditorHtml(newPaneId) };
+
+      // Update data model
       const replacement = {
         direction: direction,
         children: [
@@ -1578,16 +1727,60 @@
           newPane
         ]
       };
-
-      // Replace focused pane with the new split
       const result = findAndReplacePaneById(tab.panes, focusedPaneId, replacement);
       tab.panes = result.result;
 
+      // DOM manipulation - create split container
+      const splitId = `split-${splitIdCounter++}`;
+      const splitEl = document.createElement('div');
+      splitEl.className = `pane-split pane-split-${direction}`;
+      splitEl.dataset.splitId = splitId;
+
+      // Check if we're going from single pane to multiple
+      const wasMultiple = paneEl.classList.contains('pane-multi');
+
+      // Insert split container before the pane
+      paneEl.parentNode.insertBefore(splitEl, paneEl);
+
+      // Move existing pane into split container
+      splitEl.appendChild(paneEl);
+
+      // Update existing pane to multi-pane style
+      paneEl.classList.add('pane-multi');
+      paneEl.dataset.parentSplit = splitId;
+      if (!wasMultiple) {
+        // Add title if it didn't have one
+        const titleEl = document.createElement('div');
+        titleEl.className = 'pane-title';
+        titleEl.textContent = focusedPane.title || focusedPaneId;
+        paneEl.insertBefore(titleEl, paneEl.firstChild);
+      }
+      paneEl.classList.remove('focused');
+
+      // Create new pane element
+      const newPaneEl = document.createElement('div');
+      newPaneEl.className = 'pane pane-multi focused';
+      newPaneEl.dataset.paneId = newPaneId;
+      newPaneEl.dataset.parentSplit = splitId;
+      newPaneEl.innerHTML = `<div class="pane-title">${newPaneTitle}</div><div class="pane-content">${generateEditorHtml(newPaneId)}</div>`;
+
+      // Add click handler to new pane
+      newPaneEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        focusPane(newPaneId);
+      });
+
+      // Append new pane to split container
+      splitEl.appendChild(newPaneEl);
+
       // Focus the new pane
       focusedPaneId = newPaneId;
+      tab.activePane = newPaneId;
 
       saveState();
-      renderWindows();
+
+      // Initialize editor for new pane only
+      initializePaneEditors();
     }
 
     // Find a pane by ID
@@ -1610,7 +1803,7 @@
       return findFirstLeafPane(pane.children[0]);
     }
 
-    // Close the focused pane and collapse its parent split
+    // Close the focused pane and collapse its parent split (DOM-based)
     function closePane(windowId) {
       const win = openWindows.find(w => w.id === windowId);
       if (!win || !win.tabbed) return;
@@ -1629,18 +1822,70 @@
 
       if (!focusedPaneId) return;
 
-      // Remove the pane and collapse the split
-      const result = removePaneById(tab.panes, focusedPaneId);
-      if (result.removed) {
-        tab.panes = result.result;
+      // Find the pane element to close
+      const paneEl = document.querySelector(`.pane[data-pane-id="${focusedPaneId}"]`);
+      if (!paneEl) return;
 
-        // Focus the first remaining pane
-        const firstLeaf = findFirstLeafPane(tab.panes);
-        focusedPaneId = firstLeaf ? firstLeaf.id : null;
+      const parentSplitId = paneEl.dataset.parentSplit;
+      if (!parentSplitId) return;
 
-        saveState();
-        renderWindows();
+      const parentSplitEl = document.querySelector(`.pane-split[data-split-id="${parentSplitId}"]`);
+      if (!parentSplitEl) return;
+
+      // Find sibling (the element that will remain)
+      let siblingEl = null;
+      for (const child of parentSplitEl.children) {
+        if (child !== paneEl) {
+          siblingEl = child;
+          break;
+        }
       }
+      if (!siblingEl) return;
+
+      // Clean up the editor being closed
+      if (window.paneRegistry[focusedPaneId]) {
+        delete window.paneRegistry[focusedPaneId];
+      }
+
+      // Update data model
+      const result = removePaneById(tab.panes, focusedPaneId);
+      if (!result.removed) return;
+      tab.panes = result.result;
+
+      // DOM manipulation - replace parent split with sibling
+      const grandparent = parentSplitEl.parentNode;
+
+      // Check if we're going back to single pane (grandparent is tab-pane-container)
+      const isGoingToSingle = grandparent.classList.contains('tab-pane-container') && !siblingEl.classList.contains('pane-split');
+
+      if (isGoingToSingle && siblingEl.classList.contains('pane')) {
+        // Remove multi-pane styling when going back to single pane
+        siblingEl.classList.remove('pane-multi', 'focused');
+        delete siblingEl.dataset.parentSplit;
+        // Remove title
+        const titleEl = siblingEl.querySelector('.pane-title');
+        if (titleEl) titleEl.remove();
+      }
+
+      // Replace split with sibling
+      grandparent.insertBefore(siblingEl, parentSplitEl);
+      parentSplitEl.remove();
+
+      // Focus the first remaining pane
+      const firstLeaf = findFirstLeafPane(tab.panes);
+      focusedPaneId = firstLeaf ? firstLeaf.id : null;
+      tab.activePane = focusedPaneId;
+
+      // Update focus styling
+      document.querySelectorAll('.pane-multi').forEach(p => {
+        if (p.dataset.paneId === focusedPaneId) {
+          p.classList.add('focused');
+        } else {
+          p.classList.remove('focused');
+        }
+      });
+
+      saveState();
     }
 
     function highlightParentSplit(show) {

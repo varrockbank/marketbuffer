@@ -1,0 +1,68 @@
+/************* "Atomic CSS" classes for Boxes *************/
+.💪 { display: flex }                                 /* Flex like muscles.   */
+.🥷 { overflow: hidden }
+.🪜 { flex-flow: column }
+.🌳 { flex: 1 }                                       /* Grow like a tree.    */
+.🦠 { justify-content: space-between }                /* Stay spread apart.   */
+
+/*** Classes for Vbuf ***/
+.wb {
+    background-color: #282C34;
+    color: #B2B2B2;
+    position: relative;
+    outline: none;
+    font-family: 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace;
+    border: 1px solid black;
+}
+.no-select {
+    user-select: none;       /* Standard */
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none;    /* Firefox */
+    -ms-user-select: none;     /* IE/Edge (old) */
+}
+/* Bridge must be selectable but invisible & offscreen */
+.wb-clipboard-bridge {
+    position: fixed;      /* out of normal flow so it won't jump layout */
+    left: 0;
+    top: 1px;
+    width: 0;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none; /* avoid clicks */
+}
+
+.wb .wb-lines>pre::before {
+    content: "\200B";
+}
+.wb .wb-lines pre {
+    margin: 0;
+    overflow: hidden;
+}
+.wb .wb-selection {
+    left: 0ch;
+    top: 0ch;
+    background-color: #EDAD10;
+    position: absolute;
+    mix-blend-mode: difference;        /* inverts underlying pixels */
+}
+.wb .wb-status span {
+    padding-right: 4px;
+}
+.wb .wb-lines pre .highlight-function {
+    color: orange;
+}
+.wb .wb-lines pre .highlight-function-name {
+    color: cadetblue ;
+}
+.wb .wb-lines pre .highlight-string {
+    color: green;
+}
+
+.playground.wb {
+    background-color: white;
+    color: black;
+}
+.playground.wb .wb-selection {
+    background-color: #F9AD40;
+}
+
