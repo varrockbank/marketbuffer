@@ -1029,9 +1029,9 @@
               type: 'folder',
               expanded: false,
               children: [
-                { name: 'Button.js', type: 'file' },
-                { name: 'Modal.js', type: 'file' },
-                { name: 'Sidebar.js', type: 'file' }
+                { name: 'Button.js', type: 'file', path: 'demo/src/components/Button.js' },
+                { name: 'Modal.js', type: 'file', path: 'demo/src/components/Modal.js' },
+                { name: 'Sidebar.js', type: 'file', path: 'demo/src/components/Sidebar.js' }
               ]
             },
             {
@@ -1039,12 +1039,12 @@
               type: 'folder',
               expanded: false,
               children: [
-                { name: 'helpers.js', type: 'file' },
-                { name: 'constants.js', type: 'file' }
+                { name: 'helpers.js', type: 'file', path: 'demo/src/utils/helpers.js' },
+                { name: 'constants.js', type: 'file', path: 'demo/src/utils/constants.js' }
               ]
             },
-            { name: 'index.js', type: 'file' },
-            { name: 'App.js', type: 'file' }
+            { name: 'index.js', type: 'file', path: 'demo/src/index.js' },
+            { name: 'App.js', type: 'file', path: 'demo/src/App.js' }
           ]
         },
         {
@@ -1052,8 +1052,8 @@
           type: 'folder',
           expanded: false,
           children: [
-            { name: 'index.html', type: 'file' },
-            { name: 'favicon.ico', type: 'file' }
+            { name: 'index.html', type: 'file', path: 'demo/public/index.html' },
+            { name: 'favicon.ico', type: 'file', path: 'demo/public/favicon.ico' }
           ]
         },
         {
@@ -1061,15 +1061,18 @@
           type: 'folder',
           expanded: false,
           children: [
-            { name: 'main.css', type: 'file' },
-            { name: 'variables.css', type: 'file' }
+            { name: 'main.css', type: 'file', path: 'demo/styles/main.css' },
+            { name: 'variables.css', type: 'file', path: 'demo/styles/variables.css' }
           ]
         },
-        { name: 'package.json', type: 'file' },
-        { name: 'README.md', type: 'file' },
-        { name: '.gitignore', type: 'file' }
+        { name: 'package.json', type: 'file', path: 'demo/package.json' },
+        { name: 'README.md', type: 'file', path: 'demo/README.md' },
+        { name: '.gitignore', type: 'file', path: 'demo/.gitignore' }
       ]
     };
+
+    // Cache for loaded file contents (session memory)
+    const fileContentsCache = {};
 
     // Render file tree
     function renderFileTree() {
@@ -1094,9 +1097,10 @@
       const toggleIcon = hasChildren ? (node.expanded ? '&#9660;' : '&#9654;') : '';
       const icon = isFolder ? '&#128193;' : '&#128196;';
       const expandedClass = node.expanded ? 'expanded' : '';
+      const pathAttr = node.path ? `data-path="${node.path}"` : '';
 
       let html = `
-        <div class="tree-item" data-depth="${depth}" data-type="${node.type}" data-name="${node.name}">
+        <div class="tree-item" data-depth="${depth}" data-type="${node.type}" data-name="${node.name}" ${pathAttr}>
           <div class="tree-item-row">
             <span class="tree-toggle">${toggleIcon}</span>
             <span class="tree-icon">${icon}</span>
@@ -1123,6 +1127,7 @@
           const item = row.closest('.tree-item');
           const type = item.dataset.type;
           const name = item.dataset.name;
+          const path = item.dataset.path;
 
           // Handle selection
           document.querySelectorAll('.tree-item-row.selected').forEach(el => {
@@ -1141,9 +1146,140 @@
               updateNodeExpanded(fileTreeData, name, isExpanded);
               saveFileTreeState();
             }
+          } else if (type === 'file' && path) {
+            // Open file in editor
+            openFileInEditor(path, name);
           }
         });
       });
+    }
+
+    // Open a file in the editor
+    async function openFileInEditor(path, fileName) {
+      // Ensure the main tabbed window is open
+      let tabbedWin = openWindows.find(w => w.id === 'tabbed-main');
+      if (!tabbedWin) {
+        openApplication('tabbed-main');
+        // Wait for render
+        await new Promise(resolve => setTimeout(resolve, 100));
+        tabbedWin = openWindows.find(w => w.id === 'tabbed-main');
+      }
+
+      if (!tabbedWin) return;
+
+      // Check if file is already open in a tab
+      const existingTabIndex = tabbedWin.tabs.findIndex(tab => tab.filePath === path);
+      if (existingTabIndex !== -1) {
+        // Switch to existing tab
+        switchTab(existingTabIndex);
+        return;
+      }
+
+      // Fetch file content (from cache or network)
+      let content;
+      if (fileContentsCache[path]) {
+        content = fileContentsCache[path];
+      } else {
+        try {
+          const response = await fetch(path);
+          if (response.ok) {
+            content = await response.text();
+            fileContentsCache[path] = content;
+          } else {
+            content = `// Error loading file: ${path}`;
+          }
+        } catch (err) {
+          content = `// Error loading file: ${err.message}`;
+        }
+      }
+
+      // Check if current tab already has a file open
+      const currentTab = tabbedWin.tabs[tabbedWin.activeTab || 0];
+      const hasFileOpen = currentTab && currentTab.filePath;
+
+      if (hasFileOpen) {
+        // Open new tab via DOM manipulation (preserve existing editors)
+        const newPaneId = generatePaneId();
+        const newTabIndex = tabbedWin.tabs.length;
+
+        // Update data model
+        tabbedWin.tabs.push({
+          id: `tab-${newTabIndex + 1}`,
+          name: fileName,
+          filePath: path,
+          activePane: newPaneId,
+          panes: { id: newPaneId, title: fileName, content: generateEditorHtml(newPaneId) }
+        });
+        tabbedWin.activeTab = newTabIndex;
+        focusedPaneId = newPaneId;
+
+        // DOM: Remove active class from current tab
+        document.querySelectorAll('.tabbed-window-tab').forEach(t => t.classList.remove('active'));
+
+        // DOM: Add new tab button before the + button
+        const addBtn = document.getElementById('add-tab');
+        const newTabEl = document.createElement('div');
+        newTabEl.className = 'tabbed-window-tab active';
+        newTabEl.dataset.tabIndex = newTabIndex;
+        newTabEl.innerHTML = `${fileName}<span class="tab-close" data-tab-index="${newTabIndex}">&times;</span>`;
+        newTabEl.addEventListener('click', (e) => {
+          if (!e.target.classList.contains('tab-close')) {
+            switchTab(newTabIndex);
+          }
+        });
+        newTabEl.querySelector('.tab-close').addEventListener('click', (e) => {
+          e.stopPropagation();
+          closeTab(newTabIndex);
+        });
+        addBtn.parentNode.insertBefore(newTabEl, addBtn);
+
+        // DOM: Hide current pane container, add new one
+        document.querySelectorAll('.tab-pane-container').forEach(c => c.classList.remove('active'));
+
+        const tabbedContent = document.getElementById('tabbed-content');
+        const newPaneContainer = document.createElement('div');
+        newPaneContainer.className = 'tab-pane-container active';
+        newPaneContainer.dataset.tabIndex = newTabIndex;
+        newPaneContainer.innerHTML = `<div class="pane" data-pane-id="${newPaneId}"><div class="pane-content">${generateEditorHtml(newPaneId)}</div></div>`;
+
+        // Add click handler for pane
+        newPaneContainer.querySelector('.pane').addEventListener('click', (e) => {
+          e.stopPropagation();
+          focusPane(newPaneId);
+        });
+
+        tabbedContent.appendChild(newPaneContainer);
+
+        saveState();
+
+        // Initialize the new editor and set content
+        initializePaneEditors();
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const registry = window.paneRegistry[newPaneId];
+        if (registry && registry.editor && registry.editor.Model) {
+          registry.editor.Model.text = content;
+        }
+      } else {
+        // Use current tab - update its name and file path
+        currentTab.name = fileName;
+        currentTab.filePath = path;
+        saveState();
+
+        // Update tab name in DOM
+        const tabEl = document.querySelector(`.tabbed-window-tab[data-tab-index="${tabbedWin.activeTab || 0}"]`);
+        if (tabEl) {
+          const closeSpan = tabEl.querySelector('.tab-close');
+          tabEl.innerHTML = `${fileName}<span class="tab-close" data-tab-index="${tabbedWin.activeTab || 0}">&times;</span>`;
+        }
+
+        // Set editor content
+        const paneId = currentTab.activePane;
+        const registry = window.paneRegistry[paneId];
+        if (registry && registry.editor && registry.editor.Model) {
+          registry.editor.Model.text = content;
+        }
+      }
     }
 
     function updateNodeExpanded(node, name, expanded) {
@@ -1770,6 +1906,36 @@
             p.classList.remove('focused');
           }
         });
+
+        // Focus the editor element
+        if (focusedPaneId) {
+          const editorEl = document.getElementById(`editor-${focusedPaneId}`);
+          if (editorEl) {
+            editorEl.focus();
+          }
+        }
+
+        // Highlight the file in the file tree
+        if (tab && tab.filePath) {
+          highlightFileInTree(tab.filePath);
+        }
+      }
+    }
+
+    // Highlight a file in the file tree by its path
+    function highlightFileInTree(filePath) {
+      // Remove existing selection
+      document.querySelectorAll('.tree-item-row.selected').forEach(el => {
+        el.classList.remove('selected');
+      });
+
+      // Find and select the matching file
+      const fileItem = document.querySelector(`.tree-item[data-path="${filePath}"]`);
+      if (fileItem) {
+        const row = fileItem.querySelector('.tree-item-row');
+        if (row) {
+          row.classList.add('selected');
+        }
       }
     }
 
