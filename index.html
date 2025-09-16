@@ -1338,7 +1338,7 @@
     const initialWindows = [
       {
         id: 'tabbed-main',
-        title: 'Main',
+        title: 'Editor',
         tabbed: true,
         draggable: false,
         closeable: true,
@@ -1545,7 +1545,7 @@
     }
 
     // Initialize on page load
-    function init() {
+    async function init() {
       // Render file tree in sidebar
       renderFileTree();
 
@@ -1560,6 +1560,52 @@
         const topWindow = openWindows.reduce((a, b) => a.zIndex > b.zIndex ? a : b);
         activeWindowId = topWindow.id;
         updateActiveWindowMenu();
+      }
+
+      // Reload file contents for all tabs
+      await reloadAllTabFiles();
+    }
+
+    // Reload file contents for all tabs that have a filePath
+    async function reloadAllTabFiles() {
+      const tabbedWin = openWindows.find(w => w.id === 'tabbed-main');
+      if (!tabbedWin || !tabbedWin.tabs) return;
+
+      // Wait for editors to initialize
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      for (const tab of tabbedWin.tabs) {
+        if (tab.filePath && tab.activePane) {
+          // Fetch file content
+          let content;
+          if (fileContentsCache[tab.filePath]) {
+            content = fileContentsCache[tab.filePath];
+          } else {
+            try {
+              const response = await fetch(tab.filePath);
+              if (response.ok) {
+                content = await response.text();
+                fileContentsCache[tab.filePath] = content;
+              } else {
+                content = `// Error loading file: ${tab.filePath}`;
+              }
+            } catch (err) {
+              content = `// Error loading file: ${err.message}`;
+            }
+          }
+
+          // Set editor content
+          const registry = window.paneRegistry[tab.activePane];
+          if (registry && registry.editor && registry.editor.Model) {
+            registry.editor.Model.text = content;
+          }
+        }
+      }
+
+      // Highlight the active tab's file in the tree
+      const activeTab = tabbedWin.tabs[tabbedWin.activeTab || 0];
+      if (activeTab && activeTab.filePath) {
+        highlightFileInTree(activeTab.filePath);
       }
     }
 
@@ -2032,24 +2078,117 @@
       }
     }
 
-    function closeTab(tabIndex) {
+    async function closeTab(tabIndex) {
       const tabbedWin = openWindows.find(w => w.tabbed);
-      if (tabbedWin) {
-        tabbedWin.tabs.splice(tabIndex, 1);
+      if (!tabbedWin) return;
 
-        // If no tabs left, close the window
-        if (tabbedWin.tabs.length === 0) {
-          openWindows = openWindows.filter(w => w.id !== tabbedWin.id);
-        } else {
-          // Adjust active tab if needed
-          if (tabbedWin.activeTab >= tabbedWin.tabs.length) {
-            tabbedWin.activeTab = tabbedWin.tabs.length - 1;
-          } else if (tabbedWin.activeTab > tabIndex) {
-            tabbedWin.activeTab--;
-          }
-        }
+      // Get the tab being closed
+      const closingTab = tabbedWin.tabs[tabIndex];
+
+      // Clean up editor from registry
+      if (closingTab && closingTab.activePane) {
+        delete window.paneRegistry[closingTab.activePane];
+      }
+
+      // Remove from data model
+      tabbedWin.tabs.splice(tabIndex, 1);
+
+      // If no tabs left, close the window
+      if (tabbedWin.tabs.length === 0) {
+        openWindows = openWindows.filter(w => w.id !== tabbedWin.id);
         saveState();
         renderWindows();
+        return;
+      }
+
+      // DOM: Remove the tab element
+      const tabEl = document.querySelector(`.tabbed-window-tab[data-tab-index="${tabIndex}"]`);
+      if (tabEl) tabEl.remove();
+
+      // DOM: Remove the pane container
+      const paneContainer = document.querySelector(`.tab-pane-container[data-tab-index="${tabIndex}"]`);
+      if (paneContainer) paneContainer.remove();
+
+      // Update data-tab-index for remaining tabs and containers
+      document.querySelectorAll('.tabbed-window-tab').forEach(t => {
+        const idx = parseInt(t.dataset.tabIndex);
+        if (idx > tabIndex) {
+          t.dataset.tabIndex = idx - 1;
+          const closeBtn = t.querySelector('.tab-close');
+          if (closeBtn) closeBtn.dataset.tabIndex = idx - 1;
+        }
+      });
+      document.querySelectorAll('.tab-pane-container').forEach(c => {
+        const idx = parseInt(c.dataset.tabIndex);
+        if (idx > tabIndex) {
+          c.dataset.tabIndex = idx - 1;
+        }
+      });
+
+      // Determine new active tab
+      let newActiveTab;
+      if (tabbedWin.activeTab >= tabbedWin.tabs.length) {
+        newActiveTab = tabbedWin.tabs.length - 1;
+      } else if (tabbedWin.activeTab > tabIndex) {
+        newActiveTab = tabbedWin.activeTab - 1;
+      } else if (tabbedWin.activeTab === tabIndex) {
+        // Closed the active tab, switch to same index or previous
+        newActiveTab = Math.min(tabIndex, tabbedWin.tabs.length - 1);
+      } else {
+        newActiveTab = tabbedWin.activeTab;
+      }
+
+      tabbedWin.activeTab = newActiveTab;
+      const newTab = tabbedWin.tabs[newActiveTab];
+      if (newTab) {
+        focusedPaneId = newTab.activePane;
+      }
+
+      // DOM: Update active states
+      document.querySelectorAll('.tabbed-window-tab').forEach(t => {
+        if (parseInt(t.dataset.tabIndex) === newActiveTab) {
+          t.classList.add('active');
+        } else {
+          t.classList.remove('active');
+        }
+      });
+      document.querySelectorAll('.tab-pane-container').forEach(c => {
+        if (parseInt(c.dataset.tabIndex) === newActiveTab) {
+          c.classList.add('active');
+        } else {
+          c.classList.remove('active');
+        }
+      });
+
+      saveState();
+
+      // Reload content for the now-active tab if it has a file
+      if (newTab && newTab.filePath) {
+        let content = fileContentsCache[newTab.filePath];
+        if (!content) {
+          try {
+            const response = await fetch(newTab.filePath);
+            if (response.ok) {
+              content = await response.text();
+              fileContentsCache[newTab.filePath] = content;
+            }
+          } catch (err) {
+            content = `// Error loading file: ${err.message}`;
+          }
+        }
+        if (content) {
+          const registry = window.paneRegistry[newTab.activePane];
+          if (registry && registry.editor && registry.editor.Model) {
+            registry.editor.Model.text = content;
+          }
+        }
+        highlightFileInTree(newTab.filePath);
+      }
+
+      // Focus the editor
+      if (focusedPaneId) {
+        const editorEl = document.getElementById(`editor-${focusedPaneId}`);
+        if (editorEl) editorEl.focus();
       }
     }
 
