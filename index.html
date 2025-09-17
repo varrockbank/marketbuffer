@@ -694,6 +694,271 @@
       font-size: 10px;
     }
 
+    /* Git Window */
+    .git-wrapper {
+      display: flex;
+      flex-direction: column;
+      height: 350px;
+    }
+
+    .git-content {
+      padding: 0;
+      background: #fff;
+      display: flex;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .git-bottom {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      border-top: 1px solid #000;
+      background: #f0f0f0;
+    }
+
+    .git-commit-input {
+      flex: 1;
+      padding: 4px 8px;
+      font-family: inherit;
+      font-size: 11px;
+      border: 1px solid #000;
+      background: #fff;
+    }
+
+    .git-commit-input:focus {
+      outline: none;
+    }
+
+    .git-bottom-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .git-sidebar {
+      width: 200px;
+      border-right: 1px solid #000;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .git-diff-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .git-diff-panel.empty {
+      align-items: center;
+      justify-content: center;
+      color: #999;
+      font-size: 11px;
+    }
+
+    .diff-panel-header {
+      padding: 6px 10px;
+      border-bottom: 1px solid #000;
+      font-size: 11px;
+      font-weight: bold;
+      background: #e0e0e0;
+      flex-shrink: 0;
+    }
+
+    .diff-panel-content {
+      flex: 1;
+      overflow-y: auto;
+      font-family: Monaco, 'Courier New', monospace;
+      font-size: 11px;
+      background: #fff;
+    }
+
+    .diff-line {
+      padding: 1px 8px;
+      white-space: pre;
+    }
+
+    .diff-line.header {
+      background: #e8e8fc;
+      color: #333;
+      font-weight: bold;
+    }
+
+    .diff-line.added {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .diff-line.removed {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .diff-line.context {
+      background: #fff;
+      color: #333;
+    }
+
+    .diff-line-number {
+      display: inline-block;
+      width: 30px;
+      text-align: right;
+      margin-right: 8px;
+      color: #999;
+      user-select: none;
+    }
+
+    .git-section {
+      border-bottom: 1px solid #000;
+      padding: 8px;
+    }
+
+    .git-section-title {
+      font-weight: bold;
+      font-size: 11px;
+      margin-bottom: 6px;
+    }
+
+    .git-branch {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+    }
+
+    .git-branch-icon {
+      font-size: 14px;
+    }
+
+    .git-file-list {
+      font-size: 11px;
+    }
+
+    .git-file-item {
+      display: flex;
+      align-items: center;
+      padding: 3px 4px;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .git-file-item:hover {
+      background: #e0e0e0;
+    }
+
+    .git-file-item.selected {
+      background: #c0c0c0;
+    }
+
+    .git-file-status {
+      width: 14px;
+      height: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: bold;
+    }
+
+    .git-file-status.modified { color: #b58900; }
+    .git-file-status.added { color: #28a745; }
+    .git-file-status.deleted { color: #dc3545; }
+
+    .git-file-name {
+      flex: 1;
+      font-size: 10px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .git-btn {
+      background: #fff;
+      border: 1px solid #000;
+      padding: 3px 8px;
+      font-family: inherit;
+      font-size: 10px;
+      cursor: pointer;
+    }
+
+    .git-btn:hover {
+      background: #000;
+      color: #fff;
+    }
+
+    .git-btn-primary {
+      background: #000;
+      color: #fff;
+    }
+
+    .git-btn-primary:hover {
+      background: #333;
+    }
+
+    /* UI Alert */
+    .ui-alert-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    }
+
+    .ui-alert {
+      background: #fff;
+      border: 2px solid #000;
+      box-shadow: 2px 2px 0 #000;
+      min-width: 300px;
+      max-width: 400px;
+    }
+
+    .ui-alert-header {
+      background: #000;
+      color: #fff;
+      padding: 4px 8px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .ui-alert-body {
+      padding: 20px;
+      text-align: center;
+      font-size: 12px;
+    }
+
+    .ui-alert-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+
+    .ui-alert-buttons {
+      padding: 12px;
+      display: flex;
+      justify-content: center;
+      border-top: 1px solid #ccc;
+    }
+
+    .ui-alert-btn {
+      background: #fff;
+      border: 2px solid #000;
+      padding: 6px 24px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .ui-alert-btn:hover {
+      background: #000;
+      color: #fff;
+    }
+
     /* Tabbed Window */
     .tabbed-window {
       position: absolute;
@@ -1481,6 +1746,69 @@
               <button class="hypercard-nav-btn">&larr; Prev</button>
               <span class="hypercard-page">Card 1 of 3</span>
               <button class="hypercard-nav-btn">Next &rarr;</button>
+            </div>
+          </div>
+        `
+      },
+      {
+        id: 'git',
+        title: 'Git',
+        draggable: true,
+        closeable: true,
+        zIndex: 103,
+        top: 60,
+        right: 240,
+        width: 700,
+        contextMenu: [
+          { label: 'Close', action: 'close' }
+        ],
+        content: `
+          <div class="git-wrapper">
+            <div class="git-content">
+              <div class="git-sidebar">
+                <div class="git-section">
+                  <div class="git-branch">
+                    <span class="git-branch-icon">&#9739;</span>
+                    <strong>main</strong>
+                  </div>
+                </div>
+                <div class="git-section">
+                  <div class="git-section-title">Staged</div>
+                  <div class="git-file-list">
+                    <div class="git-file-item" data-file="src/components/Button.js">
+                      <span class="git-file-status added">A</span>
+                      <span class="git-file-name">src/components/Button.js</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="git-section">
+                  <div class="git-section-title">Changes</div>
+                  <div class="git-file-list">
+                    <div class="git-file-item selected" data-file="src/App.js">
+                      <span class="git-file-status modified">M</span>
+                      <span class="git-file-name">src/App.js</span>
+                    </div>
+                    <div class="git-file-item" data-file="styles/main.css">
+                      <span class="git-file-status modified">M</span>
+                      <span class="git-file-name">styles/main.css</span>
+                    </div>
+                    <div class="git-file-item" data-file="src/old-file.js">
+                      <span class="git-file-status deleted">D</span>
+                      <span class="git-file-name">src/old-file.js</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="git-diff-panel empty" id="git-diff-panel">
+                Select a file to view changes
+              </div>
+            </div>
+            <div class="git-bottom">
+              <input type="text" class="git-commit-input" placeholder="Commit message...">
+              <div class="git-bottom-actions">
+                <button class="git-btn">Revert</button>
+                <button class="git-btn git-btn-primary">Commit</button>
+              </div>
             </div>
           </div>
         `
@@ -2737,6 +3065,156 @@
       closeApplicationsMenu();
       closeActiveWindowMenu();
     });
+
+    // Fake diff data for different files
+    const fakeDiffs = {
+      'src/App.js': [
+        { type: 'header', text: '@@ -1,10 +1,12 @@' },
+        { type: 'context', num: 1, text: "import React, { useState } from 'react';" },
+        { type: 'context', num: 2, text: "import { Button } from './components/Button';" },
+        { type: 'removed', num: 3, text: "import { Modal } from './components/Modal';" },
+        { type: 'added', num: 3, text: "import { Modal } from './components/Modal';" },
+        { type: 'added', num: 4, text: "import { Sidebar } from './components/Sidebar';" },
+        { type: 'context', num: 5, text: '' },
+        { type: 'context', num: 6, text: 'function App() {' },
+        { type: 'removed', num: 7, text: '  const [modalOpen, setModalOpen] = useState(false);' },
+        { type: 'added', num: 7, text: '  const [isModalOpen, setIsModalOpen] = useState(false);' },
+        { type: 'added', num: 8, text: '  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);' },
+        { type: 'context', num: 9, text: '  const [selected, setSelected] = useState(null);' },
+      ],
+      'styles/main.css': [
+        { type: 'header', text: '@@ -22,6 +22,14 @@' },
+        { type: 'context', num: 22, text: '.app {' },
+        { type: 'context', num: 23, text: '  display: flex;' },
+        { type: 'context', num: 24, text: '  min-height: 100vh;' },
+        { type: 'added', num: 25, text: '  background: var(--bg-color);' },
+        { type: 'added', num: 26, text: '}' },
+        { type: 'added', num: 27, text: '' },
+        { type: 'added', num: 28, text: '.app.dark-mode {' },
+        { type: 'added', num: 29, text: '  background: #1a1a1a;' },
+        { type: 'added', num: 30, text: '  color: #fff;' },
+        { type: 'context', num: 31, text: '}' },
+      ],
+      'src/old-file.js': [
+        { type: 'header', text: '@@ -1,15 +0,0 @@' },
+        { type: 'removed', num: 1, text: '// This file is no longer needed' },
+        { type: 'removed', num: 2, text: "import { legacy } from './legacy';" },
+        { type: 'removed', num: 3, text: '' },
+        { type: 'removed', num: 4, text: 'export function oldFunction() {' },
+        { type: 'removed', num: 5, text: "  console.log('deprecated');" },
+        { type: 'removed', num: 6, text: '  return legacy.process();' },
+        { type: 'removed', num: 7, text: '}' },
+      ],
+      'src/components/Button.js': [
+        { type: 'header', text: '@@ -0,0 +1,17 @@' },
+        { type: 'added', num: 1, text: "import React from 'react';" },
+        { type: 'added', num: 2, text: '' },
+        { type: 'added', num: 3, text: "export function Button({ children, onClick, variant = 'primary' }) {" },
+        { type: 'added', num: 4, text: '  const styles = {' },
+        { type: 'added', num: 5, text: "    primary: 'bg-blue-500 text-white'," },
+        { type: 'added', num: 6, text: "    secondary: 'bg-gray-500 text-white'," },
+        { type: 'added', num: 7, text: '  };' },
+        { type: 'added', num: 8, text: '' },
+        { type: 'added', num: 9, text: '  return (' },
+        { type: 'added', num: 10, text: '    <button className={styles[variant]} onClick={onClick}>' },
+        { type: 'added', num: 11, text: '      {children}' },
+        { type: 'added', num: 12, text: '    </button>' },
+        { type: 'added', num: 13, text: '  );' },
+        { type: 'added', num: 14, text: '}' },
+      ]
+    };
+
+    // Show diff viewer in the right panel
+    function showDiffViewer(fileName) {
+      const diffPanel = document.getElementById('git-diff-panel');
+      if (!diffPanel) return;
+
+      const diff = fakeDiffs[fileName] || [
+        { type: 'context', num: 1, text: '// No changes to display' }
+      ];
+
+      diffPanel.classList.remove('empty');
+      diffPanel.innerHTML = `
+        <div class="diff-panel-header">
+          <span class="diff-panel-title">${fileName}</span>
+        </div>
+        <div class="diff-panel-content">
+          ${diff.map(line => {
+            const numHtml = line.num ? `<span class="diff-line-number">${line.num}</span>` : '<span class="diff-line-number"></span>';
+            const prefix = line.type === 'added' ? '+' : line.type === 'removed' ? '-' : ' ';
+            return `<div class="diff-line ${line.type}">${numHtml}${prefix} ${line.text}</div>`;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    // Attach click handlers to git file items after rendering
+    function attachGitFileHandlers() {
+      document.querySelectorAll('.git-file-item').forEach(item => {
+        item.addEventListener('click', () => {
+          // Remove selected class from all items
+          document.querySelectorAll('.git-file-item.selected').forEach(el => {
+            el.classList.remove('selected');
+          });
+          // Add selected class to clicked item
+          item.classList.add('selected');
+
+          const fileName = item.querySelector('.git-file-name')?.textContent;
+          if (fileName) {
+            showDiffViewer(fileName);
+          }
+        });
+      });
+
+      // Commit button handler
+      const commitBtn = document.querySelector('.git-btn-primary');
+      if (commitBtn) {
+        commitBtn.onclick = () => {
+          showUIAlert('Error', 'You do not have permissions to modify this repository');
+        };
+      }
+
+      // Revert button handler
+      const revertBtn = document.querySelector('.git-bottom .git-btn:not(.git-btn-primary)');
+      if (revertBtn) {
+        revertBtn.onclick = () => {
+          showUIAlert('Error', 'You do not have permissions to modify this repository');
+        };
+      }
+    }
+
+    function showUIAlert(title, message) {
+      const overlay = document.createElement('div');
+      overlay.className = 'ui-alert-overlay';
+      overlay.innerHTML = `
+        <div class="ui-alert">
+          <div class="ui-alert-header">${title}</div>
+          <div class="ui-alert-body">
+            <div class="ui-alert-icon">&#9888;</div>
+            <div>${message}</div>
+          </div>
+          <div class="ui-alert-buttons">
+            <button class="ui-alert-btn">OK</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+
+      const closeAlert = () => overlay.remove();
+      overlay.querySelector('.ui-alert-btn').onclick = closeAlert;
+      overlay.onclick = (e) => { if (e.target === overlay) closeAlert(); };
+    }
+
+    // Call after windows are rendered
+    const originalRenderWindows = renderWindows;
+    renderWindows = function() {
+      originalRenderWindows();
+      attachGitFileHandlers();
+    };
+    // Also attach on initial load
+    attachGitFileHandlers();
+    // Preselect src/App.js diff
+    showDiffViewer('src/App.js');
   </script>
 </body>
 </html>
