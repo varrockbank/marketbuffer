@@ -1835,6 +1835,23 @@
     // LocalStorage key
     const STORAGE_KEY = 'marketbuffer_windows_state';
 
+    // Helper to strip content from panes (for saving - content is regenerated on load)
+    function stripPaneContent(pane) {
+      if (pane.direction) {
+        return { ...pane, children: pane.children.map(stripPaneContent) };
+      }
+      const { content, ...rest } = pane;
+      return rest;
+    }
+
+    // Helper to restore content to panes (for loading)
+    function restorePaneContent(pane) {
+      if (pane.direction) {
+        return { ...pane, children: pane.children.map(restorePaneContent) };
+      }
+      return { ...pane, content: generateEditorHtml(pane.id) };
+    }
+
     // Save state to localStorage
     function saveState() {
       const state = openWindows.map(win => ({
@@ -1845,7 +1862,10 @@
         right: win.right,
         bottom: win.bottom,
         activeTab: win.activeTab,
-        tabs: win.tabs
+        tabs: win.tabs ? win.tabs.map(tab => ({
+          ...tab,
+          panes: tab.panes ? stripPaneContent(tab.panes) : null
+        })) : undefined
       }));
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
@@ -1860,7 +1880,15 @@
           openWindows = state.map(savedWin => {
             const initialWin = initialWindows.find(w => w.id === savedWin.id);
             if (initialWin) {
-              return { ...initialWin, ...savedWin };
+              const merged = { ...initialWin, ...savedWin };
+              // Restore pane content for tabbed windows
+              if (merged.tabs) {
+                merged.tabs = merged.tabs.map(tab => ({
+                  ...tab,
+                  panes: tab.panes ? restorePaneContent(tab.panes) : null
+                }));
+              }
+              return merged;
             }
             return null;
           }).filter(Boolean);
@@ -2088,18 +2116,26 @@
 
     // Attach event listeners after rendering
     function attachEventListeners() {
-      // Close button handlers
-      document.querySelectorAll('.close-box').forEach(closeBox => {
+      // Close button handlers (skip tabbed window, handled separately)
+      document.querySelectorAll('.window .close-box').forEach(closeBox => {
         closeBox.addEventListener('click', (e) => {
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          e.preventDefault();
           const windowId = e.target.dataset.windowId;
           closeWindow(windowId);
-        });
+        }, true);
+        closeBox.addEventListener('mousedown', (e) => {
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          e.preventDefault();
+        }, true);
       });
 
       // Draggable window handlers
       document.querySelectorAll('.window-draggable .window-title-bar').forEach(titleBar => {
         titleBar.addEventListener('mousedown', (e) => {
-          if (e.target.classList.contains('close-box')) return;
+          if (e.target.closest('.close-box')) return;
 
           activeWindow = titleBar.closest('.window');
           const rect = activeWindow.getBoundingClientRect();
@@ -2113,7 +2149,8 @@
 
       // Click to bring window to front (all windows, not just draggable)
       document.querySelectorAll('.window').forEach(win => {
-        win.addEventListener('mousedown', () => {
+        win.addEventListener('mousedown', (e) => {
+          if (e.target.closest('.close-box')) return;
           bringToFront(win);
         });
       });
@@ -2121,12 +2158,25 @@
 
     // Close a window (only if closeable)
     function closeWindow(windowId) {
+      // Check if window exists and is closeable
       const win = openWindows.find(w => w.id === windowId);
-      if (win && !win.closeable) return; // Can't close non-closeable windows
-      openWindows = openWindows.filter(win => win.id !== windowId);
+      const initialWin = initialWindows.find(w => w.id === windowId);
+      const isCloseable = win ? win.closeable : (initialWin ? initialWin.closeable : true);
 
-      // Update active window if the closed window was active
-      if (activeWindowId === windowId) {
+      if (!isCloseable) return; // Can't close non-closeable windows
+
+      // Remove window element from DOM
+      const windowEl = document.querySelector(`[data-window-id="${windowId}"]`);
+      if (windowEl) {
+        windowEl.remove();
+      }
+
+      // Remove from openWindows if present
+      const wasInArray = openWindows.some(w => w.id === windowId);
+      openWindows = openWindows.filter(w => w.id !== windowId);
+
+      // Update active window
+      if (activeWindowId === windowId || !wasInArray) {
         if (openWindows.length > 0) {
           const topWindow = openWindows.reduce((a, b) => a.zIndex > b.zIndex ? a : b);
           activeWindowId = topWindow.id;
@@ -2137,12 +2187,15 @@
       }
 
       saveState();
-      renderWindows();
     }
 
     // Bring window to front
     function bringToFront(windowEl) {
       const windowId = windowEl.dataset.windowId;
+
+      // Check if window is actually in our managed list
+      const win = openWindows.find(w => w.id === windowId);
+      if (!win) return; // Don't bring to front if not in openWindows
 
       // Update zIndex in openWindows array
       openWindows.forEach(w => {
@@ -2152,8 +2205,7 @@
           w.zIndex = 100;
         }
       });
-      const win = openWindows.find(w => w.id === windowId);
-      if (win) win.zIndex = 200;
+      win.zIndex = 200;
 
       // Update DOM
       document.querySelectorAll('.window').forEach(w => w.style.zIndex = 100);
@@ -2421,11 +2473,9 @@
       // Remove from data model
       tabbedWin.tabs.splice(tabIndex, 1);
 
-      // If no tabs left, close the window
+      // If no tabs left, close the editor window
       if (tabbedWin.tabs.length === 0) {
-        openWindows = openWindows.filter(w => w.id !== tabbedWin.id);
-        saveState();
-        renderWindows();
+        closeWindow(tabbedWin.id);
         return;
       }
 
@@ -2524,7 +2574,26 @@
     function setupTabbedWindowListeners() {
       const tabbedWin = document.getElementById('tabbed-window');
       if (tabbedWin) {
-        tabbedWin.addEventListener('mousedown', bringTabbedToFront);
+        tabbedWin.addEventListener('mousedown', (e) => {
+          if (e.target.closest('.close-box')) return;
+          bringTabbedToFront();
+        });
+        // Close box handler for tabbed window
+        const closeBox = tabbedWin.querySelector('.close-box');
+        if (closeBox) {
+          closeBox.addEventListener('click', (e) => {
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            e.preventDefault();
+            const windowId = closeBox.dataset.windowId;
+            closeWindow(windowId);
+          }, true);
+          closeBox.addEventListener('mousedown', (e) => {
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            e.preventDefault();
+          }, true);
+        }
       }
 
       // Tab click handlers
@@ -3015,19 +3084,161 @@
       if (!isOpen) {
         const win = initialWindows.find(w => w.id === windowId);
         if (win) {
-          // Reset all z-indexes
+          // Clean up any stale DOM element with the same ID
+          const existingEl = document.querySelector(`[data-window-id="${windowId}"]`);
+          if (existingEl) existingEl.remove();
+
+          // Reset all z-indexes in data and DOM
           openWindows.forEach(w => {
             w.zIndex = w.tabbed ? 50 : 100;
+            const el = document.querySelector(`[data-window-id="${w.id}"]`);
+            if (el) el.style.zIndex = w.zIndex;
           });
           // Add new window with highest z-index
           const newWin = { ...win, zIndex: 200 };
+
+          // Ensure tabbed windows have at least one tab
+          if (newWin.tabbed && (!newWin.tabs || newWin.tabs.length === 0)) {
+            const defaultPaneId = generatePaneId();
+            newWin.tabs = [{
+              id: 'tab-1',
+              name: 'Tab 1',
+              activePane: defaultPaneId,
+              panes: { id: defaultPaneId, title: 'Pane 1', content: generateEditorHtml(defaultPaneId) }
+            }];
+            newWin.activeTab = 0;
+            focusedPaneId = defaultPaneId;
+          }
+
           openWindows.push(newWin);
           // Set as active window
           activeWindowId = windowId;
           saveState();
-          renderWindows();
+          // Render just the new window (DOM manipulation)
+          renderSingleWindow(newWin);
           updateActiveWindowMenu();
         }
+      }
+    }
+
+    function renderSingleWindow(win) {
+      const desktop = document.getElementById('desktop');
+      const windowEl = document.createElement('div');
+
+      if (win.tabbed) {
+        // Tabbed window (Editor)
+        windowEl.className = 'tabbed-window';
+        windowEl.id = 'tabbed-window';
+        windowEl.dataset.windowId = win.id;
+        windowEl.style.zIndex = win.zIndex;
+        windowEl.style.top = win.top + 'px';
+        windowEl.style.left = win.left + 'px';
+        windowEl.style.right = win.right + 'px';
+        windowEl.style.bottom = win.bottom + 'px';
+
+        // Render tabs
+        const activeTab = win.activeTab || 0;
+        const tabsHtml = win.tabs.map((tab, i) => {
+          const isFirst = i === 0 && win.closeable;
+          const classes = `tabbed-window-tab ${i === activeTab ? 'active' : ''} ${isFirst ? 'first-tab-with-close' : ''}`;
+          return `<div class="${classes}" data-tab-index="${i}">${tab.name}<span class="tab-close" data-tab-index="${i}">&times;</span></div>`;
+        }).join('');
+
+        const closeBoxHtml = win.closeable
+          ? `<div class="close-box tabbed-close-box" data-window-id="${win.id}"></div>`
+          : '';
+
+        // Render panes for ALL tabs
+        const allTabPanesHtml = win.tabs.map((tab, tabIdx) => {
+          const panesHtml = tab.panes ? renderPanes(tab.panes) : '';
+          const isActive = tabIdx === activeTab ? 'active' : '';
+          return `<div class="tab-pane-container ${isActive}" data-tab-index="${tabIdx}">${panesHtml}</div>`;
+        }).join('');
+
+        windowEl.innerHTML = `
+          <div class="tabbed-window-inner">
+            <div class="tabbed-window-tabs" id="tabbed-tabs">
+              ${closeBoxHtml}
+              ${tabsHtml}
+              <div class="tabbed-window-tab-add" id="add-tab">+</div>
+            </div>
+            <div class="tabbed-window-content" id="tabbed-content">
+              ${allTabPanesHtml}
+            </div>
+          </div>
+        `;
+
+        desktop.appendChild(windowEl);
+        setupTabbedWindowListeners();
+        initializePaneEditors();
+      } else {
+        // Regular window
+        windowEl.className = `window ${win.draggable ? 'window-draggable' : ''}`;
+        windowEl.dataset.windowId = win.id;
+        windowEl.style.top = win.top + 'px';
+        windowEl.style.right = win.right + 'px';
+        windowEl.style.width = win.width + 'px';
+        windowEl.style.zIndex = win.zIndex;
+
+        const closeBoxHtml = win.closeable
+          ? `<div class="close-box" data-window-id="${win.id}"></div>`
+          : '';
+
+        windowEl.innerHTML = `
+          <div class="window-title-bar">
+            ${closeBoxHtml}
+            <span class="window-title">${win.title}</span>
+          </div>
+          ${win.content}
+        `;
+
+        desktop.appendChild(windowEl);
+        attachWindowEventListeners(windowEl, win);
+      }
+    }
+
+    function attachWindowEventListeners(windowEl, win) {
+      // Close box
+      const closeBox = windowEl.querySelector('.close-box');
+      if (closeBox) {
+        closeBox.addEventListener('click', (e) => {
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          e.preventDefault();
+          closeWindow(win.id);
+        }, true);
+        closeBox.addEventListener('mousedown', (e) => {
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          e.preventDefault();
+        }, true);
+      }
+
+      // Dragging
+      if (win.draggable) {
+        const titleBar = windowEl.querySelector('.window-title-bar');
+        if (titleBar) {
+          titleBar.addEventListener('mousedown', (e) => {
+            if (e.target.closest('.close-box')) return;
+            activeWindow = windowEl;
+            const rect = windowEl.getBoundingClientRect();
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+            bringToFront(windowEl);
+          });
+        }
+      }
+
+      // Bring to front on click
+      windowEl.addEventListener('mousedown', (e) => {
+        if (e.target.closest('.close-box')) return;
+        bringToFront(windowEl);
+      });
+
+      // Re-attach git file handlers if this is the git window
+      if (win.id === 'git') {
+        attachGitFileHandlers();
+        showDiffViewer('src/App.js');
       }
     }
 
@@ -3065,6 +3276,20 @@
       closeApplicationsMenu();
       closeActiveWindowMenu();
     });
+
+    // Global close box handler - handles close on mousedown before anything else
+    document.addEventListener('mousedown', (e) => {
+      const closeBox = e.target.closest('.close-box');
+      if (closeBox) {
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        e.preventDefault();
+        const windowId = closeBox.dataset.windowId;
+        if (windowId) {
+          closeWindow(windowId);
+        }
+      }
+    }, true);
 
     // Fake diff data for different files
     const fakeDiffs = {
