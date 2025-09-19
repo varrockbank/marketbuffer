@@ -15,19 +15,64 @@
       box-sizing: border-box;
     }
 
+    :root {
+      --bg-color: #a8a8a8;
+      --window-bg: #fff;
+      --window-border: #000;
+      --title-bar-bg: #c0c0c0;
+      --text-color: #000;
+      --text-muted: #666;
+      --menu-bg: #fff;
+      --menu-border: #000;
+      --sidebar-bg: #e8e8e8;
+      --input-bg: #fff;
+      --input-border: #000;
+      --hover-bg: #e0e0e0;
+      --selected-bg: #c0c0c0;
+      --pane-bg: #fff;
+      --diff-added: #d4edda;
+      --diff-removed: #f8d7da;
+      --diff-added-text: #155724;
+      --diff-removed-text: #721c24;
+      --diff-header-bg: #e8e8fc;
+    }
+
+    body.dark-theme {
+      --bg-color: #1e1e1e;
+      --window-bg: #2d2d2d;
+      --window-border: #555;
+      --title-bar-bg: #3c3c3c;
+      --text-color: #e0e0e0;
+      --text-muted: #888;
+      --menu-bg: #2d2d2d;
+      --menu-border: #555;
+      --sidebar-bg: #252525;
+      --input-bg: #3c3c3c;
+      --input-border: #555;
+      --hover-bg: #404040;
+      --selected-bg: #505050;
+      --pane-bg: #1e1e1e;
+      --diff-added: #2d4a3e;
+      --diff-removed: #4a2d2d;
+      --diff-added-text: #8fdf8f;
+      --diff-removed-text: #df8f8f;
+      --diff-header-bg: #3c3c5c;
+    }
+
     body {
       font-family: 'Chicago', 'Monaco', 'Courier New', monospace;
       font-size: 12px;
-      background: #a8a8a8;
+      background: var(--bg-color);
       min-height: 100vh;
       cursor: default;
+      color: var(--text-color);
       user-select: none;
     }
 
     /* Menu Bar */
     .menu-bar {
-      background: #fff;
-      border-bottom: 2px solid #000;
+      background: var(--menu-bg);
+      border-bottom: 2px solid var(--menu-border);
       height: 20px;
       display: flex;
       align-items: center;
@@ -60,8 +105,8 @@
     }
 
     .menu-item:hover {
-      background: #000;
-      color: #fff;
+      background: var(--text-color);
+      color: var(--window-bg);
     }
 
     .menu-item-container {
@@ -73,9 +118,9 @@
       position: absolute;
       top: 100%;
       left: 0;
-      background: #fff;
-      border: 1px solid #000;
-      box-shadow: 2px 2px 0 #000;
+      background: var(--menu-bg);
+      border: 1px solid var(--menu-border);
+      box-shadow: 2px 2px 0 var(--menu-border);
       min-width: 180px;
       z-index: 1001;
     }
@@ -92,8 +137,8 @@
     }
 
     .menu-dropdown-item:hover {
-      background: #000;
-      color: #fff;
+      background: var(--text-color);
+      color: var(--window-bg);
     }
 
     .menu-dropdown-item.checked::before {
@@ -105,23 +150,23 @@
     /* Primary Sidebar */
     .primary-sidebar {
       width: 200px;
-      background: #fff;
-      border-right: 2px solid #000;
+      background: var(--window-bg);
+      border-right: 2px solid var(--window-border);
       display: flex;
       flex-direction: column;
       flex-shrink: 0;
     }
 
     .sidebar-section {
-      border-bottom: 1px solid #000;
+      border-bottom: 1px solid var(--window-border);
     }
 
     .sidebar-section-header {
       padding: 8px 12px;
       font-weight: bold;
       font-size: 11px;
-      background: #e0e0e0;
-      border-bottom: 1px solid #000;
+      background: var(--sidebar-bg);
+      border-bottom: 1px solid var(--window-border);
     }
 
     .sidebar-item {
@@ -132,12 +177,12 @@
     }
 
     .sidebar-item:hover {
-      background: #000;
-      color: #fff;
+      background: var(--text-color);
+      color: var(--window-bg);
     }
 
     .sidebar-item.active {
-      background: #c0c0c0;
+      background: var(--selected-bg);
     }
 
     .sidebar-item-icon {
@@ -172,12 +217,12 @@
     }
 
     .tree-item-row:hover {
-      background: #000;
-      color: #fff;
+      background: var(--text-color);
+      color: var(--window-bg);
     }
 
     .tree-item-row.selected {
-      background: #c0c0c0;
+      background: var(--selected-bg);
     }
 
     .tree-toggle {
@@ -224,9 +269,9 @@
     .sidebar-footer {
       padding: 8px 12px;
       font-size: 10px;
-      color: #666;
-      border-top: 1px solid #000;
-      background: #e0e0e0;
+      color: var(--text-muted);
+      border-top: 1px solid var(--window-border);
+      background: var(--sidebar-bg);
     }
 
     /* Main Layout Container */
@@ -248,17 +293,17 @@
           0deg,
           transparent,
           transparent 1px,
-          #a8a8a8 1px,
-          #a8a8a8 2px
+          var(--bg-color) 1px,
+          var(--bg-color) 2px
         ),
         repeating-linear-gradient(
           90deg,
           transparent,
           transparent 1px,
-          #a8a8a8 1px,
-          #a8a8a8 2px
+          var(--bg-color) 1px,
+          var(--bg-color) 2px
         );
-      background-color: #a8a8a8;
+      background-color: var(--bg-color);
       overflow: hidden;
     }
 
@@ -281,15 +326,15 @@
     }
 
     .desktop-icon:hover .icon-label {
-      background: #000;
-      color: #fff;
+      background: var(--text-color);
+      color: var(--window-bg);
     }
 
     .icon-image {
       width: 32px;
       height: 32px;
-      background: #fff;
-      border: 1px solid #000;
+      background: var(--window-bg);
+      border: 1px solid var(--window-border);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -305,16 +350,16 @@
     /* Window */
     .window {
       position: absolute;
-      background: #fff;
-      border: 2px solid #000;
-      box-shadow: 2px 2px 0 #000;
+      background: var(--window-bg);
+      border: 2px solid var(--window-border);
+      box-shadow: 2px 2px 0 var(--window-border);
       min-width: 300px;
       left: auto;
     }
 
     .window-title-bar {
-      background: #fff;
-      border-bottom: 2px solid #000;
+      background: var(--title-bar-bg);
+      border-bottom: 2px solid var(--window-border);
       padding: 2px 4px;
       display: flex;
       align-items: center;
@@ -332,10 +377,10 @@
       height: 10px;
       background: repeating-linear-gradient(
         0deg,
-        #000,
-        #000 1px,
-        #fff 1px,
-        #fff 3px
+        var(--window-border),
+        var(--window-border) 1px,
+        var(--title-bar-bg) 1px,
+        var(--title-bar-bg) 3px
       );
     }
 
@@ -349,29 +394,29 @@
     .close-box {
       width: 12px;
       height: 12px;
-      border: 1px solid #000;
-      background: #fff;
+      border: 1px solid var(--window-border);
+      background: var(--window-bg);
       margin-right: 4px;
       cursor: pointer;
       flex-shrink: 0;
     }
 
     .close-box:hover {
-      background: #000;
+      background: var(--text-color);
     }
 
     .window-content {
       padding: 16px;
-      background: #fff;
+      background: var(--window-bg);
     }
 
     /* Scrollbar styling for window */
     .window-scrollable {
       max-height: 200px;
       overflow-y: auto;
-      border: 1px solid #000;
+      border: 1px solid var(--window-border);
       margin: 8px;
-      background: #fff;
+      background: var(--window-bg);
     }
 
     .window-scrollable::-webkit-scrollbar {
@@ -382,17 +427,17 @@
       background:
         repeating-linear-gradient(
           45deg,
-          #fff,
-          #fff 2px,
-          #a8a8a8 2px,
-          #a8a8a8 4px
+          var(--window-bg),
+          var(--window-bg) 2px,
+          var(--bg-color) 2px,
+          var(--bg-color) 4px
         );
-      border-left: 1px solid #000;
+      border-left: 1px solid var(--window-border);
     }
 
     .window-scrollable::-webkit-scrollbar-thumb {
-      background: #fff;
-      border: 1px solid #000;
+      background: var(--window-bg);
+      border: 1px solid var(--window-border);
     }
 
     /* Finder Window */
@@ -417,15 +462,15 @@
     }
 
     .finder-item:hover .finder-label {
-      background: #000;
-      color: #fff;
+      background: var(--text-color);
+      color: var(--window-bg);
     }
 
     .folder-icon {
       width: 32px;
       height: 26px;
-      background: #fff;
-      border: 1px solid #000;
+      background: var(--window-bg);
+      border: 1px solid var(--window-border);
       position: relative;
       margin-bottom: 4px;
     }
@@ -437,16 +482,16 @@
       left: 2px;
       width: 14px;
       height: 6px;
-      background: #fff;
-      border: 1px solid #000;
+      background: var(--window-bg);
+      border: 1px solid var(--window-border);
       border-bottom: none;
     }
 
     .document-icon {
       width: 24px;
       height: 32px;
-      background: #fff;
-      border: 1px solid #000;
+      background: var(--window-bg);
+      border: 1px solid var(--window-border);
       position: relative;
       margin-bottom: 4px;
     }
@@ -458,9 +503,9 @@
       right: 0;
       width: 8px;
       height: 8px;
-      background: #fff;
-      border-left: 1px solid #000;
-      border-bottom: 1px solid #000;
+      background: var(--window-bg);
+      border-left: 1px solid var(--window-border);
+      border-bottom: 1px solid var(--window-border);
     }
 
     .finder-label {
@@ -485,17 +530,17 @@
       width: 64px;
       height: 80px;
       margin: 0 auto 16px;
-      border: 2px solid #000;
-      background: #fff;
+      border: 2px solid var(--window-border);
+      background: var(--window-bg);
       position: relative;
     }
 
     .macket-screen {
       width: 48px;
       height: 36px;
-      border: 2px solid #000;
+      border: 2px solid var(--window-border);
       margin: 8px auto 4px;
-      background: #a8a8a8;
+      background: var(--bg-color);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -509,8 +554,8 @@
     .macket-base {
       width: 56px;
       height: 8px;
-      background: #fff;
-      border-top: 2px solid #000;
+      background: var(--window-bg);
+      border-top: 2px solid var(--window-border);
       margin: 0 auto;
     }
 
@@ -528,25 +573,26 @@
 
     .about-divider {
       border: none;
-      border-top: 1px solid #000;
+      border-top: 1px solid var(--window-border);
       margin: 12px 0;
     }
 
     /* Button */
     .macket-button {
-      background: #fff;
-      border: 2px solid #000;
+      background: var(--window-bg);
+      border: 2px solid var(--window-border);
       border-radius: 8px;
       padding: 4px 16px;
       font-family: inherit;
       font-size: 12px;
       cursor: pointer;
-      box-shadow: 2px 2px 0 #000;
+      box-shadow: 2px 2px 0 var(--window-border);
+      color: var(--text-color);
     }
 
     .macket-button:active {
-      background: #000;
-      color: #fff;
+      background: var(--text-color);
+      color: var(--window-bg);
       box-shadow: none;
       transform: translate(2px, 2px);
     }
@@ -555,8 +601,8 @@
     .trash-icon {
       width: 28px;
       height: 32px;
-      background: #fff;
-      border: 1px solid #000;
+      background: var(--window-bg);
+      border: 1px solid var(--window-border);
       position: relative;
     }
 
@@ -568,8 +614,8 @@
       transform: translateX(-50%);
       width: 16px;
       height: 4px;
-      background: #fff;
-      border: 1px solid #000;
+      background: var(--window-bg);
+      border: 1px solid var(--window-border);
     }
 
     .trash-icon::after {
@@ -580,14 +626,14 @@
       transform: translateX(-50%);
       width: 16px;
       height: 18px;
-      border-left: 1px solid #000;
-      border-right: 1px solid #000;
+      border-left: 1px solid var(--window-border);
+      border-right: 1px solid var(--window-border);
       background: repeating-linear-gradient(
         90deg,
         transparent,
         transparent 4px,
-        #000 4px,
-        #000 5px
+        var(--window-border) 4px,
+        var(--window-border) 5px
       );
     }
 
@@ -595,8 +641,8 @@
     .floppy-icon {
       width: 30px;
       height: 32px;
-      background: #fff;
-      border: 1px solid #000;
+      background: var(--window-bg);
+      border: 1px solid var(--window-border);
       position: relative;
     }
 
@@ -608,8 +654,8 @@
       transform: translateX(-50%);
       width: 18px;
       height: 10px;
-      background: #a8a8a8;
-      border: 1px solid #000;
+      background: var(--bg-color);
+      border: 1px solid var(--window-border);
     }
 
     .floppy-icon::after {
@@ -620,20 +666,20 @@
       transform: translateX(-50%);
       width: 20px;
       height: 12px;
-      background: #fff;
-      border: 1px solid #000;
+      background: var(--window-bg);
+      border: 1px solid var(--window-border);
     }
 
     /* HyperCard */
     .hypercard-content {
       padding: 0;
-      background: #fff;
+      background: var(--window-bg);
     }
 
     .hypercard-card {
       padding: 16px;
       min-height: 200px;
-      border-bottom: 2px solid #000;
+      border-bottom: 2px solid var(--window-border);
     }
 
     .hypercard-title {
@@ -651,20 +697,21 @@
     }
 
     .hypercard-button {
-      background: #fff;
-      border: 2px solid #000;
+      background: var(--window-bg);
+      border: 2px solid var(--window-border);
       border-radius: 6px;
       padding: 6px 16px;
       font-family: inherit;
       font-size: 12px;
       cursor: pointer;
       margin: 4px;
-      box-shadow: 1px 1px 0 #000;
+      box-shadow: 1px 1px 0 var(--window-border);
+      color: var(--text-color);
     }
 
     .hypercard-button:active {
-      background: #000;
-      color: #fff;
+      background: var(--text-color);
+      color: var(--window-bg);
     }
 
     .hypercard-nav {
@@ -672,22 +719,23 @@
       justify-content: space-between;
       align-items: center;
       padding: 8px;
-      background: #e0e0e0;
-      border-top: 1px solid #000;
+      background: var(--sidebar-bg);
+      border-top: 1px solid var(--window-border);
     }
 
     .hypercard-nav-btn {
-      background: #fff;
-      border: 1px solid #000;
+      background: var(--window-bg);
+      border: 1px solid var(--window-border);
       padding: 4px 12px;
       font-family: inherit;
       font-size: 11px;
       cursor: pointer;
+      color: var(--text-color);
     }
 
     .hypercard-nav-btn:hover {
-      background: #000;
-      color: #fff;
+      background: var(--text-color);
+      color: var(--window-bg);
     }
 
     .hypercard-page {
@@ -703,7 +751,7 @@
 
     .git-content {
       padding: 0;
-      background: #fff;
+      background: var(--window-bg);
       display: flex;
       flex: 1;
       min-height: 0;
@@ -714,8 +762,8 @@
       align-items: center;
       gap: 8px;
       padding: 8px;
-      border-top: 1px solid #000;
-      background: #f0f0f0;
+      border-top: 1px solid var(--window-border);
+      background: var(--sidebar-bg);
     }
 
     .git-commit-input {
@@ -723,8 +771,9 @@
       padding: 4px 8px;
       font-family: inherit;
       font-size: 11px;
-      border: 1px solid #000;
-      background: #fff;
+      border: 1px solid var(--window-border);
+      background: var(--input-bg);
+      color: var(--text-color);
     }
 
     .git-commit-input:focus {
@@ -738,7 +787,7 @@
 
     .git-sidebar {
       width: 200px;
-      border-right: 1px solid #000;
+      border-right: 1px solid var(--window-border);
       overflow-y: auto;
       flex-shrink: 0;
     }
@@ -753,16 +802,16 @@
     .git-diff-panel.empty {
       align-items: center;
       justify-content: center;
-      color: #999;
+      color: var(--text-muted);
       font-size: 11px;
     }
 
     .diff-panel-header {
       padding: 6px 10px;
-      border-bottom: 1px solid #000;
+      border-bottom: 1px solid var(--window-border);
       font-size: 11px;
       font-weight: bold;
-      background: #e0e0e0;
+      background: var(--sidebar-bg);
       flex-shrink: 0;
     }
 
@@ -771,7 +820,7 @@
       overflow-y: auto;
       font-family: Monaco, 'Courier New', monospace;
       font-size: 11px;
-      background: #fff;
+      background: var(--window-bg);
     }
 
     .diff-line {
@@ -780,24 +829,24 @@
     }
 
     .diff-line.header {
-      background: #e8e8fc;
-      color: #333;
+      background: var(--diff-header-bg);
+      color: var(--text-color);
       font-weight: bold;
     }
 
     .diff-line.added {
-      background: #d4edda;
-      color: #155724;
+      background: var(--diff-added);
+      color: var(--diff-added-text);
     }
 
     .diff-line.removed {
-      background: #f8d7da;
-      color: #721c24;
+      background: var(--diff-removed);
+      color: var(--diff-removed-text);
     }
 
     .diff-line.context {
-      background: #fff;
-      color: #333;
+      background: var(--window-bg);
+      color: var(--text-color);
     }
 
     .diff-line-number {
@@ -805,12 +854,12 @@
       width: 30px;
       text-align: right;
       margin-right: 8px;
-      color: #999;
+      color: var(--text-muted);
       user-select: none;
     }
 
     .git-section {
-      border-bottom: 1px solid #000;
+      border-bottom: 1px solid var(--window-border);
       padding: 8px;
     }
 
@@ -844,11 +893,11 @@
     }
 
     .git-file-item:hover {
-      background: #e0e0e0;
+      background: var(--hover-bg);
     }
 
     .git-file-item.selected {
-      background: #c0c0c0;
+      background: var(--selected-bg);
     }
 
     .git-file-status {
@@ -874,26 +923,80 @@
     }
 
     .git-btn {
-      background: #fff;
-      border: 1px solid #000;
+      background: var(--window-bg);
+      border: 1px solid var(--window-border);
       padding: 3px 8px;
       font-family: inherit;
       font-size: 10px;
       cursor: pointer;
+      color: var(--text-color);
     }
 
     .git-btn:hover {
-      background: #000;
-      color: #fff;
+      background: var(--text-color);
+      color: var(--window-bg);
     }
 
     .git-btn-primary {
-      background: #000;
-      color: #fff;
+      background: var(--text-color);
+      color: var(--window-bg);
     }
 
     .git-btn-primary:hover {
-      background: #333;
+      background: var(--hover-bg);
+      color: var(--text-color);
+    }
+
+    /* Settings Window */
+    .settings-content {
+      padding: 12px;
+      background: var(--window-bg);
+      max-height: 350px;
+      overflow-y: auto;
+    }
+
+    .settings-section {
+      margin-bottom: 16px;
+    }
+
+    .settings-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .settings-section-title {
+      font-weight: bold;
+      font-size: 11px;
+      margin-bottom: 8px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--hover-bg);
+    }
+
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 11px;
+    }
+
+    .settings-label {
+      flex: 1;
+    }
+
+    .settings-select {
+      padding: 3px 6px;
+      font-family: inherit;
+      font-size: 10px;
+      border: 1px solid var(--window-border);
+      background: var(--input-bg);
+      color: var(--text-color);
+      min-width: 100px;
+    }
+
+    .settings-checkbox {
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
     }
 
     /* UI Alert */
@@ -911,16 +1014,16 @@
     }
 
     .ui-alert {
-      background: #fff;
-      border: 2px solid #000;
-      box-shadow: 2px 2px 0 #000;
+      background: var(--window-bg);
+      border: 2px solid var(--window-border);
+      box-shadow: 2px 2px 0 var(--window-border);
       min-width: 300px;
       max-width: 400px;
     }
 
     .ui-alert-header {
-      background: #000;
-      color: #fff;
+      background: var(--text-color);
+      color: var(--window-bg);
       padding: 4px 8px;
       font-size: 12px;
       font-weight: bold;
@@ -941,29 +1044,30 @@
       padding: 12px;
       display: flex;
       justify-content: center;
-      border-top: 1px solid #ccc;
+      border-top: 1px solid var(--hover-bg);
     }
 
     .ui-alert-btn {
-      background: #fff;
-      border: 2px solid #000;
+      background: var(--window-bg);
+      border: 2px solid var(--window-border);
       padding: 6px 24px;
       font-family: inherit;
       font-size: 12px;
       font-weight: bold;
       cursor: pointer;
+      color: var(--text-color);
     }
 
     .ui-alert-btn:hover {
-      background: #000;
-      color: #fff;
+      background: var(--text-color);
+      color: var(--window-bg);
     }
 
     /* Tabbed Window */
     .tabbed-window {
       position: absolute;
-      background: #fff;
-      border: 1px solid #000;
+      background: var(--window-bg);
+      border: 1px solid var(--window-border);
       padding: 5px;
       display: flex;
       flex-direction: column;
@@ -973,20 +1077,20 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      background: #fff;
+      background: var(--window-bg);
     }
 
     .tabbed-window-tabs {
       display: flex;
-      background: #c0c0c0;
-      border: 2px solid #000;
+      background: var(--selected-bg);
+      border: 2px solid var(--window-border);
       min-height: 24px;
     }
 
     .tabbed-window-tab {
       padding: 4px 16px;
-      background: #e0e0e0;
-      border-right: 1px solid #000;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--window-border);
       font-size: 11px;
       cursor: pointer;
       position: relative;
@@ -994,12 +1098,12 @@
     }
 
     .tabbed-window-tab:hover {
-      background: #fff;
+      background: var(--window-bg);
     }
 
     .tabbed-window-tab.active {
-      background: #fff;
-      border-bottom: 2px solid #fff;
+      background: var(--window-bg);
+      border-bottom: 2px solid var(--window-bg);
       margin-bottom: -2px;
     }
 
@@ -1024,14 +1128,14 @@
 
     .tabbed-window-tab-add {
       padding: 4px 12px;
-      background: #e0e0e0;
-      border-right: 1px solid #000;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--window-border);
       font-size: 11px;
       cursor: pointer;
     }
 
     .tabbed-window-tab-add:hover {
-      background: #fff;
+      background: var(--window-bg);
     }
 
     .tabbed-close-box {
@@ -1040,12 +1144,12 @@
     }
 
     .first-tab-with-close {
-      border-left: 1px solid #000;
+      border-left: 1px solid var(--window-border);
     }
 
     .tabbed-window-content {
       flex: 1;
-      background: #fff;
+      background: var(--window-bg);
       overflow: hidden;
       display: flex;
       position: relative;
@@ -1069,14 +1173,14 @@
     .pane {
       flex: 1;
       display: flex;
-      background: #fff;
+      background: var(--pane-bg);
       overflow: auto;
       cursor: pointer;
     }
 
     .pane-multi {
       margin: 2px;
-      border: 1px solid #000;
+      border: 1px solid var(--window-border);
       position: relative;
       overflow: visible;
     }
@@ -1225,7 +1329,7 @@
         <div class="menu-dropdown" id="applications-dropdown"></div>
       </div>
       <span class="menu-item">Help</span>
-      <span class="menu-item">Settings</span>
+      <span class="menu-item" id="settings-menu">Settings</span>
       <span class="menu-item">Logout</span>
     </div>
   </div>
@@ -1812,6 +1916,71 @@
             </div>
           </div>
         `
+      },
+      {
+        id: 'settings',
+        title: 'Settings',
+        draggable: true,
+        closeable: true,
+        zIndex: 104,
+        top: 80,
+        right: 300,
+        width: 400,
+        contextMenu: [
+          { label: 'Close', action: 'close' }
+        ],
+        content: `
+          <div class="settings-content">
+            <div class="settings-section">
+              <div class="settings-section-title">Appearance</div>
+              <div class="settings-row">
+                <label class="settings-label">Theme</label>
+                <select class="settings-select" id="setting-theme">
+                  <option value="light" selected>Light</option>
+                  <option value="dark">Dark</option>
+                </select>
+              </div>
+              <div class="settings-row">
+                <label class="settings-label">Font Size</label>
+                <select class="settings-select" id="setting-font-size">
+                  <option value="small">Small</option>
+                  <option value="medium" selected>Medium</option>
+                  <option value="large">Large</option>
+                </select>
+              </div>
+            </div>
+            <div class="settings-section">
+              <div class="settings-section-title">Editor</div>
+              <div class="settings-row">
+                <label class="settings-label">Tab Size</label>
+                <select class="settings-select" id="setting-tab-size">
+                  <option value="2">2 spaces</option>
+                  <option value="4" selected>4 spaces</option>
+                  <option value="8">8 spaces</option>
+                </select>
+              </div>
+              <div class="settings-row">
+                <label class="settings-label">Word Wrap</label>
+                <input type="checkbox" class="settings-checkbox" id="setting-word-wrap">
+              </div>
+              <div class="settings-row">
+                <label class="settings-label">Line Numbers</label>
+                <input type="checkbox" class="settings-checkbox" id="setting-line-numbers" checked>
+              </div>
+            </div>
+            <div class="settings-section">
+              <div class="settings-section-title">General</div>
+              <div class="settings-row">
+                <label class="settings-label">Auto Save</label>
+                <input type="checkbox" class="settings-checkbox" id="setting-auto-save">
+              </div>
+              <div class="settings-row">
+                <label class="settings-label">Confirm on Close</label>
+                <input type="checkbox" class="settings-checkbox" id="setting-confirm-close" checked>
+              </div>
+            </div>
+          </div>
+        `
       }
     ];
 
@@ -2080,6 +2249,12 @@
             editorId: editorEl.id,
             editor: new WarrenBuf(editorEl, {})
           };
+          // Apply current theme to new editor
+          const currentTheme = localStorage.getItem('marketbuffer_theme') || 'light';
+          const playground = editorEl.querySelector('.playground.wb');
+          if (playground && currentTheme === 'dark') {
+            playground.classList.add('wb-dark');
+          }
         }
       });
     }
@@ -2287,6 +2462,51 @@
 
     // Initialize
     init();
+
+    // Theme management
+    const THEME_STORAGE_KEY = 'marketbuffer_theme';
+
+    function applyTheme(theme) {
+      if (theme === 'dark') {
+        document.body.classList.add('dark-theme');
+      } else {
+        document.body.classList.remove('dark-theme');
+      }
+      // Update select if it exists
+      const themeSelect = document.getElementById('setting-theme');
+      if (themeSelect) {
+        themeSelect.value = theme;
+      }
+      // Toggle wb-dark class on all editor elements
+      document.querySelectorAll('.playground.wb').forEach(editor => {
+        if (theme === 'dark') {
+          editor.classList.add('wb-dark');
+        } else {
+          editor.classList.remove('wb-dark');
+        }
+      });
+    }
+
+    function loadTheme() {
+      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'light';
+      applyTheme(savedTheme);
+    }
+
+    function saveTheme(theme) {
+      localStorage.setItem(THEME_STORAGE_KEY, theme);
+    }
+
+    // Initialize theme on load
+    loadTheme();
+
+    // Listen for theme changes (using event delegation since settings may not be open)
+    document.addEventListener('change', (e) => {
+      if (e.target && e.target.id === 'setting-theme') {
+        const theme = e.target.value;
+        applyTheme(theme);
+        saveTheme(theme);
+      }
+    });
 
     // Tabbed window functions
     function switchTab(tabIndex) {
@@ -3240,6 +3460,15 @@
         attachGitFileHandlers();
         showDiffViewer('src/App.js');
       }
+
+      // Sync theme select if this is the settings window
+      if (win.id === 'settings') {
+        const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'light';
+        const themeSelect = document.getElementById('setting-theme');
+        if (themeSelect) {
+          themeSelect.value = savedTheme;
+        }
+      }
     }
 
     function toggleApplicationsMenu() {
@@ -3270,6 +3499,14 @@
       e.stopPropagation();
       closeActiveWindowMenu();
       toggleApplicationsMenu();
+    });
+
+    // Settings menu click handler
+    document.getElementById('settings-menu').addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeApplicationsMenu();
+      closeActiveWindowMenu();
+      openApplication('settings');
     });
 
     document.addEventListener('click', () => {
@@ -3435,11 +3672,23 @@
     renderWindows = function() {
       originalRenderWindows();
       attachGitFileHandlers();
+      // Sync theme select if settings window is open
+      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'light';
+      const themeSelect = document.getElementById('setting-theme');
+      if (themeSelect) {
+        themeSelect.value = savedTheme;
+      }
     };
     // Also attach on initial load
     attachGitFileHandlers();
     // Preselect src/App.js diff
     showDiffViewer('src/App.js');
+    // Sync theme select on initial load if settings is open
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'light';
+    const themeSelect = document.getElementById('setting-theme');
+    if (themeSelect) {
+      themeSelect.value = savedTheme;
+    }
   </script>
 </body>
 </html>
