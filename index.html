@@ -69,6 +69,26 @@
       user-select: none;
     }
 
+    /* Font size classes - affects sidebar and menu only */
+    body.font-small .menu-bar,
+    body.font-small .primary-sidebar,
+    body.font-small .sidebar-section-header,
+    body.font-small .sidebar-item,
+    body.font-small .sidebar-footer,
+    body.font-small .tree-item-row { font-size: 10px; }
+    body.font-medium .menu-bar,
+    body.font-medium .primary-sidebar,
+    body.font-medium .sidebar-section-header,
+    body.font-medium .sidebar-item,
+    body.font-medium .sidebar-footer,
+    body.font-medium .tree-item-row { font-size: 12px; }
+    body.font-large .menu-bar,
+    body.font-large .primary-sidebar,
+    body.font-large .sidebar-section-header,
+    body.font-large .sidebar-item,
+    body.font-large .sidebar-footer,
+    body.font-large .tree-item-row { font-size: 14px; }
+
     /* Menu Bar */
     .menu-bar {
       background: var(--menu-bg);
@@ -1950,33 +1970,22 @@
               </div>
             </div>
             <div class="settings-section">
-              <div class="settings-section-title">Editor</div>
+              <div class="settings-section-title"><s>Editor</s> (disabled in demo)</div>
               <div class="settings-row">
-                <label class="settings-label">Tab Size</label>
-                <select class="settings-select" id="setting-tab-size">
+                <label class="settings-label"><s>Tab Size</s></label>
+                <select class="settings-select" id="setting-tab-size" disabled>
                   <option value="2">2 spaces</option>
                   <option value="4" selected>4 spaces</option>
                   <option value="8">8 spaces</option>
                 </select>
               </div>
               <div class="settings-row">
-                <label class="settings-label">Word Wrap</label>
-                <input type="checkbox" class="settings-checkbox" id="setting-word-wrap">
+                <label class="settings-label"><s>Word Wrap</s></label>
+                <input type="checkbox" class="settings-checkbox" id="setting-word-wrap" disabled>
               </div>
               <div class="settings-row">
-                <label class="settings-label">Line Numbers</label>
-                <input type="checkbox" class="settings-checkbox" id="setting-line-numbers" checked>
-              </div>
-            </div>
-            <div class="settings-section">
-              <div class="settings-section-title">General</div>
-              <div class="settings-row">
-                <label class="settings-label">Auto Save</label>
-                <input type="checkbox" class="settings-checkbox" id="setting-auto-save">
-              </div>
-              <div class="settings-row">
-                <label class="settings-label">Confirm on Close</label>
-                <input type="checkbox" class="settings-checkbox" id="setting-confirm-close" checked>
+                <label class="settings-label"><s>Line Numbers</s></label>
+                <input type="checkbox" class="settings-checkbox" id="setting-line-numbers" checked disabled>
               </div>
             </div>
           </div>
@@ -2505,6 +2514,42 @@
         const theme = e.target.value;
         applyTheme(theme);
         saveTheme(theme);
+      }
+    });
+
+    // Font size management
+    const FONT_SIZE_STORAGE_KEY = 'marketbuffer_font_size';
+
+    function applyFontSize(size) {
+      // Remove all font size classes
+      document.body.classList.remove('font-small', 'font-medium', 'font-large');
+      // Add the selected one
+      document.body.classList.add('font-' + size);
+      // Update select if it exists
+      const fontSizeSelect = document.getElementById('setting-font-size');
+      if (fontSizeSelect) {
+        fontSizeSelect.value = size;
+      }
+    }
+
+    function loadFontSize() {
+      const savedSize = localStorage.getItem(FONT_SIZE_STORAGE_KEY) || 'medium';
+      applyFontSize(savedSize);
+    }
+
+    function saveFontSize(size) {
+      localStorage.setItem(FONT_SIZE_STORAGE_KEY, size);
+    }
+
+    // Initialize font size on load
+    loadFontSize();
+
+    // Listen for font size changes
+    document.addEventListener('change', (e) => {
+      if (e.target && e.target.id === 'setting-font-size') {
+        const size = e.target.value;
+        applyFontSize(size);
+        saveFontSize(size);
       }
     });
 
@@ -3461,12 +3506,17 @@
         showDiffViewer('src/App.js');
       }
 
-      // Sync theme select if this is the settings window
+      // Sync settings selects if this is the settings window
       if (win.id === 'settings') {
         const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'light';
         const themeSelect = document.getElementById('setting-theme');
         if (themeSelect) {
           themeSelect.value = savedTheme;
+        }
+        const savedFontSize = localStorage.getItem(FONT_SIZE_STORAGE_KEY) || 'medium';
+        const fontSizeSelect = document.getElementById('setting-font-size');
+        if (fontSizeSelect) {
+          fontSizeSelect.value = savedFontSize;
         }
       }
     }
@@ -3672,22 +3722,32 @@
     renderWindows = function() {
       originalRenderWindows();
       attachGitFileHandlers();
-      // Sync theme select if settings window is open
+      // Sync settings selects if settings window is open
       const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'light';
       const themeSelect = document.getElementById('setting-theme');
       if (themeSelect) {
         themeSelect.value = savedTheme;
+      }
+      const savedFontSize = localStorage.getItem(FONT_SIZE_STORAGE_KEY) || 'medium';
+      const fontSizeSelect = document.getElementById('setting-font-size');
+      if (fontSizeSelect) {
+        fontSizeSelect.value = savedFontSize;
       }
     };
     // Also attach on initial load
     attachGitFileHandlers();
     // Preselect src/App.js diff
     showDiffViewer('src/App.js');
-    // Sync theme select on initial load if settings is open
+    // Sync settings selects on initial load if settings is open
     const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'light';
     const themeSelect = document.getElementById('setting-theme');
     if (themeSelect) {
       themeSelect.value = savedTheme;
+    }
+    const savedFontSize = localStorage.getItem(FONT_SIZE_STORAGE_KEY) || 'medium';
+    const fontSizeSelect = document.getElementById('setting-font-size');
+    if (fontSizeSelect) {
+      fontSizeSelect.value = savedFontSize;
     }
   </script>
 </body>
