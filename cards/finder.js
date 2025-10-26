@@ -12,8 +12,9 @@ const finderCard = {
     { label: 'Close', action: 'close' }
   ],
 
-  // HTML content
-  content: `
+  // HTML content - function with no args, uses this
+  content() {
+    return `
     <div class="finder-content">
       <div class="finder-item">
         <div class="folder-icon"></div>
@@ -40,7 +41,8 @@ const finderCard = {
         <span class="finder-label">Notes.txt</span>
       </div>
     </div>
-  `,
+  `;
+  },
 
   // CSS styles for this app
   styles: `
@@ -112,8 +114,8 @@ const finderCard = {
     }
   `,
 
-  // Called when app window is opened
-  init() {
+  // Called when app window is opened - receives system object
+  init(system) {
     // Nothing special needed
   },
 

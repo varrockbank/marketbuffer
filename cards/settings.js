@@ -12,24 +12,25 @@ const settingsCard = {
     { label: 'Close', action: 'close' }
   ],
 
-  // HTML content
-  content: `
+  // HTML content - function with no args, uses this
+  content() {
+    return `
     <div class="settings-content">
       <div class="settings-section">
         <div class="settings-section-title">Appearance</div>
         <div class="settings-row">
           <label class="settings-label">Theme</label>
           <select class="settings-select" id="setting-theme">
-            <option value="light" selected>Light</option>
-            <option value="dark">Dark</option>
+            <option value="light" ${this.theme === 'light' ? 'selected' : ''}>Light</option>
+            <option value="dark" ${this.theme === 'dark' ? 'selected' : ''}>Dark</option>
           </select>
         </div>
         <div class="settings-row">
           <label class="settings-label">Font Size</label>
           <select class="settings-select" id="setting-font-size">
-            <option value="small">Small</option>
-            <option value="medium" selected>Medium</option>
-            <option value="large">Large</option>
+            <option value="small" ${this.fontSize === 'small' ? 'selected' : ''}>Small</option>
+            <option value="medium" ${this.fontSize === 'medium' ? 'selected' : ''}>Medium</option>
+            <option value="large" ${this.fontSize === 'large' ? 'selected' : ''}>Large</option>
           </select>
         </div>
       </div>
@@ -53,7 +54,12 @@ const settingsCard = {
         </div>
       </div>
     </div>
-  `,
+  `;
+  },
+
+  // Default values
+  theme: 'light',
+  fontSize: 'medium',
 
   // CSS styles for this app
   styles: `
@@ -109,11 +115,7 @@ const settingsCard = {
     }
   `,
 
-  // Storage keys
-  THEME_KEY: 'marketbuffer_theme',
-  FONT_SIZE_KEY: 'marketbuffer_font_size',
-
-  // Theme management
+  // Theme management (uses global systemState)
   applyTheme(theme) {
     if (theme === 'dark') {
       document.body.classList.add('dark-theme');
@@ -136,12 +138,15 @@ const settingsCard = {
   },
 
   loadTheme() {
-    const savedTheme = localStorage.getItem(this.THEME_KEY) || 'light';
-    this.applyTheme(savedTheme);
+    const theme = (typeof systemState !== 'undefined') ? systemState.theme : 'light';
+    this.applyTheme(theme);
   },
 
   saveTheme(theme) {
-    localStorage.setItem(this.THEME_KEY, theme);
+    if (typeof systemState !== 'undefined' && typeof saveSystemState === 'function') {
+      systemState.theme = theme;
+      saveSystemState();
+    }
   },
 
   // Font size management
@@ -155,28 +160,22 @@ const settingsCard = {
   },
 
   loadFontSize() {
-    const savedSize = localStorage.getItem(this.FONT_SIZE_KEY) || 'medium';
-    this.applyFontSize(savedSize);
+    const size = (typeof systemState !== 'undefined') ? systemState.fontSize : 'medium';
+    this.applyFontSize(size);
   },
 
   saveFontSize(size) {
-    localStorage.setItem(this.FONT_SIZE_KEY, size);
+    if (typeof systemState !== 'undefined' && typeof saveSystemState === 'function') {
+      systemState.fontSize = size;
+      saveSystemState();
+    }
   },
 
-  // Called when app window is opened
-  init() {
-    // Sync UI with saved settings
-    const savedTheme = localStorage.getItem(this.THEME_KEY) || 'light';
-    const themeSelect = document.getElementById('setting-theme');
-    if (themeSelect) {
-      themeSelect.value = savedTheme;
-    }
-
-    const savedFontSize = localStorage.getItem(this.FONT_SIZE_KEY) || 'medium';
-    const fontSizeSelect = document.getElementById('setting-font-size');
-    if (fontSizeSelect) {
-      fontSizeSelect.value = savedFontSize;
-    }
+  // Called when app window is opened - receives system object
+  init(system) {
+    // Extract settings from system state
+    this.theme = system?.state?.theme || 'light';
+    this.fontSize = system?.state?.fontSize || 'medium';
   },
 
   // Called when app window is closed

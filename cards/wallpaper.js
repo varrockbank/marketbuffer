@@ -12,24 +12,29 @@ const wallpaperCard = {
     { label: 'Close', action: 'close' }
   ],
 
-  // HTML content
-  content: `
+  // HTML content - function with no args, uses this
+  content() {
+    return `
     <div class="wallpaper-content">
       <div class="wallpaper-grid" id="wallpaper-grid">
-        <div class="wallpaper-option wp-classic" data-wallpaper="classic" title="Classic"></div>
-        <div class="wallpaper-option wp-solid-gray" data-wallpaper="solid-gray" title="Solid Gray"></div>
-        <div class="wallpaper-option wp-solid-teal" data-wallpaper="solid-teal" title="Solid Teal"></div>
-        <div class="wallpaper-option wp-solid-navy" data-wallpaper="solid-navy" title="Solid Navy"></div>
-        <div class="wallpaper-option wp-gradient-blue" data-wallpaper="gradient-blue" title="Blue Sky"></div>
-        <div class="wallpaper-option wp-gradient-sunset" data-wallpaper="gradient-sunset" title="Sunset"></div>
-        <div class="wallpaper-option wp-checkerboard" data-wallpaper="checkerboard" title="Checkerboard"></div>
-        <div class="wallpaper-option wp-diagonal" data-wallpaper="diagonal" title="Diagonal"></div>
-        <div class="wallpaper-option wp-dots" data-wallpaper="dots" title="Dots"></div>
-        <div class="wallpaper-option wp-mac-ii" data-wallpaper="mac-ii" title="Mac II Dither"></div>
-        <div class="wallpaper-option wp-hokusai" data-wallpaper="hokusai" title="Hokusai"></div>
+        <div class="wallpaper-option wp-classic ${this.wallpaper === 'classic' ? 'selected' : ''}" data-wallpaper="classic" title="Classic"></div>
+        <div class="wallpaper-option wp-solid-gray ${this.wallpaper === 'solid-gray' ? 'selected' : ''}" data-wallpaper="solid-gray" title="Solid Gray"></div>
+        <div class="wallpaper-option wp-solid-teal ${this.wallpaper === 'solid-teal' ? 'selected' : ''}" data-wallpaper="solid-teal" title="Solid Teal"></div>
+        <div class="wallpaper-option wp-solid-navy ${this.wallpaper === 'solid-navy' ? 'selected' : ''}" data-wallpaper="solid-navy" title="Solid Navy"></div>
+        <div class="wallpaper-option wp-gradient-blue ${this.wallpaper === 'gradient-blue' ? 'selected' : ''}" data-wallpaper="gradient-blue" title="Blue Sky"></div>
+        <div class="wallpaper-option wp-gradient-sunset ${this.wallpaper === 'gradient-sunset' ? 'selected' : ''}" data-wallpaper="gradient-sunset" title="Sunset"></div>
+        <div class="wallpaper-option wp-checkerboard ${this.wallpaper === 'checkerboard' ? 'selected' : ''}" data-wallpaper="checkerboard" title="Checkerboard"></div>
+        <div class="wallpaper-option wp-diagonal ${this.wallpaper === 'diagonal' ? 'selected' : ''}" data-wallpaper="diagonal" title="Diagonal"></div>
+        <div class="wallpaper-option wp-dots ${this.wallpaper === 'dots' ? 'selected' : ''}" data-wallpaper="dots" title="Dots"></div>
+        <div class="wallpaper-option wp-mac-ii ${this.wallpaper === 'mac-ii' ? 'selected' : ''}" data-wallpaper="mac-ii" title="Mac II Dither"></div>
+        <div class="wallpaper-option wp-hokusai ${this.wallpaper === 'hokusai' ? 'selected' : ''}" data-wallpaper="hokusai" title="Hokusai"></div>
       </div>
     </div>
-  `,
+  `;
+  },
+
+  // Default value
+  wallpaper: 'hokusai',
 
   // CSS styles for this app
   styles: `
@@ -102,9 +107,6 @@ const wallpaperCard = {
     }
   `,
 
-  // Storage key
-  STORAGE_KEY: 'marketbuffer_wallpaper',
-
   // All available wallpaper classes
   wallpaperClasses: [
     'wp-classic', 'wp-solid-gray', 'wp-solid-teal', 'wp-solid-navy',
@@ -139,18 +141,21 @@ const wallpaperCard = {
   },
 
   loadWallpaper() {
-    const savedWallpaper = localStorage.getItem(this.STORAGE_KEY) || this.defaultWallpaper;
-    this.applyWallpaper(savedWallpaper);
+    const wallpaper = (typeof systemState !== 'undefined') ? systemState.wallpaper : this.defaultWallpaper;
+    this.applyWallpaper(wallpaper);
   },
 
   saveWallpaper(wallpaper) {
-    localStorage.setItem(this.STORAGE_KEY, wallpaper);
+    if (typeof systemState !== 'undefined' && typeof saveSystemState === 'function') {
+      systemState.wallpaper = wallpaper;
+      saveSystemState();
+    }
   },
 
-  // Called when app window is opened
-  init() {
-    const savedWallpaper = localStorage.getItem(this.STORAGE_KEY) || this.defaultWallpaper;
-    this.updateSelectionUI(savedWallpaper);
+  // Called when app window is opened - receives system object
+  init(system) {
+    // Extract wallpaper from system state
+    this.wallpaper = system?.state?.wallpaper || this.defaultWallpaper;
   },
 
   // Called when app window is closed

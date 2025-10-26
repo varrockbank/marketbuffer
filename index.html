@@ -1464,7 +1464,99 @@
   <script src="cards/wallpaper.js"></script>
 
   <script>
+    // ============================================
+    // MARKETBUFFER OS - System Object
+    // ============================================
+    const STATE_KEY = 'marketbuffer_state';
+
+    // Global system object (version loaded from default-state.json)
+    const system = {
+      version: null,
+      state: null
+    };
+
+    // Alias for backward compatibility
+    let systemState = null;
+
+    // Load default state from JSON file (source of truth for version)
+    async function loadDefaultState() {
+      const response = await fetch('default-state.json');
+      return response.json();
+    }
+
+    // Load state from localStorage or default-state.json
+    async function loadSystemState() {
+      const defaultState = await loadDefaultState();
+      system.version = defaultState.version;
+
+      const saved = localStorage.getItem(STATE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          // Version mismatch - clear and reload
+          if (parsed.version !== system.version) {
+            console.log(`OS version mismatch: ${parsed.version} !== ${system.version}. Resetting state.`);
+            localStorage.clear();
+            location.reload();
+            return;
+          }
+          system.state = { ...defaultState, ...parsed };
+        } catch (e) {
+          console.error('Failed to parse system state:', e);
+          localStorage.clear();
+          system.state = { ...defaultState };
+        }
+      } else {
+        // First-time user: use default state
+        system.state = { ...defaultState };
+      }
+      systemState = system.state;
+    }
+
+    // Save state to localStorage
+    function saveSystemState() {
+      system.state.version = system.version;
+      localStorage.setItem(STATE_KEY, JSON.stringify(system.state));
+    }
+
+    // File type handlers - maps extensions to app IDs
+    const fileHandlers = {
+      'js': 'editor',
+      'jsx': 'editor',
+      'ts': 'editor',
+      'tsx': 'editor',
+      'css': 'editor',
+      'html': 'editor',
+      'json': 'editor',
+      'md': 'editor',
+      'txt': 'editor',
+      'py': 'editor',
+      'rb': 'editor',
+      'go': 'editor',
+      'rs': 'editor',
+      'c': 'editor',
+      'cpp': 'editor',
+      'h': 'editor',
+      'sh': 'editor',
+      'yaml': 'editor',
+      'yml': 'editor',
+      'xml': 'editor',
+      'svg': 'editor'
+    };
+
+    // OS API: Open a file with the appropriate app
+    system.openFile = function(path) {
+      const ext = path.split('.').pop().toLowerCase();
+      const appId = fileHandlers[ext] || 'editor';
+      const card = initialWindows.find(c => c.id === appId);
+      if (card && typeof card.openFile === 'function') {
+        card.openFile(path);
+      }
+    };
+
+    // ============================================
     // File tree data structure
+    // ============================================
     const fileTreeData = {
       name: 'marketbuffer',
       type: 'folder',
@@ -1598,139 +1690,11 @@
               saveFileTreeState();
             }
           } else if (type === 'file' && path) {
-            // Open file in editor
-            openFileInEditor(path, name);
+            // Open file with appropriate app
+            system.openFile(path);
           }
         });
       });
-    }
-
-    // Open a file in the editor
-    async function openFileInEditor(path, fileName) {
-      // Ensure the main tabbed window is open
-      let tabbedWin = openWindows.find(w => w.id === 'tabbed-main');
-      if (!tabbedWin) {
-        openApplication('tabbed-main');
-        // Wait for render
-        await new Promise(resolve => setTimeout(resolve, 100));
-        tabbedWin = openWindows.find(w => w.id === 'tabbed-main');
-      }
-
-      if (!tabbedWin) return;
-
-      // Check if file is already open in a tab
-      const existingTabIndex = tabbedWin.tabs.findIndex(tab => tab.filePath === path);
-      if (existingTabIndex !== -1) {
-        // Switch to existing tab
-        switchTab(existingTabIndex);
-        return;
-      }
-
-      // Fetch file content (from cache or network)
-      let content;
-      if (fileContentsCache[path]) {
-        content = fileContentsCache[path];
-      } else {
-        try {
-          const response = await fetch(path);
-          if (response.ok) {
-            content = await response.text();
-            fileContentsCache[path] = content;
-          } else {
-            content = `// Error loading file: ${path}`;
-          }
-        } catch (err) {
-          content = `// Error loading file: ${err.message}`;
-        }
-      }
-
-      // Check if current tab already has a file open
-      const currentTab = tabbedWin.tabs[tabbedWin.activeTab || 0];
-      const hasFileOpen = currentTab && currentTab.filePath;
-
-      if (hasFileOpen) {
-        // Open new tab via DOM manipulation (preserve existing editors)
-        const newPaneId = generatePaneId();
-        const newTabIndex = tabbedWin.tabs.length;
-
-        // Update data model
-        tabbedWin.tabs.push({
-          id: `tab-${newTabIndex + 1}`,
-          name: fileName,
-          filePath: path,
-          activePane: newPaneId,
-          panes: { id: newPaneId, title: fileName, content: generateEditorHtml(newPaneId) }
-        });
-        tabbedWin.activeTab = newTabIndex;
-        focusedPaneId = newPaneId;
-
-        // DOM: Remove active class from current tab
-        document.querySelectorAll('.tabbed-window-tab').forEach(t => t.classList.remove('active'));
-
-        // DOM: Add new tab button before the + button
-        const addBtn = document.getElementById('add-tab');
-        const newTabEl = document.createElement('div');
-        newTabEl.className = 'tabbed-window-tab active';
-        newTabEl.dataset.tabIndex = newTabIndex;
-        newTabEl.innerHTML = `${fileName}<span class="tab-close" data-tab-index="${newTabIndex}">&times;</span>`;
-        newTabEl.addEventListener('click', (e) => {
-          if (!e.target.classList.contains('tab-close')) {
-            switchTab(newTabIndex);
-          }
-        });
-        newTabEl.querySelector('.tab-close').addEventListener('click', (e) => {
-          e.stopPropagation();
-          closeTab(newTabIndex);
-        });
-        addBtn.parentNode.insertBefore(newTabEl, addBtn);
-
-        // DOM: Hide current pane container, add new one
-        document.querySelectorAll('.tab-pane-container').forEach(c => c.classList.remove('active'));
-
-        const tabbedContent = document.getElementById('tabbed-content');
-        const newPaneContainer = document.createElement('div');
-        newPaneContainer.className = 'tab-pane-container active';
-        newPaneContainer.dataset.tabIndex = newTabIndex;
-        newPaneContainer.innerHTML = `<div class="pane" data-pane-id="${newPaneId}"><div class="pane-content">${generateEditorHtml(newPaneId)}</div></div>`;
-
-        // Add click handler for pane
-        newPaneContainer.querySelector('.pane').addEventListener('click', (e) => {
-          e.stopPropagation();
-          focusPane(newPaneId);
-        });
-
-        tabbedContent.appendChild(newPaneContainer);
-
-        saveState();
-
-        // Initialize the new editor and set content
-        initializePaneEditors();
-        await new Promise(resolve => setTimeout(resolve, 50));
-
-        const registry = window.paneRegistry[newPaneId];
-        if (registry && registry.editor && registry.editor.Model) {
-          registry.editor.Model.text = content;
-        }
-      } else {
-        // Use current tab - update its name and file path
-        currentTab.name = fileName;
-        currentTab.filePath = path;
-        saveState();
-
-        // Update tab name in DOM
-        const tabEl = document.querySelector(`.tabbed-window-tab[data-tab-index="${tabbedWin.activeTab || 0}"]`);
-        if (tabEl) {
-          const closeSpan = tabEl.querySelector('.tab-close');
-          tabEl.innerHTML = `${fileName}<span class="tab-close" data-tab-index="${tabbedWin.activeTab || 0}">&times;</span>`;
-        }
-
-        // Set editor content
-        const paneId = currentTab.activePane;
-        const registry = window.paneRegistry[paneId];
-        if (registry && registry.editor && registry.editor.Model) {
-          registry.editor.Model.text = content;
-        }
-      }
     }
 
     function updateNodeExpanded(node, name, expanded) {
@@ -1746,13 +1710,12 @@
       return false;
     }
 
-    // Save file tree expansion state to localStorage
-    const FILE_TREE_STATE_KEY = 'marketbuffer_filetree_state';
-
+    // Save file tree expansion state to systemState
     function saveFileTreeState() {
       const state = {};
       collectExpansionState(fileTreeData, state);
-      localStorage.setItem(FILE_TREE_STATE_KEY, JSON.stringify(state));
+      systemState.fileTree = state;
+      saveSystemState();
     }
 
     function collectExpansionState(node, state) {
@@ -1765,14 +1728,8 @@
     }
 
     function loadFileTreeState() {
-      const saved = localStorage.getItem(FILE_TREE_STATE_KEY);
-      if (saved) {
-        try {
-          const state = JSON.parse(saved);
-          applyExpansionState(fileTreeData, state);
-        } catch (e) {
-          console.error('Failed to load file tree state:', e);
-        }
+      if (systemState.fileTree && Object.keys(systemState.fileTree).length > 0) {
+        applyExpansionState(fileTreeData, systemState.fileTree);
       }
     }
 
@@ -1802,38 +1759,12 @@
     // Active window ID
     let activeWindowId = null;
 
-    // Focused pane ID
-    let focusedPaneId = null;
-
-    // Global panes registry - stores pane info and editor instances
-    window.paneRegistry = {};
-
     // Dragging state
     let activeWindow = null;
     let offsetX = 0;
     let offsetY = 0;
 
-    // LocalStorage key
-    const STORAGE_KEY = 'marketbuffer_windows_state';
-
-    // Helper to strip content from panes (for saving - content is regenerated on load)
-    function stripPaneContent(pane) {
-      if (pane.direction) {
-        return { ...pane, children: pane.children.map(stripPaneContent) };
-      }
-      const { content, ...rest } = pane;
-      return rest;
-    }
-
-    // Helper to restore content to panes (for loading)
-    function restorePaneContent(pane) {
-      if (pane.direction) {
-        return { ...pane, children: pane.children.map(restorePaneContent) };
-      }
-      return { ...pane, content: generateEditorHtml(pane.id) };
-    }
-
-    // Save state to localStorage
+    // Save windows state to systemState
     function saveState() {
       const state = openWindows.map(win => ({
         id: win.id,
@@ -1845,28 +1776,27 @@
         activeTab: win.activeTab,
         tabs: win.tabs ? win.tabs.map(tab => ({
           ...tab,
-          panes: tab.panes ? stripPaneContent(tab.panes) : null
+          panes: tab.panes && editorCard ? editorCard.stripPaneContent(tab.panes) : null
         })) : undefined
       }));
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      systemState.windows = state;
+      saveSystemState();
     }
 
-    // Load state from localStorage
+    // Load windows state from systemState
     function loadState() {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
+      if (systemState.windows && systemState.windows.length > 0) {
         try {
-          const state = JSON.parse(saved);
           // Merge saved state with initial windows (to get non-serialized properties)
-          openWindows = state.map(savedWin => {
+          openWindows = systemState.windows.map(savedWin => {
             const initialWin = initialWindows.find(w => w.id === savedWin.id);
             if (initialWin) {
               const merged = { ...initialWin, ...savedWin };
               // Restore pane content for tabbed windows
-              if (merged.tabs) {
+              if (merged.tabs && editorCard) {
                 merged.tabs = merged.tabs.map(tab => ({
                   ...tab,
-                  panes: tab.panes ? restorePaneContent(tab.panes) : null
+                  panes: tab.panes ? editorCard.restorePaneContent(tab.panes) : null
                 }));
               }
               return merged;
@@ -1883,6 +1813,14 @@
 
     // Initialize on page load
     async function init() {
+      // Load system state first (fetches version from default-state.json)
+      await loadSystemState();
+
+      // Apply theme, font size, and wallpaper after state is loaded
+      loadTheme();
+      loadFontSize();
+      loadWallpaper();
+
       // Render file tree in sidebar
       renderFileTree();
 
@@ -1905,63 +1843,8 @@
 
     // Reload file contents for all tabs that have a filePath
     async function reloadAllTabFiles() {
-      const tabbedWin = openWindows.find(w => w.id === 'tabbed-main');
-      if (!tabbedWin || !tabbedWin.tabs) return;
-
-      // Wait for editors to initialize
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      for (const tab of tabbedWin.tabs) {
-        if (tab.filePath && tab.activePane) {
-          // Fetch file content
-          let content;
-          if (fileContentsCache[tab.filePath]) {
-            content = fileContentsCache[tab.filePath];
-          } else {
-            try {
-              const response = await fetch(tab.filePath);
-              if (response.ok) {
-                content = await response.text();
-                fileContentsCache[tab.filePath] = content;
-              } else {
-                content = `// Error loading file: ${tab.filePath}`;
-              }
-            } catch (err) {
-              content = `// Error loading file: ${err.message}`;
-            }
-          }
-
-          // Set editor content
-          const registry = window.paneRegistry[tab.activePane];
-          if (registry && registry.editor && registry.editor.Model) {
-            registry.editor.Model.text = content;
-          }
-        }
-      }
-
-      // Highlight the active tab's file in the tree
-      const activeTab = tabbedWin.tabs[tabbedWin.activeTab || 0];
-      if (activeTab && activeTab.filePath) {
-        highlightFileInTree(activeTab.filePath);
-      }
-    }
-
-    // Render panes recursively
-    let splitIdCounter = 0;
-    function renderPanes(pane, isMultiple = false, parentSplitId = null) {
-      if (pane.direction) {
-        // Split pane - children are in multiple pane mode
-        const splitId = `split-${splitIdCounter++}`;
-        const dirClass = pane.direction === 'vertical' ? 'pane-split-vertical' : 'pane-split-horizontal';
-        const childrenHtml = pane.children.map(child => renderPanes(child, true, splitId)).join('');
-        return `<div class="pane-split ${dirClass}" data-split-id="${splitId}">${childrenHtml}</div>`;
-      } else {
-        // Leaf pane
-        const multiClass = isMultiple ? 'pane-multi' : '';
-        const focusedClass = isMultiple && pane.id === focusedPaneId ? 'focused' : '';
-        const titleHtml = isMultiple && pane.title ? `<div class="pane-title">${pane.title}</div>` : '';
-        const parentAttr = parentSplitId ? `data-parent-split="${parentSplitId}"` : '';
-        return `<div class="pane ${multiClass} ${focusedClass}" data-pane-id="${pane.id}" ${parentAttr}>${titleHtml}<div class="pane-content">${pane.content || ''}</div></div>`;
+      if (typeof editorCard !== 'undefined' && typeof editorCard.reloadAllFiles === 'function') {
+        await editorCard.reloadAllFiles();
       }
     }
 
@@ -1974,7 +1857,7 @@
         const windowEl = document.createElement('div');
 
         if (win.tabbed) {
-          // Tabbed window - positioned relative to desktop container
+          // Tabbed window - delegate rendering to the card
           windowEl.className = 'tabbed-window';
           windowEl.id = 'tabbed-window';
           windowEl.dataset.windowId = win.id;
@@ -1984,38 +1867,11 @@
           windowEl.style.right = win.right + 'px';
           windowEl.style.bottom = win.bottom + 'px';
 
-          // Render tabs
-          const activeTab = win.activeTab || 0;
-          const tabsHtml = win.tabs.map((tab, i) => {
-            const isFirst = i === 0 && win.closeable;
-            const classes = `tabbed-window-tab ${i === activeTab ? 'active' : ''} ${isFirst ? 'first-tab-with-close' : ''}`;
-            return `<div class="${classes}" data-tab-index="${i}">${tab.name}<span class="tab-close" data-tab-index="${i}">&times;</span></div>`;
-          }).join('');
-
-          // Close button for closeable tabbed windows
-          const closeBoxHtml = win.closeable
-            ? `<div class="close-box tabbed-close-box" data-window-id="${win.id}"></div>`
-            : '';
-
-          // Render panes for ALL tabs (hidden unless active)
-          const allTabPanesHtml = win.tabs.map((tab, tabIdx) => {
-            const panesHtml = tab.panes ? renderPanes(tab.panes) : '';
-            const isActive = tabIdx === activeTab ? 'active' : '';
-            return `<div class="tab-pane-container ${isActive}" data-tab-index="${tabIdx}">${panesHtml}</div>`;
-          }).join('');
-
-          windowEl.innerHTML = `
-            <div class="tabbed-window-inner">
-              <div class="tabbed-window-tabs" id="tabbed-tabs">
-                ${closeBoxHtml}
-                ${tabsHtml}
-                <div class="tabbed-window-tab-add" id="add-tab">+</div>
-              </div>
-              <div class="tabbed-window-content" id="tabbed-content">
-                ${allTabPanesHtml}
-              </div>
-            </div>
-          `;
+          // Find the card and use its render method
+          const card = initialWindows.find(c => c.id === win.id);
+          if (card && typeof card.render === 'function') {
+            windowEl.innerHTML = card.render(win);
+          }
         } else {
           // Regular window - positioned relative to desktop container
           windowEl.className = `window ${win.draggable ? 'window-draggable' : ''}`;
@@ -2029,12 +1885,13 @@
             ? `<div class="close-box" data-window-id="${win.id}"></div>`
             : '';
 
+          const contentHtml = typeof win.content === 'function' ? win.content() : win.content;
           windowEl.innerHTML = `
             <div class="window-title-bar">
               ${closeBoxHtml}
               <span class="window-title">${win.title}</span>
             </div>
-            ${win.content}
+            ${contentHtml}
           `;
         }
 
@@ -2042,63 +1899,11 @@
       });
 
       attachEventListeners();
-      setupTabbedWindowListeners();
-      initializePaneEditors();
-    }
-
-    // Initialize editors for all panes after rendering
-    function initializePaneEditors() {
-      // Find all editor elements and initialize WarrenBuf
-      document.querySelectorAll('[id^="editor-pane-"]').forEach(editorEl => {
-        // Skip if already initialized (check data attribute on element)
-        if (editorEl.dataset.wbInitialized) return;
-
-        const paneId = editorEl.id.replace('editor-', '');
-        if (typeof WarrenBuf !== 'undefined') {
-          editorEl.dataset.wbInitialized = 'true';
-          window.paneRegistry[paneId] = {
-            id: paneId,
-            editorId: editorEl.id,
-            editor: new WarrenBuf(editorEl, {})
-          };
-          // Apply current theme to new editor
-          const currentTheme = localStorage.getItem('marketbuffer_theme') || 'light';
-          const playground = editorEl.querySelector('.playground.wb');
-          if (playground && currentTheme === 'dark') {
-            playground.classList.add('wb-dark');
-          }
-        }
-      });
-    }
-
-    // Re-render only the active tab's pane container (preserves other tabs' editors)
-    function renderActiveTabPanes() {
-      const tabbedWin = openWindows.find(w => w.tabbed);
-      if (!tabbedWin) return;
-
-      const activeTab = tabbedWin.activeTab || 0;
-      const tab = tabbedWin.tabs[activeTab];
-      if (!tab) return;
-
-      const container = document.querySelector(`.tab-pane-container[data-tab-index="${activeTab}"]`);
-      if (!container) return;
-
-      // Re-render only this tab's panes
-      splitIdCounter = 0;
-      const panesHtml = tab.panes ? renderPanes(tab.panes) : '';
-      container.innerHTML = panesHtml;
-
-      // Re-attach pane click handlers for this container
-      container.querySelectorAll('.pane').forEach(pane => {
-        pane.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const paneId = pane.dataset.paneId;
-          focusPane(paneId);
-        });
-      });
-
-      // Initialize any new editors
-      initializePaneEditors();
+      // Setup tabbed window listeners via editorCard
+      if (typeof editorCard !== 'undefined' && typeof editorCard.setupEventListeners === 'function') {
+        editorCard.setupEventListeners();
+        editorCard.initializeEditors();
+      }
     }
 
     // Attach event listeners after rendering
@@ -2276,8 +2081,6 @@
     init();
 
     // Theme management
-    const THEME_STORAGE_KEY = 'marketbuffer_theme';
-
     function applyTheme(theme) {
       if (theme === 'dark') {
         document.body.classList.add('dark-theme');
@@ -2300,16 +2103,13 @@
     }
 
     function loadTheme() {
-      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'light';
-      applyTheme(savedTheme);
+      applyTheme(systemState.theme);
     }
 
     function saveTheme(theme) {
-      localStorage.setItem(THEME_STORAGE_KEY, theme);
+      systemState.theme = theme;
+      saveSystemState();
     }
-
-    // Initialize theme on load
-    loadTheme();
 
     // Listen for theme changes (using event delegation since settings may not be open)
     document.addEventListener('change', (e) => {
@@ -2321,8 +2121,6 @@
     });
 
     // Font size management
-    const FONT_SIZE_STORAGE_KEY = 'marketbuffer_font_size';
-
     function applyFontSize(size) {
       // Remove all font size classes
       document.body.classList.remove('font-small', 'font-medium', 'font-large');
@@ -2336,16 +2134,13 @@
     }
 
     function loadFontSize() {
-      const savedSize = localStorage.getItem(FONT_SIZE_STORAGE_KEY) || 'medium';
-      applyFontSize(savedSize);
+      applyFontSize(systemState.fontSize);
     }
 
     function saveFontSize(size) {
-      localStorage.setItem(FONT_SIZE_STORAGE_KEY, size);
+      systemState.fontSize = size;
+      saveSystemState();
     }
-
-    // Initialize font size on load
-    loadFontSize();
 
     // Listen for font size changes
     document.addEventListener('change', (e) => {
@@ -2357,7 +2152,6 @@
     });
 
     // Wallpaper management
-    const WALLPAPER_STORAGE_KEY = 'marketbuffer_wallpaper';
     const wallpaperClasses = ['wp-classic', 'wp-solid-gray', 'wp-solid-teal', 'wp-solid-navy', 'wp-gradient-blue', 'wp-gradient-sunset', 'wp-checkerboard', 'wp-diagonal', 'wp-dots', 'wp-mac-ii', 'wp-hokusai'];
 
     function applyWallpaper(wallpaper) {
@@ -2379,16 +2173,13 @@
     }
 
     function loadWallpaper() {
-      const savedWallpaper = localStorage.getItem(WALLPAPER_STORAGE_KEY) || 'hokusai';
-      applyWallpaper(savedWallpaper);
+      applyWallpaper(systemState.wallpaper);
     }
 
     function saveWallpaper(wallpaper) {
-      localStorage.setItem(WALLPAPER_STORAGE_KEY, wallpaper);
+      systemState.wallpaper = wallpaper;
+      saveSystemState();
     }
-
-    // Initialize wallpaper on load
-    loadWallpaper();
 
     // Listen for wallpaper clicks (using event delegation)
     document.addEventListener('click', (e) => {
@@ -2399,66 +2190,6 @@
         saveWallpaper(wallpaper);
       }
     });
-
-    // Tabbed window functions
-    function switchTab(tabIndex) {
-      const tabbedWin = openWindows.find(w => w.tabbed);
-      if (tabbedWin) {
-        tabbedWin.activeTab = tabIndex;
-        // Restore focusedPaneId from the tab's activePane
-        const tab = tabbedWin.tabs[tabIndex];
-        if (tab && tab.activePane) {
-          focusedPaneId = tab.activePane;
-        } else if (tab && tab.panes) {
-          // Default to first pane if no activePane set
-          const firstLeaf = findFirstLeafPane(tab.panes);
-          focusedPaneId = firstLeaf ? firstLeaf.id : null;
-        }
-        saveState();
-
-        // Update tab UI without re-rendering (preserve editor state)
-        document.querySelectorAll('.tabbed-window-tab').forEach(tabEl => {
-          const idx = parseInt(tabEl.dataset.tabIndex);
-          if (idx === tabIndex) {
-            tabEl.classList.add('active');
-          } else {
-            tabEl.classList.remove('active');
-          }
-        });
-
-        // Toggle pane container visibility
-        document.querySelectorAll('.tab-pane-container').forEach(container => {
-          const idx = parseInt(container.dataset.tabIndex);
-          if (idx === tabIndex) {
-            container.classList.add('active');
-          } else {
-            container.classList.remove('active');
-          }
-        });
-
-        // Update pane focus styling
-        document.querySelectorAll('.pane-multi').forEach(p => {
-          if (p.dataset.paneId === focusedPaneId) {
-            p.classList.add('focused');
-          } else {
-            p.classList.remove('focused');
-          }
-        });
-
-        // Focus the editor element
-        if (focusedPaneId) {
-          const editorEl = document.getElementById(`editor-${focusedPaneId}`);
-          if (editorEl) {
-            editorEl.focus();
-          }
-        }
-
-        // Highlight the file in the file tree
-        if (tab && tab.filePath) {
-          highlightFileInTree(tab.filePath);
-        }
-      }
-    }
 
     // Highlight a file in the file tree by its path
     function highlightFileInTree(filePath) {
@@ -2475,46 +2206,6 @@
           row.classList.add('selected');
         }
       }
-    }
-
-    // Pane ID counter
-    let paneIdCounter = 1;
-
-    // Collect all pane IDs from a pane tree
-    function collectPaneIds(pane, ids = []) {
-      if (!pane) return ids;
-      if (pane.direction) {
-        // Split pane - recurse into children
-        pane.children.forEach(child => collectPaneIds(child, ids));
-      } else {
-        // Leaf pane
-        ids.push(pane.id);
-      }
-      return ids;
-    }
-
-    // Get all active pane IDs across all tabs and windows
-    function getAllActivePaneIds() {
-      const allIds = [];
-      openWindows.forEach(win => {
-        if (win.tabs) {
-          win.tabs.forEach(tab => {
-            if (tab.panes) {
-              collectPaneIds(tab.panes, allIds);
-            }
-          });
-        }
-      });
-      return allIds;
-    }
-
-    function generatePaneId() {
-      const activeIds = getAllActivePaneIds();
-      // Find an unused pane ID
-      while (activeIds.includes(`pane-${paneIdCounter}`)) {
-        paneIdCounter++;
-      }
-      return `pane-${paneIdCounter++}`;
     }
 
     // Show upgrade alert when pane limit is reached
@@ -2548,221 +2239,6 @@
       overlay.addEventListener('click', (e) => {
         if (e.target === overlay) {
           overlay.remove();
-        }
-      });
-    }
-
-    function addTab() {
-      const tabbedWin = openWindows.find(w => w.tabbed);
-      if (tabbedWin) {
-        const newIndex = tabbedWin.tabs.length;
-        const newPaneId = generatePaneId();
-        tabbedWin.tabs.push({
-          id: `tab-${newIndex + 1}`,
-          name: `Tab ${newIndex + 1}`,
-          activePane: newPaneId,
-          panes: { id: newPaneId, title: `Pane ${paneIdCounter}`, content: generateEditorHtml(newPaneId) }
-        });
-        tabbedWin.activeTab = newIndex;
-        focusedPaneId = newPaneId;
-        saveState();
-        renderWindows();
-      }
-    }
-
-    async function closeTab(tabIndex) {
-      const tabbedWin = openWindows.find(w => w.tabbed);
-      if (!tabbedWin) return;
-
-      // Get the tab being closed
-      const closingTab = tabbedWin.tabs[tabIndex];
-
-      // Clean up editor from registry
-      if (closingTab && closingTab.activePane) {
-        delete window.paneRegistry[closingTab.activePane];
-      }
-
-      // Remove from data model
-      tabbedWin.tabs.splice(tabIndex, 1);
-
-      // If no tabs left, close the editor window
-      if (tabbedWin.tabs.length === 0) {
-        closeWindow(tabbedWin.id);
-        return;
-      }
-
-      // DOM: Remove the tab element
-      const tabEl = document.querySelector(`.tabbed-window-tab[data-tab-index="${tabIndex}"]`);
-      if (tabEl) tabEl.remove();
-
-      // DOM: Remove the pane container
-      const paneContainer = document.querySelector(`.tab-pane-container[data-tab-index="${tabIndex}"]`);
-      if (paneContainer) paneContainer.remove();
-
-      // Update data-tab-index for remaining tabs and containers
-      document.querySelectorAll('.tabbed-window-tab').forEach(t => {
-        const idx = parseInt(t.dataset.tabIndex);
-        if (idx > tabIndex) {
-          t.dataset.tabIndex = idx - 1;
-          const closeBtn = t.querySelector('.tab-close');
-          if (closeBtn) closeBtn.dataset.tabIndex = idx - 1;
-        }
-      });
-      document.querySelectorAll('.tab-pane-container').forEach(c => {
-        const idx = parseInt(c.dataset.tabIndex);
-        if (idx > tabIndex) {
-          c.dataset.tabIndex = idx - 1;
-        }
-      });
-
-      // Determine new active tab
-      let newActiveTab;
-      if (tabbedWin.activeTab >= tabbedWin.tabs.length) {
-        newActiveTab = tabbedWin.tabs.length - 1;
-      } else if (tabbedWin.activeTab > tabIndex) {
-        newActiveTab = tabbedWin.activeTab - 1;
-      } else if (tabbedWin.activeTab === tabIndex) {
-        // Closed the active tab, switch to same index or previous
-        newActiveTab = Math.min(tabIndex, tabbedWin.tabs.length - 1);
-      } else {
-        newActiveTab = tabbedWin.activeTab;
-      }
-
-      tabbedWin.activeTab = newActiveTab;
-      const newTab = tabbedWin.tabs[newActiveTab];
-      if (newTab) {
-        focusedPaneId = newTab.activePane;
-      }
-
-      // DOM: Update active states
-      document.querySelectorAll('.tabbed-window-tab').forEach(t => {
-        if (parseInt(t.dataset.tabIndex) === newActiveTab) {
-          t.classList.add('active');
-        } else {
-          t.classList.remove('active');
-        }
-      });
-      document.querySelectorAll('.tab-pane-container').forEach(c => {
-        if (parseInt(c.dataset.tabIndex) === newActiveTab) {
-          c.classList.add('active');
-        } else {
-          c.classList.remove('active');
-        }
-      });
-
-      saveState();
-
-      // Reload content for the now-active tab if it has a file
-      if (newTab && newTab.filePath) {
-        let content = fileContentsCache[newTab.filePath];
-        if (!content) {
-          try {
-            const response = await fetch(newTab.filePath);
-            if (response.ok) {
-              content = await response.text();
-              fileContentsCache[newTab.filePath] = content;
-            }
-          } catch (err) {
-            content = `// Error loading file: ${err.message}`;
-          }
-        }
-        if (content) {
-          const registry = window.paneRegistry[newTab.activePane];
-          if (registry && registry.editor && registry.editor.Model) {
-            registry.editor.Model.text = content;
-          }
-        }
-        highlightFileInTree(newTab.filePath);
-      }
-
-      // Focus the editor
-      if (focusedPaneId) {
-        const editorEl = document.getElementById(`editor-${focusedPaneId}`);
-        if (editorEl) editorEl.focus();
-      }
-    }
-
-    // Setup tabbed window listeners
-    function setupTabbedWindowListeners() {
-      const tabbedWin = document.getElementById('tabbed-window');
-      if (tabbedWin) {
-        tabbedWin.addEventListener('mousedown', (e) => {
-          if (e.target.closest('.close-box')) return;
-          bringTabbedToFront();
-        });
-        // Close box handler for tabbed window
-        const closeBox = tabbedWin.querySelector('.close-box');
-        if (closeBox) {
-          closeBox.addEventListener('click', (e) => {
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            e.preventDefault();
-            const windowId = closeBox.dataset.windowId;
-            closeWindow(windowId);
-          }, true);
-          closeBox.addEventListener('mousedown', (e) => {
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            e.preventDefault();
-          }, true);
-        }
-      }
-
-      // Tab click handlers
-      document.querySelectorAll('.tabbed-window-tab').forEach(tab => {
-        tab.addEventListener('click', (e) => {
-          // Don't switch tab if clicking on close button
-          if (e.target.classList.contains('tab-close')) return;
-          const tabIndex = parseInt(tab.dataset.tabIndex);
-          switchTab(tabIndex);
-        });
-      });
-
-      // Tab close button handlers
-      document.querySelectorAll('.tab-close').forEach(closeBtn => {
-        closeBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const tabIndex = parseInt(closeBtn.dataset.tabIndex);
-          closeTab(tabIndex);
-        });
-      });
-
-      // Add tab button
-      const addBtn = document.getElementById('add-tab');
-      if (addBtn) {
-        addBtn.addEventListener('click', addTab);
-      }
-
-      // Pane click handlers
-      document.querySelectorAll('.pane').forEach(pane => {
-        pane.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const paneId = pane.dataset.paneId;
-          focusPane(paneId);
-        });
-      });
-    }
-
-    function focusPane(paneId) {
-      focusedPaneId = paneId;
-
-      // Save to the current tab's activePane
-      const tabbedWin = openWindows.find(w => w.tabbed);
-      if (tabbedWin) {
-        const activeTab = tabbedWin.activeTab || 0;
-        const tab = tabbedWin.tabs[activeTab];
-        if (tab) {
-          tab.activePane = paneId;
-          saveState();
-        }
-      }
-
-      // Update UI without full re-render - only apply to multi-pane
-      document.querySelectorAll('.pane-multi').forEach(p => {
-        if (p.dataset.paneId === paneId) {
-          p.classList.add('focused');
-        } else {
-          p.classList.remove('focused');
         }
       });
     }
@@ -2810,349 +2286,20 @@
     }
 
     function executeContextMenuAction(windowId, action) {
-      if (action === 'close') {
+      // Find the card and delegate action
+      const card = initialWindows.find(c => c.id === windowId);
+      if (card && typeof card.executeAction === 'function') {
+        card.executeAction(action);
+      } else if (action === 'close') {
         closeWindow(windowId);
-      } else if (action === 'split-vertical') {
-        splitPane(windowId, 'vertical');
-      } else if (action === 'split-horizontal') {
-        splitPane(windowId, 'horizontal');
-      } else if (action === 'close-pane') {
-        closePane(windowId);
       }
-    }
-
-    // Find and replace a pane by ID in the pane tree
-    function findAndReplacePaneById(pane, targetId, replacement) {
-      if (!pane.direction) {
-        // Leaf pane
-        if (pane.id === targetId) {
-          return { found: true, result: replacement };
-        }
-        return { found: false, result: pane };
-      }
-
-      // Split pane - search children
-      let found = false;
-      const newChildren = pane.children.map(child => {
-        if (found) return child;
-        const result = findAndReplacePaneById(child, targetId, replacement);
-        if (result.found) {
-          found = true;
-          return result.result;
-        }
-        return result.result;
-      });
-
-      return { found, result: { ...pane, children: newChildren } };
-    }
-
-    // Generate editor HTML for a pane
-    function generateEditorHtml(paneId) {
-      return `
-        <blockquote cite="" class="playground 💪 🍜 🥷 🌕 🪜 wb no-select" tabindex="0" id="editor-${paneId}">
-          <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
-          <div class="💪">
-            <div class="wb-gutter"></div>
-            <div class="wb-lines 🌳 🥷"></div>
-          </div>
-          <div class="💪 wb-status 🦠">
-            <div class="wb-status-left 💪">
-              <span class="wb-linecount"></span>
-            </div>
-            <div class="wb-status-right 💪">
-              <span class="wb-coordinate"></span>
-              <span>|</span>
-              <span class="wb-indentation"></span>
-            </div>
-          </div>
-        </blockquote>
-      `;
-    }
-
-    // Split the focused pane (DOM-based to preserve existing editors)
-    function splitPane(windowId, direction) {
-      const win = openWindows.find(w => w.id === windowId);
-      if (!win || !win.tabbed) return;
-
-      const activeTab = win.activeTab || 0;
-      const tab = win.tabs[activeTab];
-      if (!tab || !tab.panes) return;
-
-      // Check pane limit (8 per tab)
-      const tabPanes = [];
-      collectPaneIds(tab.panes, tabPanes);
-      if (tabPanes.length >= 8) {
-        showUpgradeAlert();
-        return;
-      }
-
-      // If no pane is focused, focus the first leaf pane
-      if (!focusedPaneId) {
-        const firstLeaf = findFirstLeafPane(tab.panes);
-        if (firstLeaf) focusedPaneId = firstLeaf.id;
-      }
-
-      if (!focusedPaneId) return;
-
-      // Find the focused pane element in DOM
-      const paneEl = document.querySelector(`.pane[data-pane-id="${focusedPaneId}"]`);
-      if (!paneEl) return;
-
-      // Find the focused pane data
-      const focusedPane = findPaneById(tab.panes, focusedPaneId);
-      if (!focusedPane) return;
-
-      // Generate new pane
-      const newPaneId = generatePaneId();
-      const newPaneTitle = `Pane ${paneIdCounter}`;
-      const newPane = { id: newPaneId, title: newPaneTitle, content: generateEditorHtml(newPaneId) };
-
-      // Update data model
-      const replacement = {
-        direction: direction,
-        children: [
-          { ...focusedPane },
-          newPane
-        ]
-      };
-      const result = findAndReplacePaneById(tab.panes, focusedPaneId, replacement);
-      tab.panes = result.result;
-
-      // DOM manipulation - create split container
-      const splitId = `split-${splitIdCounter++}`;
-      const splitEl = document.createElement('div');
-      splitEl.className = `pane-split pane-split-${direction}`;
-      splitEl.dataset.splitId = splitId;
-
-      // Check if we're going from single pane to multiple
-      const wasMultiple = paneEl.classList.contains('pane-multi');
-
-      // Insert split container before the pane
-      paneEl.parentNode.insertBefore(splitEl, paneEl);
-
-      // Move existing pane into split container
-      splitEl.appendChild(paneEl);
-
-      // Update existing pane to multi-pane style
-      paneEl.classList.add('pane-multi');
-      paneEl.dataset.parentSplit = splitId;
-      if (!wasMultiple) {
-        // Add title if it didn't have one
-        const titleEl = document.createElement('div');
-        titleEl.className = 'pane-title';
-        titleEl.textContent = focusedPane.title || focusedPaneId;
-        paneEl.insertBefore(titleEl, paneEl.firstChild);
-      }
-      paneEl.classList.remove('focused');
-
-      // Create new pane element
-      const newPaneEl = document.createElement('div');
-      newPaneEl.className = 'pane pane-multi focused';
-      newPaneEl.dataset.paneId = newPaneId;
-      newPaneEl.dataset.parentSplit = splitId;
-      newPaneEl.innerHTML = `<div class="pane-title">${newPaneTitle}</div><div class="pane-content">${generateEditorHtml(newPaneId)}</div>`;
-
-      // Add click handler to new pane
-      newPaneEl.addEventListener('click', (e) => {
-        e.stopPropagation();
-        focusPane(newPaneId);
-      });
-
-      // Append new pane to split container
-      splitEl.appendChild(newPaneEl);
-
-      // Focus the new pane
-      focusedPaneId = newPaneId;
-      tab.activePane = newPaneId;
-
-      saveState();
-
-      // Initialize editor for new pane only
-      initializePaneEditors();
-    }
-
-    // Find a pane by ID
-    function findPaneById(pane, id) {
-      if (!pane.direction) {
-        return pane.id === id ? pane : null;
-      }
-      for (const child of pane.children) {
-        const found = findPaneById(child, id);
-        if (found) return found;
-      }
-      return null;
-    }
-
-    // Find first leaf pane
-    function findFirstLeafPane(pane) {
-      if (!pane.direction) {
-        return pane;
-      }
-      return findFirstLeafPane(pane.children[0]);
-    }
-
-    // Close the focused pane and collapse its parent split (DOM-based)
-    function closePane(windowId) {
-      const win = openWindows.find(w => w.id === windowId);
-      if (!win || !win.tabbed) return;
-
-      const activeTab = win.activeTab || 0;
-      const tab = win.tabs[activeTab];
-      if (!tab || !tab.panes) return;
-
-      // Can't close if it's the only pane (no splits)
-      if (!tab.panes.direction) return;
-
-      if (!focusedPaneId) {
-        const firstLeaf = findFirstLeafPane(tab.panes);
-        if (firstLeaf) focusedPaneId = firstLeaf.id;
-      }
-
-      if (!focusedPaneId) return;
-
-      // Find the pane element to close
-      const paneEl = document.querySelector(`.pane[data-pane-id="${focusedPaneId}"]`);
-      if (!paneEl) return;
-
-      const parentSplitId = paneEl.dataset.parentSplit;
-      if (!parentSplitId) return;
-
-      const parentSplitEl = document.querySelector(`.pane-split[data-split-id="${parentSplitId}"]`);
-      if (!parentSplitEl) return;
-
-      // Find sibling (the element that will remain)
-      let siblingEl = null;
-      for (const child of parentSplitEl.children) {
-        if (child !== paneEl) {
-          siblingEl = child;
-          break;
-        }
-      }
-      if (!siblingEl) return;
-
-      // Clean up the editor being closed
-      if (window.paneRegistry[focusedPaneId]) {
-        delete window.paneRegistry[focusedPaneId];
-      }
-
-      // Update data model
-      const result = removePaneById(tab.panes, focusedPaneId);
-      if (!result.removed) return;
-      tab.panes = result.result;
-
-      // DOM manipulation - replace parent split with sibling
-      const grandparent = parentSplitEl.parentNode;
-
-      // Check if we're going back to single pane (grandparent is tab-pane-container)
-      const isGoingToSingle = grandparent.classList.contains('tab-pane-container') && !siblingEl.classList.contains('pane-split');
-
-      if (isGoingToSingle && siblingEl.classList.contains('pane')) {
-        // Remove multi-pane styling when going back to single pane
-        siblingEl.classList.remove('pane-multi', 'focused');
-        delete siblingEl.dataset.parentSplit;
-        // Remove title
-        const titleEl = siblingEl.querySelector('.pane-title');
-        if (titleEl) titleEl.remove();
-      }
-
-      // Replace split with sibling
-      grandparent.insertBefore(siblingEl, parentSplitEl);
-      parentSplitEl.remove();
-
-      // Focus the first remaining pane
-      const firstLeaf = findFirstLeafPane(tab.panes);
-      focusedPaneId = firstLeaf ? firstLeaf.id : null;
-      tab.activePane = focusedPaneId;
-
-      // Update focus styling
-      document.querySelectorAll('.pane-multi').forEach(p => {
-        if (p.dataset.paneId === focusedPaneId) {
-          p.classList.add('focused');
-        } else {
-          p.classList.remove('focused');
-        }
-      });
-
-      saveState();
     }
 
     function highlightParentSplit(show) {
-      // Remove any existing highlights
-      document.querySelectorAll('.parent-highlight').forEach(el => {
-        el.classList.remove('parent-highlight');
-      });
-      document.querySelectorAll('.closing-highlight').forEach(el => {
-        el.classList.remove('closing-highlight');
-      });
-      document.querySelectorAll('.sibling-highlight').forEach(el => {
-        el.classList.remove('sibling-highlight');
-      });
-
-      if (show && focusedPaneId) {
-        const paneEl = document.querySelector(`.pane[data-pane-id="${focusedPaneId}"]`);
-        if (paneEl) {
-          // Highlight active pane in red
-          paneEl.classList.add('closing-highlight');
-
-          const parentSplitId = paneEl.dataset.parentSplit;
-          if (parentSplitId) {
-            const parentEl = document.querySelector(`.pane-split[data-split-id="${parentSplitId}"]`);
-            if (parentEl) {
-              parentEl.classList.add('parent-highlight');
-
-              // Find and highlight sibling pane in teal
-              const siblingPanes = parentEl.querySelectorAll(`:scope > .pane[data-parent-split="${parentSplitId}"]`);
-              siblingPanes.forEach(sibling => {
-                if (sibling.dataset.paneId !== focusedPaneId) {
-                  sibling.classList.add('sibling-highlight');
-                }
-              });
-
-              // Also check for sibling splits (highlight their leaf panes)
-              const siblingSplits = parentEl.querySelectorAll(`:scope > .pane-split`);
-              siblingSplits.forEach(split => {
-                const leafPanes = split.querySelectorAll('.pane');
-                leafPanes.forEach(leaf => {
-                  leaf.classList.add('sibling-highlight');
-                });
-              });
-            }
-          }
-        }
+      // Delegate to editorCard
+      if (typeof editorCard !== 'undefined' && typeof editorCard.highlightParentSplit === 'function') {
+        editorCard.highlightParentSplit(show);
       }
-    }
-
-    // Remove a pane by ID and collapse the parent split
-    function removePaneById(pane, targetId) {
-      if (!pane.direction) {
-        // Leaf pane - can't remove from here
-        return { removed: false, result: pane };
-      }
-
-      // Check if one of the children is the target
-      const targetIndex = pane.children.findIndex(child =>
-        !child.direction && child.id === targetId
-      );
-
-      if (targetIndex !== -1) {
-        // Found the target - return the sibling
-        const siblingIndex = targetIndex === 0 ? 1 : 0;
-        return { removed: true, result: pane.children[siblingIndex] };
-      }
-
-      // Recursively search in children
-      let removed = false;
-      const newChildren = pane.children.map(child => {
-        if (removed) return child;
-        const result = removePaneById(child, targetId);
-        if (result.removed) {
-          removed = true;
-          return result.result;
-        }
-        return result.result;
-      });
-
-      return { removed, result: { ...pane, children: newChildren } };
     }
 
     function toggleActiveWindowMenu() {
@@ -3211,15 +2358,11 @@
 
           // Ensure tabbed windows have at least one tab
           if (newWin.tabbed && (!newWin.tabs || newWin.tabs.length === 0)) {
-            const defaultPaneId = generatePaneId();
-            newWin.tabs = [{
-              id: 'tab-1',
-              name: 'Tab 1',
-              activePane: defaultPaneId,
-              panes: { id: defaultPaneId, title: 'Pane 1', content: generateEditorHtml(defaultPaneId) }
-            }];
-            newWin.activeTab = 0;
-            focusedPaneId = defaultPaneId;
+            // Find the card and let it initialize its default state
+            const card = initialWindows.find(c => c.id === newWin.id);
+            if (card && typeof card.initDefaultTab === 'function') {
+              card.initDefaultTab(newWin);
+            }
           }
 
           openWindows.push(newWin);
@@ -3238,7 +2381,7 @@
       const windowEl = document.createElement('div');
 
       if (win.tabbed) {
-        // Tabbed window (Editor)
+        // Tabbed window - delegate rendering to the card
         windowEl.className = 'tabbed-window';
         windowEl.id = 'tabbed-window';
         windowEl.dataset.windowId = win.id;
@@ -3248,41 +2391,19 @@
         windowEl.style.right = win.right + 'px';
         windowEl.style.bottom = win.bottom + 'px';
 
-        // Render tabs
-        const activeTab = win.activeTab || 0;
-        const tabsHtml = win.tabs.map((tab, i) => {
-          const isFirst = i === 0 && win.closeable;
-          const classes = `tabbed-window-tab ${i === activeTab ? 'active' : ''} ${isFirst ? 'first-tab-with-close' : ''}`;
-          return `<div class="${classes}" data-tab-index="${i}">${tab.name}<span class="tab-close" data-tab-index="${i}">&times;</span></div>`;
-        }).join('');
-
-        const closeBoxHtml = win.closeable
-          ? `<div class="close-box tabbed-close-box" data-window-id="${win.id}"></div>`
-          : '';
-
-        // Render panes for ALL tabs
-        const allTabPanesHtml = win.tabs.map((tab, tabIdx) => {
-          const panesHtml = tab.panes ? renderPanes(tab.panes) : '';
-          const isActive = tabIdx === activeTab ? 'active' : '';
-          return `<div class="tab-pane-container ${isActive}" data-tab-index="${tabIdx}">${panesHtml}</div>`;
-        }).join('');
-
-        windowEl.innerHTML = `
-          <div class="tabbed-window-inner">
-            <div class="tabbed-window-tabs" id="tabbed-tabs">
-              ${closeBoxHtml}
-              ${tabsHtml}
-              <div class="tabbed-window-tab-add" id="add-tab">+</div>
-            </div>
-            <div class="tabbed-window-content" id="tabbed-content">
-              ${allTabPanesHtml}
-            </div>
-          </div>
-        `;
+        // Find the card and use its render method
+        const card = initialWindows.find(c => c.id === win.id);
+        if (card && typeof card.render === 'function') {
+          windowEl.innerHTML = card.render(win);
+        }
 
         desktop.appendChild(windowEl);
-        setupTabbedWindowListeners();
-        initializePaneEditors();
+
+        // Setup tabbed window listeners via editorCard
+        if (typeof editorCard !== 'undefined' && typeof editorCard.setupEventListeners === 'function') {
+          editorCard.setupEventListeners();
+          editorCard.initializeEditors();
+        }
       } else {
         // Regular window
         windowEl.className = `window ${win.draggable ? 'window-draggable' : ''}`;
@@ -3296,12 +2417,18 @@
           ? `<div class="close-box" data-window-id="${win.id}"></div>`
           : '';
 
+        // Call init() on win before rendering content so it can set up state
+        if (typeof win.init === 'function') {
+          win.init(system);
+        }
+
+        const contentHtml = typeof win.content === 'function' ? win.content() : win.content;
         windowEl.innerHTML = `
           <div class="window-title-bar">
             ${closeBoxHtml}
             <span class="window-title">${win.title}</span>
           </div>
-          ${win.content}
+          ${contentHtml}
         `;
 
         desktop.appendChild(windowEl);
@@ -3355,24 +2482,21 @@
 
       // Sync settings selects if this is the settings window
       if (win.id === 'settings') {
-        const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'light';
         const themeSelect = document.getElementById('setting-theme');
         if (themeSelect) {
-          themeSelect.value = savedTheme;
+          themeSelect.value = systemState.theme;
         }
-        const savedFontSize = localStorage.getItem(FONT_SIZE_STORAGE_KEY) || 'medium';
         const fontSizeSelect = document.getElementById('setting-font-size');
         if (fontSizeSelect) {
-          fontSizeSelect.value = savedFontSize;
+          fontSizeSelect.value = systemState.fontSize;
         }
       }
 
       // Sync wallpaper selection if this is the wallpaper window
       if (win.id === 'wallpaper') {
-        const savedWallpaper = localStorage.getItem(WALLPAPER_STORAGE_KEY) || 'hokusai';
         document.querySelectorAll('.wallpaper-option').forEach(opt => {
           opt.classList.remove('selected');
-          if (opt.dataset.wallpaper === savedWallpaper) {
+          if (opt.dataset.wallpaper === systemState.wallpaper) {
             opt.classList.add('selected');
           }
         });
@@ -3436,123 +2560,7 @@
       }
     }, true);
 
-    // Fake diff data for different files
-    const fakeDiffs = {
-      'src/App.js': [
-        { type: 'header', text: '@@ -1,10 +1,12 @@' },
-        { type: 'context', num: 1, text: "import React, { useState } from 'react';" },
-        { type: 'context', num: 2, text: "import { Button } from './components/Button';" },
-        { type: 'removed', num: 3, text: "import { Modal } from './components/Modal';" },
-        { type: 'added', num: 3, text: "import { Modal } from './components/Modal';" },
-        { type: 'added', num: 4, text: "import { Sidebar } from './components/Sidebar';" },
-        { type: 'context', num: 5, text: '' },
-        { type: 'context', num: 6, text: 'function App() {' },
-        { type: 'removed', num: 7, text: '  const [modalOpen, setModalOpen] = useState(false);' },
-        { type: 'added', num: 7, text: '  const [isModalOpen, setIsModalOpen] = useState(false);' },
-        { type: 'added', num: 8, text: '  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);' },
-        { type: 'context', num: 9, text: '  const [selected, setSelected] = useState(null);' },
-      ],
-      'styles/main.css': [
-        { type: 'header', text: '@@ -22,6 +22,14 @@' },
-        { type: 'context', num: 22, text: '.app {' },
-        { type: 'context', num: 23, text: '  display: flex;' },
-        { type: 'context', num: 24, text: '  min-height: 100vh;' },
-        { type: 'added', num: 25, text: '  background: var(--bg-color);' },
-        { type: 'added', num: 26, text: '}' },
-        { type: 'added', num: 27, text: '' },
-        { type: 'added', num: 28, text: '.app.dark-mode {' },
-        { type: 'added', num: 29, text: '  background: #1a1a1a;' },
-        { type: 'added', num: 30, text: '  color: #fff;' },
-        { type: 'context', num: 31, text: '}' },
-      ],
-      'src/old-file.js': [
-        { type: 'header', text: '@@ -1,15 +0,0 @@' },
-        { type: 'removed', num: 1, text: '// This file is no longer needed' },
-        { type: 'removed', num: 2, text: "import { legacy } from './legacy';" },
-        { type: 'removed', num: 3, text: '' },
-        { type: 'removed', num: 4, text: 'export function oldFunction() {' },
-        { type: 'removed', num: 5, text: "  console.log('deprecated');" },
-        { type: 'removed', num: 6, text: '  return legacy.process();' },
-        { type: 'removed', num: 7, text: '}' },
-      ],
-      'src/components/Button.js': [
-        { type: 'header', text: '@@ -0,0 +1,17 @@' },
-        { type: 'added', num: 1, text: "import React from 'react';" },
-        { type: 'added', num: 2, text: '' },
-        { type: 'added', num: 3, text: "export function Button({ children, onClick, variant = 'primary' }) {" },
-        { type: 'added', num: 4, text: '  const styles = {' },
-        { type: 'added', num: 5, text: "    primary: 'bg-blue-500 text-white'," },
-        { type: 'added', num: 6, text: "    secondary: 'bg-gray-500 text-white'," },
-        { type: 'added', num: 7, text: '  };' },
-        { type: 'added', num: 8, text: '' },
-        { type: 'added', num: 9, text: '  return (' },
-        { type: 'added', num: 10, text: '    <button className={styles[variant]} onClick={onClick}>' },
-        { type: 'added', num: 11, text: '      {children}' },
-        { type: 'added', num: 12, text: '    </button>' },
-        { type: 'added', num: 13, text: '  );' },
-        { type: 'added', num: 14, text: '}' },
-      ]
-    };
-
-    // Show diff viewer in the right panel
-    function showDiffViewer(fileName) {
-      const diffPanel = document.getElementById('git-diff-panel');
-      if (!diffPanel) return;
-
-      const diff = fakeDiffs[fileName] || [
-        { type: 'context', num: 1, text: '// No changes to display' }
-      ];
-
-      diffPanel.classList.remove('empty');
-      diffPanel.innerHTML = `
-        <div class="diff-panel-header">
-          <span class="diff-panel-title">${fileName}</span>
-        </div>
-        <div class="diff-panel-content">
-          ${diff.map(line => {
-            const numHtml = line.num ? `<span class="diff-line-number">${line.num}</span>` : '<span class="diff-line-number"></span>';
-            const prefix = line.type === 'added' ? '+' : line.type === 'removed' ? '-' : ' ';
-            return `<div class="diff-line ${line.type}">${numHtml}${prefix} ${line.text}</div>`;
-          }).join('')}
-        </div>
-      `;
-    }
-
-    // Attach click handlers to git file items after rendering
-    function attachGitFileHandlers() {
-      document.querySelectorAll('.git-file-item').forEach(item => {
-        item.addEventListener('click', () => {
-          // Remove selected class from all items
-          document.querySelectorAll('.git-file-item.selected').forEach(el => {
-            el.classList.remove('selected');
-          });
-          // Add selected class to clicked item
-          item.classList.add('selected');
-
-          const fileName = item.querySelector('.git-file-name')?.textContent;
-          if (fileName) {
-            showDiffViewer(fileName);
-          }
-        });
-      });
-
-      // Commit button handler
-      const commitBtn = document.querySelector('.git-btn-primary');
-      if (commitBtn) {
-        commitBtn.onclick = () => {
-          showUIAlert('Error', 'You do not have permissions to modify this repository');
-        };
-      }
-
-      // Revert button handler
-      const revertBtn = document.querySelector('.git-bottom .git-btn:not(.git-btn-primary)');
-      if (revertBtn) {
-        revertBtn.onclick = () => {
-          showUIAlert('Error', 'You do not have permissions to modify this repository');
-        };
-      }
-    }
-
+    // OS Alert dialog
     function showUIAlert(title, message) {
       const overlay = document.createElement('div');
       overlay.className = 'ui-alert-overlay';
@@ -3573,39 +2581,6 @@
       const closeAlert = () => overlay.remove();
       overlay.querySelector('.ui-alert-btn').onclick = closeAlert;
       overlay.onclick = (e) => { if (e.target === overlay) closeAlert(); };
-    }
-
-    // Call after windows are rendered
-    const originalRenderWindows = renderWindows;
-    renderWindows = function() {
-      originalRenderWindows();
-      attachGitFileHandlers();
-      // Sync settings selects if settings window is open
-      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'light';
-      const themeSelect = document.getElementById('setting-theme');
-      if (themeSelect) {
-        themeSelect.value = savedTheme;
-      }
-      const savedFontSize = localStorage.getItem(FONT_SIZE_STORAGE_KEY) || 'medium';
-      const fontSizeSelect = document.getElementById('setting-font-size');
-      if (fontSizeSelect) {
-        fontSizeSelect.value = savedFontSize;
-      }
-    };
-    // Also attach on initial load
-    attachGitFileHandlers();
-    // Preselect src/App.js diff
-    showDiffViewer('src/App.js');
-    // Sync settings selects on initial load if settings is open
-    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'light';
-    const themeSelect = document.getElementById('setting-theme');
-    if (themeSelect) {
-      themeSelect.value = savedTheme;
-    }
-    const savedFontSize = localStorage.getItem(FONT_SIZE_STORAGE_KEY) || 'medium';
-    const fontSizeSelect = document.getElementById('setting-font-size');
-    if (fontSizeSelect) {
-      fontSizeSelect.value = savedFontSize;
     }
   </script>
 </body>

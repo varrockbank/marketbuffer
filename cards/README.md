@@ -2,6 +2,24 @@
 
 Cards are self-contained application modules for the Marketbuffer OS. Each card defines a complete application including its UI, styles, logic, and lifecycle hooks.
 
+## System Object
+
+The OS provides a global `system` object:
+
+```javascript
+system = {
+  version: '0.1.0-alpha.1',  // OS version
+  state: {
+    version: '0.1.0-alpha.1',
+    theme: 'light',
+    fontSize: 'medium',
+    wallpaper: 'hokusai',
+    fileTree: {},
+    windows: null
+  }
+}
+```
+
 ## Card Structure
 
 ```javascript
@@ -35,13 +53,19 @@ const myCard = {
   ],
 
   // ============================================
-  // CONTENT (required)
+  // CONTENT (required) - Function that returns HTML
   // ============================================
-  content: `
-    <div class="my-app-content">
-      <!-- Your HTML here -->
-    </div>
-  `,
+  // content() has access to `this` - use properties set in init()
+  content() {
+    return `
+      <div class="my-app-content">
+        <p>Version: ${this.version}</p>
+      </div>
+    `;
+  },
+
+  // Default values for properties used in content()
+  version: '1.0.0',
 
   // ============================================
   // STYLES (required)
@@ -64,9 +88,11 @@ const myCard = {
   },
 
   // Called each time this app's window is opened
-  // Use for: initializing UI state, attaching handlers
-  init() {
-    // Optional
+  // Receives the system object - extract values and set on `this`
+  // These values can then be used in content()
+  init(system) {
+    // Extract values from system.state and set on this
+    this.version = system?.state?.version || '1.0.0';
   },
 
   // Called when this app's window is closed
@@ -204,12 +230,19 @@ const helloCard = {
     { label: 'Close', action: 'close' }
   ],
 
-  content: `
-    <div class="hello-content">
-      <p>Hello, World!</p>
-      <button class="hello-btn">Click Me</button>
-    </div>
-  `,
+  // content() is a function that returns HTML
+  // It has access to `this` for any properties set in init()
+  content() {
+    return `
+      <div class="hello-content">
+        <p>Hello, World! (OS v${this.osVersion})</p>
+        <button class="hello-btn">Click Me</button>
+      </div>
+    `;
+  },
+
+  // Default values
+  osVersion: '0.0.0',
 
   styles: `
     .hello-content {
@@ -231,7 +264,9 @@ const helloCard = {
 
   clickCount: 0,
 
-  init() {
+  // init receives the system object
+  init(system) {
+    this.osVersion = system?.state?.version || '0.0.0';
     this.clickCount = 0;
   },
 

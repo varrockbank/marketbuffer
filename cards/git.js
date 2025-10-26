@@ -12,8 +12,9 @@ const gitCard = {
     { label: 'Close', action: 'close' }
   ],
 
-  // HTML content
-  content: `
+  // HTML content - function with no args, uses this
+  content() {
+    return `
     <div class="git-wrapper">
       <div class="git-content">
         <div class="git-sidebar">
@@ -62,7 +63,8 @@ const gitCard = {
         </div>
       </div>
     </div>
-  `,
+  `;
+  },
 
   // CSS styles for this app
   styles: `
@@ -356,8 +358,8 @@ const gitCard = {
     }
   },
 
-  // Called when app window is opened
-  init() {
+  // Called when app window is opened - receives system object
+  init(system) {
     this.attachFileHandlers();
     this.showDiffViewer('src/App.js');
   },

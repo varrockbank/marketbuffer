@@ -12,8 +12,9 @@ const hypercardCard = {
     { label: 'Close', action: 'close' }
   ],
 
-  // HTML content
-  content: `
+  // HTML content - function with no args, uses this
+  content() {
+    return `
     <div class="hypercard-content">
       <div class="hypercard-card">
         <div class="hypercard-title">Welcome to HyperCard</div>
@@ -35,7 +36,8 @@ const hypercardCard = {
         <button class="hypercard-nav-btn hypercard-next">Next &rarr;</button>
       </div>
     </div>
-  `,
+  `;
+  },
 
   // CSS styles for this app
   styles: `
@@ -115,8 +117,8 @@ const hypercardCard = {
   currentCard: 0,
   totalCards: 3,
 
-  // Called when app window is opened
-  init() {
+  // Called when app window is opened - receives system object
+  init(system) {
     this.currentCard = 0;
     this.updatePageDisplay();
   },

@@ -12,8 +12,9 @@ const aboutCard = {
     { label: 'Close', action: 'close' }
   ],
 
-  // HTML content
-  content: `
+  // HTML content - function that references this.osVersion
+  content() {
+    return `
     <div class="about-content">
       <div class="macket-icon">
         <div class="macket-screen"></div>
@@ -21,7 +22,7 @@ const aboutCard = {
       </div>
       <div class="about-title">Marketbuffer System</div>
       <div class="about-text">
-        System Software 7.0<br>
+        Version ${this.osVersion}<br>
         &copy; Marketbuffer Computer, Inc. 2025-2026
       </div>
       <hr class="about-divider">
@@ -32,7 +33,11 @@ const aboutCard = {
       <br>
       <button class="macket-button about-ok-btn">OK</button>
     </div>
-  `,
+  `;
+  },
+
+  // Default value (fallback if init() fails)
+  osVersion: 'unknown',
 
   // CSS styles for this app
   styles: `
@@ -112,9 +117,10 @@ const aboutCard = {
     }
   `,
 
-  // Called when app window is opened
-  init() {
-    // Nothing special needed
+  // Called when app window is opened - receives system object
+  init(system) {
+    // Extract OS version from system state
+    this.osVersion = system?.state?.version || 'unknown';
   },
 
   // Called when app window is closed
