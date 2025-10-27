@@ -1401,7 +1401,7 @@
         <span class="menu-item" id="applications-menu">Applications</span>
         <div class="menu-dropdown" id="applications-dropdown"></div>
       </div>
-      <span class="menu-item">Help</span>
+      <span class="menu-item" id="help-menu">Help</span>
       <span class="menu-item" id="settings-menu">Settings</span>
       <span class="menu-item">Logout</span>
     </div>
@@ -1462,6 +1462,7 @@
   <script src="cards/git.js"></script>
   <script src="cards/settings.js"></script>
   <script src="cards/wallpaper.js"></script>
+  <script src="cards/terminal.js"></script>
 
   <script>
     // ============================================
@@ -1839,6 +1840,9 @@
 
       // Reload file contents for all tabs
       await reloadAllTabFiles();
+
+      // Initialize terminal (slide-out from bottom)
+      initTerminal();
     }
 
     // Reload file contents for all tabs that have a filePath
@@ -1846,6 +1850,54 @@
       if (typeof editorCard !== 'undefined' && typeof editorCard.reloadAllFiles === 'function') {
         await editorCard.reloadAllFiles();
       }
+    }
+
+    // Initialize terminal prompt box
+    function initTerminal() {
+      if (typeof terminalCard === 'undefined') return;
+
+      // Inject terminal styles
+      if (terminalCard.styles) {
+        const styleEl = document.createElement('style');
+        styleEl.textContent = terminalCard.styles;
+        document.head.appendChild(styleEl);
+      }
+
+      // Create terminal prompt box element
+      const terminalEl = document.createElement('div');
+      terminalEl.className = 'terminal-prompt-box';
+      terminalEl.id = 'terminal-prompt-box';
+      terminalEl.innerHTML = terminalCard.render();
+      document.body.appendChild(terminalEl);
+
+      // Initialize terminal state
+      terminalCard.init(system);
+
+      // Handle focus on input - expand terminal
+      const input = document.getElementById('terminal-input');
+      if (input) {
+        input.addEventListener('focus', () => {
+          terminalCard.expand();
+        });
+      }
+
+      // Handle clicks in terminal
+      terminalEl.addEventListener('click', (e) => {
+        terminalCard.handleClick(e);
+      });
+
+      // Handle keyboard in terminal
+      terminalEl.addEventListener('keydown', (e) => {
+        terminalCard.handleKeydown(e);
+      });
+
+      // Global keyboard shortcut: Ctrl+` or Cmd+` to toggle terminal
+      document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === '`') {
+          e.preventDefault();
+          terminalCard.toggle();
+        }
+      });
     }
 
     // Render all open windows
@@ -2539,6 +2591,40 @@
       closeApplicationsMenu();
       closeActiveWindowMenu();
       openApplication('settings');
+    });
+
+    // Help menu click handler - opens terminal and types out "help" to teach users
+    document.getElementById('help-menu').addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeApplicationsMenu();
+      closeActiveWindowMenu();
+      if (typeof terminalCard !== 'undefined') {
+        terminalCard.expand();
+        const input = document.getElementById('terminal-input');
+        if (input) {
+          input.focus();
+          input.disabled = true;
+          input.value = '';
+
+          const text = 'help';
+          let i = 0;
+          const typeInterval = setInterval(() => {
+            if (i < text.length) {
+              input.value += text[i];
+              i++;
+            } else {
+              clearInterval(typeInterval);
+              // Wait 1 second then execute
+              setTimeout(() => {
+                input.disabled = false;
+                terminalCard.executeCommand('help');
+                input.value = '';
+                input.focus();
+              }, 1000);
+            }
+          }, 250); // 1 second / 4 chars = 250ms per char
+        }
+      }
     });
 
     document.addEventListener('click', () => {
