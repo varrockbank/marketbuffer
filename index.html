@@ -2627,9 +2627,16 @@
       }
     });
 
-    document.addEventListener('click', () => {
+    document.addEventListener('click', (e) => {
       closeApplicationsMenu();
       closeActiveWindowMenu();
+      // Close terminal if clicking outside of it
+      if (typeof terminalCard !== 'undefined' && terminalCard.isExpanded) {
+        const terminalBox = document.getElementById('terminal-prompt-box');
+        if (terminalBox && !terminalBox.contains(e.target)) {
+          terminalCard.collapse();
+        }
+      }
     });
 
     // Global close box handler - handles close on mousedown before anything else

@@ -60,13 +60,13 @@ const terminalCard = {
     }
 
     body.terminal-active #desktop,
-    body.terminal-active .sidebar,
+    body.terminal-active .primary-sidebar,
     body.terminal-active .menu-bar {
       opacity: 0.4;
       pointer-events: none;
     }
 
-    #desktop, .sidebar, .menu-bar {
+    #desktop, .primary-sidebar, .menu-bar {
       transition: opacity 0.5s ease;
     }
 
