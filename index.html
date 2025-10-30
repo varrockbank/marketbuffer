@@ -1463,6 +1463,7 @@
   <script src="cards/settings.js"></script>
   <script src="cards/wallpaper.js"></script>
   <script src="cards/terminal.js"></script>
+  <script src="cards/changelog.js"></script>
 
   <script>
     // ============================================
@@ -1751,7 +1752,8 @@
       hypercardCard,
       gitCard,
       settingsCard,
-      wallpaperCard
+      wallpaperCard,
+      changelogCard,
     ];
 
     // Open windows list (copy from initial on load)
@@ -1948,6 +1950,11 @@
         }
 
         desktop.appendChild(windowEl);
+
+        // Call init() after DOM is ready
+        if (typeof win.init === 'function') {
+          win.init(system);
+        }
       });
 
       attachEventListeners();

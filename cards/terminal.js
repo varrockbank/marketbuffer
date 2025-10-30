@@ -31,9 +31,9 @@ const terminalCard = {
       transform: translateX(-50%);
       width: 560px;
       max-width: calc(100vw - 40px);
-      background: var(--window-bg, #fff);
+      background: #7A68AA;
       border: none;
-      border-top: 4px solid #a29bfe;
+      border-top: 4px solid #83C18D;
       box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.2);
       transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1),
                   width 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.6s,
@@ -77,7 +77,7 @@ const terminalCard = {
       padding: 20px 24px 8px;
       font-family: 'SF Mono', Monaco, 'Courier New', monospace;
       font-size: 13px;
-      color: var(--text-color, #000);
+      color: #1a1a1a;
       white-space: pre-wrap;
       word-wrap: break-word;
       line-height: 1.5;
@@ -145,7 +145,7 @@ const terminalCard = {
     }
 
     .terminal-caret {
-      color: var(--text-muted, #888);
+      color: rgba(0, 0, 0, 0.7);
       font-size: 16px;
       font-weight: 300;
       flex-shrink: 0;
@@ -156,14 +156,14 @@ const terminalCard = {
       background: transparent;
       border: none;
       outline: none;
-      color: var(--text-color, #000);
+      color: #1a1a1a;
       font-family: inherit;
       font-size: inherit;
-      caret-color: #a29bfe;
+      caret-color: #1a1a1a;
     }
 
     .terminal-input::placeholder {
-      color: var(--text-muted, #888);
+      color: rgba(0, 0, 0, 0.6);
     }
 
     .terminal-input::selection {

@@ -28,3 +28,7 @@ The version number is defined in `default-state.json` - this is the single sourc
 **Important:** Bump the version in `default-state.json` when making changes to core logic in `index.html`. This ensures users with cached localStorage state get a fresh state when the OS logic changes.
 
 When the version changes, returning users will have their localStorage cleared and state reset to defaults.
+
+## Code Style
+
+- Always use trailing commas in arrays and objects
