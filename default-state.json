@@ -4,5 +4,6 @@
   "fontSize": "medium",
   "wallpaper": "hokusai",
   "fileTree": {},
+  "defaultWindows": ["editor", "about"],
   "windows": null
 }

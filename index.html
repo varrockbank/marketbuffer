@@ -167,6 +167,12 @@
       left: 8px;
     }
 
+    .menu-dropdown-separator {
+      height: 1px;
+      background: var(--window-border);
+      margin: 4px 0;
+    }
+
     /* Primary Sidebar */
     .primary-sidebar {
       width: 200px;
@@ -1474,7 +1480,10 @@
     // Global system object (version loaded from default-state.json)
     const system = {
       version: null,
-      state: null
+      state: null,
+      close(windowId) {
+        closeWindow(windowId);
+      },
     };
 
     // Alias for backward compatibility
@@ -1788,7 +1797,8 @@
 
     // Load windows state from systemState
     function loadState() {
-      if (systemState.windows && systemState.windows.length > 0) {
+      // Check if windows array exists (even if empty) - means user has saved state
+      if (systemState.windows !== null && systemState.windows !== undefined) {
         try {
           // Merge saved state with initial windows (to get non-serialized properties)
           openWindows = systemState.windows.map(savedWin => {
@@ -1829,7 +1839,11 @@
 
       // Try to load from localStorage, otherwise use initial windows
       if (!loadState()) {
-        openWindows = initialWindows.map(win => ({ ...win }));
+        // Open only default windows, not all
+        const defaultWindowIds = systemState.defaultWindows || ['editor', 'about'];
+        openWindows = initialWindows
+          .filter(win => defaultWindowIds.includes(win.id))
+          .map(win => ({ ...win }));
       }
       renderWindows();
 
@@ -2017,7 +2031,7 @@
       if (!isCloseable) return; // Can't close non-closeable windows
 
       // Remove window element from DOM
-      const windowEl = document.querySelector(`[data-window-id="${windowId}"]`);
+      const windowEl = document.querySelector(`.window[data-window-id="${windowId}"], .tabbed-window[data-window-id="${windowId}"]`);
       if (windowEl) {
         windowEl.remove();
       }
@@ -2324,7 +2338,8 @@
         const menuItem = document.createElement('div');
         menuItem.className = 'menu-dropdown-item';
         menuItem.textContent = item.label;
-        menuItem.addEventListener('click', () => {
+        menuItem.addEventListener('click', (e) => {
+          e.stopPropagation();
           highlightParentSplit(false);
           executeContextMenuAction(win.id, item.action);
           closeActiveWindowMenu();
@@ -2350,7 +2365,7 @@
       if (card && typeof card.executeAction === 'function') {
         card.executeAction(action);
       } else if (action === 'close') {
-        closeWindow(windowId);
+        system.close(windowId);
       }
     }
 
@@ -2395,6 +2410,20 @@
         });
         dropdown.appendChild(item);
       });
+
+      // Add separator and close all option
+      const separator = document.createElement('div');
+      separator.className = 'menu-dropdown-separator';
+      dropdown.appendChild(separator);
+
+      const closeAllItem = document.createElement('div');
+      closeAllItem.className = 'menu-dropdown-item';
+      closeAllItem.textContent = 'Close All Windows';
+      closeAllItem.addEventListener('click', () => {
+        openWindows.slice().forEach(w => system.close(w.id));
+        closeApplicationsMenu();
+      });
+      dropdown.appendChild(closeAllItem);
     }
 
     function openApplication(windowId) {
