@@ -1409,7 +1409,7 @@
       </div>
       <span class="menu-item" id="help-menu">Help</span>
       <span class="menu-item" id="settings-menu">Settings</span>
-      <span class="menu-item">Logout</span>
+      <span class="menu-item" id="logout-menu">Logout</span>
     </div>
   </div>
 
@@ -2661,6 +2661,14 @@
           }, 250); // 1 second / 4 chars = 250ms per char
         }
       }
+    });
+
+    // Logout menu click handler
+    document.getElementById('logout-menu').addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeApplicationsMenu();
+      closeActiveWindowMenu();
+      showUIAlert('This is a demo. There is no account to log out of.');
     });
 
     document.addEventListener('click', (e) => {
