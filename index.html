@@ -1470,6 +1470,8 @@
   <script src="cards/wallpaper.js"></script>
   <script src="cards/terminal.js"></script>
   <script src="cards/changelog.js"></script>
+  <script src="cards/neogotchi.js"></script>
+  <script src="cards/trinale.js"></script>
 
   <script>
     // ============================================
@@ -1515,6 +1517,7 @@
         } catch (e) {
           console.error('Failed to parse system state:', e);
           localStorage.clear();
+          location.reload();
           system.state = { ...defaultState };
         }
       } else {
@@ -1763,6 +1766,8 @@
       settingsCard,
       wallpaperCard,
       changelogCard,
+      neogotchiCard,
+      trinaleCard,
     ];
 
     // Open windows list (copy from initial on load)
@@ -1846,6 +1851,15 @@
           .map(win => ({ ...win }));
       }
       renderWindows();
+
+      // Inject styles from all cards
+      initialWindows.forEach(card => {
+        if (card.styles) {
+          const styleEl = document.createElement('style');
+          styleEl.textContent = card.styles;
+          document.head.appendChild(styleEl);
+        }
+      });
 
       // Set initial active window to the one with highest zIndex
       if (openWindows.length > 0) {
@@ -2017,6 +2031,15 @@
         win.addEventListener('mousedown', (e) => {
           if (e.target.closest('.close-box')) return;
           bringToFront(win);
+        });
+
+        // Delegate clicks to card's handleClick
+        win.addEventListener('click', (e) => {
+          const windowId = win.dataset.windowId;
+          const card = initialWindows.find(c => c.id === windowId);
+          if (card && typeof card.handleClick === 'function') {
+            card.handleClick(e);
+          }
         });
       });
     }
@@ -2560,6 +2583,14 @@
       windowEl.addEventListener('mousedown', (e) => {
         if (e.target.closest('.close-box')) return;
         bringToFront(windowEl);
+      });
+
+      // Delegate clicks to card's handleClick
+      windowEl.addEventListener('click', (e) => {
+        const card = initialWindows.find(c => c.id === win.id);
+        if (card && typeof card.handleClick === 'function') {
+          card.handleClick(e);
+        }
       });
 
       // Re-attach git file handlers if this is the git window

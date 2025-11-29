@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0-alpha.3 - November 29, 2025
+- Added Tamagotchi virtual pet app
+- Added Triple Triad card game
+
 ## 0.3.0-alpha.2 - November 29, 2025
 - Added Release Notes app with WarrenBuf editor
 - Added system.close() API for unified window closing
