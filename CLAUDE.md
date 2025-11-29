@@ -29,6 +29,12 @@ The version number is defined in `default-state.json` - this is the single sourc
 
 When the version changes, returning users will have their localStorage cleared and state reset to defaults.
 
+## Changelog
+
+When making changes, always update:
+1. `changelog.md` - Add new version section with changes
+2. `default-state.json` - Bump the version number
+
 ## Code Style
 
 - Always use trailing commas in arrays and objects

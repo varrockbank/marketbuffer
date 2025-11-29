@@ -2563,9 +2563,8 @@
       });
 
       // Re-attach git file handlers if this is the git window
-      if (win.id === 'git') {
-        attachGitFileHandlers();
-        showDiffViewer('src/App.js');
+      if (win.id === 'git' && typeof gitCard !== 'undefined') {
+        gitCard.init();
       }
 
       // Sync settings selects if this is the settings window

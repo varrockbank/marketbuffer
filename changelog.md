@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0-alpha.2 - November 29, 2025
+- Added Release Notes app with WarrenBuf editor
+- Added system.close() API for unified window closing
+- Added "Close All Windows" option in Applications menu
+- Fixed window close from context menu
+- Empty window state now persists on refresh
+- Logout menu shows demo alert
+- Default windows on fresh load (editor, about) instead of all apps
+
 ## 0.3.0-alpha.1 - October 28, 2025
 - Added AI terminal prompt at bottom of screen
 - Terminal expands on focus with smooth animation
