@@ -1472,6 +1472,7 @@
   <script src="cards/changelog.js"></script>
   <script src="cards/neogotchi.js"></script>
   <script src="cards/trinale.js"></script>
+  <script src="cards/stocks.js"></script>
 
   <script>
     // ============================================
@@ -1768,6 +1769,7 @@
       changelogCard,
       neogotchiCard,
       trinaleCard,
+      stocksCard,
     ];
 
     // Open windows list (copy from initial on load)
@@ -2244,6 +2246,18 @@
         const size = e.target.value;
         applyFontSize(size);
         saveFontSize(size);
+      }
+    });
+
+    // Delegate change events to cards
+    document.addEventListener('change', (e) => {
+      const windowEl = e.target.closest('[data-window-id]');
+      if (windowEl) {
+        const windowId = windowEl.dataset.windowId;
+        const card = initialWindows.find(c => c.id === windowId);
+        if (card && typeof card.handleChange === 'function') {
+          card.handleChange(e);
+        }
       }
     });
 

@@ -192,6 +192,26 @@ func calculateOHLC(ticker string, year int, window string) OHLCResponse {
 	return response
 }
 
+func tickersHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	// Collect unique tickers
+	tickerSet := make(map[string]bool)
+	for _, record := range stockData {
+		tickerSet[record.Ticker] = true
+	}
+
+	// Convert to sorted slice
+	tickers := make([]string, 0, len(tickerSet))
+	for ticker := range tickerSet {
+		tickers = append(tickers, ticker)
+	}
+	sort.Strings(tickers)
+
+	json.NewEncoder(w).Encode(map[string][]string{"tickers": tickers})
+}
+
 func ohlcHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -252,7 +272,8 @@ func main() {
 		staticDir = envStatic
 	}
 
-	// API endpoint
+	// API endpoints
+	http.HandleFunc("/api/tickers", tickersHandler)
 	http.HandleFunc("/api/ohlc", ohlcHandler)
 
 	// Static files (serve index.html for root, and other static assets)
