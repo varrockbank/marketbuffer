@@ -139,6 +139,10 @@ const stocksCard = {
       const changeColor = change >= 0 ? '#00c853' : '#ff1744';
       const changeSign = change >= 0 ? '+' : '';
 
+      const dataSource = ServerService.USE_WASM
+        ? 'Data was fetched in statically served context from WASM-wrapped Go HTTP server'
+        : 'Data was fetched from an HTTP Server';
+
       dataContent = `
         <div class="stock-chart-container">
           <div class="stock-chart-header">
@@ -154,6 +158,7 @@ const stocksCard = {
             <div class="stock-tooltip" style="display: none;"></div>
           </div>
         </div>
+        <div class="stock-data-source">${dataSource}</div>
       `;
     } else if (state.selectedTicker) {
       dataContent = `<div class="stock-placeholder">No data available</div>`;
@@ -347,14 +352,19 @@ const stocksCard = {
     .stock-tooltip-value {
       font-weight: bold;
     }
+
+    .stock-data-source {
+      font-size: 9px;
+      color: #888;
+      text-align: right;
+      margin-top: 8px;
+    }
   `,
 
   async fetchTickers() {
     this.loadingTickers = true;
     try {
-      const response = await fetch('/api/tickers');
-      if (!response.ok) throw new Error('Failed to fetch tickers');
-      const data = await response.json();
+      const data = await ServerService.getTickers();
       this.tickers = data.tickers || [];
       this.error = null;
     } catch (e) {
@@ -374,9 +384,11 @@ const stocksCard = {
     this.rerender();
 
     try {
-      const response = await fetch(`/api/ohlc?ticker=${this.selectedTicker}&year=${this.selectedYear}&window=${this.selectedWindow}`);
-      if (!response.ok) throw new Error('Failed to fetch OHLC data');
-      this.ohlcData = await response.json();
+      this.ohlcData = await ServerService.getOHLC(
+        this.selectedTicker,
+        this.selectedYear,
+        this.selectedWindow,
+      );
       console.log('[Stock] fetchOHLC got data:', this.ohlcData);
       this.error = null;
     } catch (e) {

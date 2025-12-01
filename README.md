@@ -32,7 +32,7 @@ ln -s /path/to/your/equity_table_extended data
 
 Or copy your parquet files directly into `server/data/`.
 
-### Running the Server
+### Running the Server (Development)
 
 ```bash
 cd server
@@ -41,3 +41,18 @@ go build -o server
 ```
 
 The server runs on http://localhost:8080 by default.
+
+### Building for Static Deployment (WASM)
+
+For static hosting without a backend server, build the WASM module:
+
+```bash
+cd server
+make static
+```
+
+This generates:
+- `server.wasm` - WebAssembly module with embedded stock data
+- `wasm_exec.js` - Go WASM runtime
+
+Then set `USE_WASM: true` in `server-service.js` to use the WASM module instead of HTTP endpoints.

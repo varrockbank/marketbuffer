@@ -1,2 +1,4 @@
 server/data
 server/server
+server/parquet2json
+server/wasm/data.json
