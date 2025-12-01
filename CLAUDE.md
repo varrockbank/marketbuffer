@@ -17,6 +17,27 @@ Apps are self-contained modules in the `cards/` directory. Each app owns:
 
 The OS core (`index.html`) provides window management (position, z-index, focus) but delegates content rendering to each app's `render()` method.
 
+### Window Structure
+
+Regular windows have this DOM structure:
+```html
+<div class="window" data-window-id="appId">
+  <div class="window-title-bar">
+    <div class="close-box" data-window-id="appId"></div>
+    <span class="window-title">Title</span>
+  </div>
+  <!-- content() output is placed directly here, NOT wrapped in .window-content -->
+</div>
+```
+
+**Important:** The app's `content()` output is placed directly after the title bar, not wrapped in a `.window-content` div. When rerendering, look for your app's own container class (e.g., `.stock-content`) and use `outerHTML` to replace it.
+
+### Event Delegation
+
+- `handleClick(e)` - delegated via click listeners on each window
+- `handleChange(e)` - delegated via global change listener that finds the parent `[data-window-id]`
+- `init(system)` - called when window opens (NOT awaited, so async init must call `rerender()` when done)
+
 ### File Opening API
 
 The OS provides `system.openFile(path)` which routes files to the appropriate app based on extension. The extension-to-app mapping is defined in `fileHandlers` in index.html.
