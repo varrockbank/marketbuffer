@@ -70,34 +70,89 @@ const stocksCard = {
         </div>
       `;
     } else if (state.ohlcData && state.ohlcData.data && state.ohlcData.data.length > 0) {
-      const rows = state.ohlcData.data.map(d => `
-        <tr>
-          <td>${d.period}</td>
-          <td>${d.open.toFixed(2)}</td>
-          <td>${d.high.toFixed(2)}</td>
-          <td>${d.low.toFixed(2)}</td>
-          <td>${d.close.toFixed(2)}</td>
-          <td>${(d.volume / 1000000).toFixed(1)}M</td>
-        </tr>
-      `).join('');
+      const data = state.ohlcData.data;
+      const chartWidth = 420;
+      const chartHeight = 200;
+      const padding = { top: 20, right: 50, bottom: 30, left: 10 };
+      const innerWidth = chartWidth - padding.left - padding.right;
+      const innerHeight = chartHeight - padding.top - padding.bottom;
+
+      // Calculate price range
+      const allPrices = data.flatMap(d => [d.high, d.low]);
+      const minPrice = Math.min(...allPrices);
+      const maxPrice = Math.max(...allPrices);
+      const priceRange = maxPrice - minPrice;
+      const pricePadding = priceRange * 0.1;
+      const yMin = minPrice - pricePadding;
+      const yMax = maxPrice + pricePadding;
+
+      // Scale functions
+      const xScale = (i) => padding.left + (i + 0.5) * (innerWidth / data.length);
+      const yScale = (price) => padding.top + innerHeight - ((price - yMin) / (yMax - yMin)) * innerHeight;
+
+      const candleWidth = Math.max(4, Math.min(20, (innerWidth / data.length) * 0.6));
+
+      // Build candlesticks with hover areas
+      const hoverWidth = innerWidth / data.length;
+      const candles = data.map((d, i) => {
+        const x = xScale(i);
+        const isUp = d.close >= d.open;
+        const color = isUp ? '#00c853' : '#ff1744';
+        const bodyTop = yScale(Math.max(d.open, d.close));
+        const bodyBottom = yScale(Math.min(d.open, d.close));
+        const bodyHeight = Math.max(1, bodyBottom - bodyTop);
+
+        // Encode OHLC data in data attributes for hover
+        const dataAttrs = `data-period="${d.period}" data-open="${d.open.toFixed(2)}" data-high="${d.high.toFixed(2)}" data-low="${d.low.toFixed(2)}" data-close="${d.close.toFixed(2)}" data-volume="${(d.volume / 1000000).toFixed(1)}"`;
+
+        return `
+          <g class="stock-candle" ${dataAttrs}>
+            <rect x="${x - hoverWidth/2}" y="${padding.top}" width="${hoverWidth}" height="${innerHeight}" fill="transparent" class="stock-candle-hover"/>
+            <line x1="${x}" y1="${yScale(d.high)}" x2="${x}" y2="${yScale(d.low)}" stroke="${color}" stroke-width="1"/>
+            <rect x="${x - candleWidth/2}" y="${bodyTop}" width="${candleWidth}" height="${bodyHeight}" fill="${color}" stroke="${color}"/>
+          </g>
+        `;
+      }).join('');
+
+      // X-axis labels
+      const xLabels = data.map((d, i) => {
+        const x = xScale(i);
+        return `<text x="${x}" y="${chartHeight - 8}" text-anchor="middle" class="stock-chart-label">${d.period}</text>`;
+      }).join('');
+
+      // Y-axis labels (price scale on right)
+      const yTicks = 5;
+      const yLabels = Array.from({ length: yTicks }, (_, i) => {
+        const price = yMin + (yMax - yMin) * (i / (yTicks - 1));
+        const y = yScale(price);
+        return `
+          <line x1="${padding.left}" y1="${y}" x2="${chartWidth - padding.right}" y2="${y}" stroke="var(--window-border)" stroke-width="0.5" stroke-dasharray="2,2"/>
+          <text x="${chartWidth - padding.right + 5}" y="${y + 3}" class="stock-chart-label">${price.toFixed(0)}</text>
+        `;
+      }).join('');
+
+      // Current price info
+      const latest = data[data.length - 1];
+      const first = data[0];
+      const change = latest.close - first.open;
+      const changePercent = ((change / first.open) * 100).toFixed(2);
+      const changeColor = change >= 0 ? '#00c853' : '#ff1744';
+      const changeSign = change >= 0 ? '+' : '';
 
       dataContent = `
-        <div class="stock-table-container">
-          <table class="stock-table">
-            <thead>
-              <tr>
-                <th>Period</th>
-                <th>Open</th>
-                <th>High</th>
-                <th>Low</th>
-                <th>Close</th>
-                <th>Volume</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rows}
-            </tbody>
-          </table>
+        <div class="stock-chart-container">
+          <div class="stock-chart-header">
+            <span class="stock-chart-price">$${latest.close.toFixed(2)}</span>
+            <span class="stock-chart-change" style="color: ${changeColor}">${changeSign}${change.toFixed(2)} (${changeSign}${changePercent}%)</span>
+          </div>
+          <div class="stock-chart-wrapper">
+            <svg class="stock-chart" viewBox="0 0 ${chartWidth} ${chartHeight}">
+              ${yLabels}
+              ${candles}
+              ${xLabels}
+            </svg>
+            <div class="stock-tooltip" style="display: none;"></div>
+          </div>
         </div>
       `;
     } else if (state.selectedTicker) {
@@ -220,39 +275,77 @@ const stocksCard = {
       font-size: 11px;
     }
 
-    .stock-table-container {
-      max-height: 300px;
-      overflow-y: auto;
+    .stock-chart-container {
       border: 1px solid var(--window-border);
+      background: var(--window-bg);
+      padding: 8px;
     }
 
-    .stock-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 10px;
+    .stock-chart-header {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 8px;
+      padding: 0 4px;
     }
 
-    .stock-table th,
-    .stock-table td {
-      padding: 4px 8px;
-      text-align: right;
-      border-bottom: 1px solid var(--hover-bg);
-    }
-
-    .stock-table th {
-      background: var(--hover-bg);
+    .stock-chart-price {
+      font-size: 18px;
       font-weight: bold;
-      position: sticky;
-      top: 0;
     }
 
-    .stock-table td:first-child,
-    .stock-table th:first-child {
-      text-align: left;
+    .stock-chart-change {
+      font-size: 12px;
     }
 
-    .stock-table tbody tr:hover {
-      background: var(--hover-bg);
+    .stock-chart {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .stock-chart-label {
+      font-size: 9px;
+      fill: var(--text-color);
+      font-family: inherit;
+    }
+
+    .stock-chart-wrapper {
+      position: relative;
+    }
+
+    .stock-candle-hover {
+      cursor: crosshair;
+    }
+
+    .stock-candle:hover .stock-candle-hover {
+      fill: rgba(128, 128, 128, 0.1);
+    }
+
+    .stock-tooltip {
+      position: absolute;
+      background: var(--window-bg);
+      border: 1px solid var(--window-border);
+      padding: 8px;
+      font-size: 10px;
+      pointer-events: none;
+      z-index: 10;
+      box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+      white-space: nowrap;
+    }
+
+    .stock-tooltip-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .stock-tooltip-label {
+      color: #888;
+    }
+
+    .stock-tooltip-value {
+      font-weight: bold;
     }
   `,
 
@@ -361,6 +454,69 @@ const stocksCard = {
         await this.fetchOHLC();
       }
     }
+  },
+
+  handleMouseOver(e) {
+    const candle = e.target.closest('.stock-candle');
+    if (!candle) return;
+
+    const wrapper = e.target.closest('.stock-chart-wrapper');
+    const tooltip = wrapper?.querySelector('.stock-tooltip');
+    if (!tooltip) return;
+
+    const period = candle.dataset.period;
+    const open = candle.dataset.open;
+    const high = candle.dataset.high;
+    const low = candle.dataset.low;
+    const close = candle.dataset.close;
+    const volume = candle.dataset.volume;
+
+    tooltip.innerHTML = `
+      <div class="stock-tooltip-row"><span class="stock-tooltip-label">${period}</span></div>
+      <div class="stock-tooltip-row"><span class="stock-tooltip-label">O</span><span class="stock-tooltip-value">${open}</span></div>
+      <div class="stock-tooltip-row"><span class="stock-tooltip-label">H</span><span class="stock-tooltip-value">${high}</span></div>
+      <div class="stock-tooltip-row"><span class="stock-tooltip-label">L</span><span class="stock-tooltip-value">${low}</span></div>
+      <div class="stock-tooltip-row"><span class="stock-tooltip-label">C</span><span class="stock-tooltip-value">${close}</span></div>
+      <div class="stock-tooltip-row"><span class="stock-tooltip-label">Vol</span><span class="stock-tooltip-value">${volume}M</span></div>
+    `;
+    tooltip.style.display = 'block';
+  },
+
+  handleMouseMove(e) {
+    const wrapper = e.target.closest('.stock-chart-wrapper');
+    const tooltip = wrapper?.querySelector('.stock-tooltip');
+    if (!tooltip || tooltip.style.display === 'none') return;
+
+    const rect = wrapper.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    // Position tooltip, keep it within bounds
+    const tooltipRect = tooltip.getBoundingClientRect();
+    let left = x + 10;
+    let top = y - 10;
+
+    if (left + tooltipRect.width > rect.width) {
+      left = x - tooltipRect.width - 10;
+    }
+    if (top < 0) {
+      top = y + 20;
+    }
+
+    tooltip.style.left = left + 'px';
+    tooltip.style.top = top + 'px';
+  },
+
+  handleMouseOut(e) {
+    const wrapper = e.target.closest('.stock-chart-wrapper');
+    const tooltip = wrapper?.querySelector('.stock-tooltip');
+    if (!tooltip) return;
+
+    // Only hide if we're leaving the chart area entirely
+    const related = e.relatedTarget;
+    if (related && wrapper.contains(related)) return;
+
+    tooltip.style.display = 'none';
   },
 
   boot() {
