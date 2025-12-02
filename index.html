@@ -1570,9 +1570,11 @@
       let html = '';
       pinnedFiles.forEach(path => {
         const name = path.split('/').pop();
+        const isStock = path.endsWith('.stock');
+        const icon = isStock ? '📈' : '&#128196;';
         html += `
           <div class="pinned-item" data-path="${path}">
-            <span class="pinned-item-icon">&#128196;</span>
+            <span class="pinned-item-icon">${icon}</span>
             <span class="pinned-item-name">${name}</span>
             <span class="pinned-item-unpin" data-path="${path}">&#10005;</span>
           </div>
