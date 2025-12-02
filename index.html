@@ -149,34 +149,48 @@
       height: 100%;
     }
 
+    /* Separator between tabs */
+    .workspace-tab-separator {
+      color: var(--window-border);
+      margin: 0 4px;
+      user-select: none;
+    }
+
     /* Individual workspace tab */
     .workspace-tab {
       position: relative;
+      padding: 6px 16px 4px 16px;
+      margin: 0 6px;
+      cursor: pointer;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-align: center;
+      width: 200px;
+      box-sizing: border-box;
+      border-radius: 4px;
+    }
+
+    .workspace-tab:hover {
+      background: var(--hover-bg);
+    }
+
+    /* Active workspace tab */
+    .workspace-tab.active {
       top: 2px;
-      display: block;
-      background: var(--menu-bg);
+      background: var(--window-bg);
       padding: 4px 16px 6px 16px;
       margin: 0 6px -3px 6px;
       border: 1px solid var(--window-border);
       border-bottom: none;
       border-radius: 6px 6px 0 0;
       width: 200px;
+      max-width: 200px;
       box-sizing: border-box;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      text-align: center;
-      cursor: pointer;
-      opacity: 0.7;
     }
 
-    .workspace-tab.active {
+    .workspace-tab.active:hover {
       background: var(--window-bg);
-      opacity: 1;
-    }
-
-    .workspace-tab:hover {
-      opacity: 1;
     }
 
     .workspace-tab.active::before,
@@ -2319,7 +2333,19 @@
       const container = document.getElementById('workspace-tabs-container');
       container.innerHTML = '';
 
-      OS.workspaces.forEach(workspace => {
+      OS.workspaces.forEach((workspace, index) => {
+        // Add separator before non-active tabs (except first)
+        if (index > 0) {
+          const prevWorkspace = OS.workspaces[index - 1];
+          // Only show separator if neither adjacent tab is active
+          if (workspace.id !== OS.activeWorkspaceId && prevWorkspace.id !== OS.activeWorkspaceId) {
+            const separator = document.createElement('span');
+            separator.className = 'workspace-tab-separator';
+            separator.textContent = '|';
+            container.appendChild(separator);
+          }
+        }
+
         const tab = document.createElement('div');
         tab.className = 'workspace-tab' + (workspace.id === OS.activeWorkspaceId ? ' active' : '');
         tab.dataset.workspaceId = workspace.id;
@@ -2331,6 +2357,15 @@
 
         container.appendChild(tab);
       });
+
+      // Add trailing separator before the + button (if last tab is not active)
+      const lastWorkspace = OS.workspaces[OS.workspaces.length - 1];
+      if (lastWorkspace && lastWorkspace.id !== OS.activeWorkspaceId) {
+        const separator = document.createElement('span');
+        separator.className = 'workspace-tab-separator';
+        separator.textContent = '|';
+        container.appendChild(separator);
+      }
     }
 
     function switchWorkspace(workspace) {
