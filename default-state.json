@@ -3,7 +3,7 @@
   "theme": "light",
   "fontSize": "medium",
   "wallpaper": "hokusai",
-  "snapToGrid": false,
+  "snapToGrid": true,
   "gridSize": 50,
   "fileTree": {},
   "defaultWindows": ["editor", "about"],

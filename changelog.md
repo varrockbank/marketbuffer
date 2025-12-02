@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.0-alpha.4 - December 2, 2025
+- Added Stocks app with Historical and Live tabs
+- Live tab integrates with Alpaca API for real-time intraday data
+- Candlestick charts with configurable candle sizes (1m, 5m, 15m, 30m, 1h)
+- Zoom controls for chart viewing
+- Scrollable charts with dynamic Y-axis scaling
+- Pin stocks to sidebar for quick access
+- Added Window Management settings section
+- Snap to Grid feature for window dragging
+- Configurable grid size (10-80px) with live preview overlay
+
 ## 0.3.0-alpha.3 - November 29, 2025
 - Added Tamagotchi virtual pet app
 - Added Triple Triad card game
