@@ -95,8 +95,10 @@ const stocksCard = {
     const chartHeight = 200;
     const padding = { top: 20, right: 50, bottom: 30, left: 10 };
 
-    // For intraday, apply zoom level to candle spacing
-    const baseSpacing = 12;
+    // For intraday, apply zoom level relative to candle size
+    // Larger candle sizes get proportionally more base spacing
+    const candleSizeMultiplier = { '1m': 1, '5m': 1.5, '15m': 2, '30m': 2.5, '60m': 3 };
+    const baseSpacing = 12 * (candleSizeMultiplier[state.candleSize] || 1);
     const zoomMultiplier = state.zoomLevel || 1;
     const minCandleSpacing = isIntraday ? baseSpacing * zoomMultiplier : 0;
     const calculatedWidth = isIntraday
@@ -266,12 +268,8 @@ const stocksCard = {
             </div>
             <div class="stock-zoom-control">
               <span class="stock-control-label">Zoom:</span>
-              <select class="stock-zoom-select" id="stock-zoom-select">
-                <option value="0.5" ${state.zoomLevel === 0.5 ? 'selected' : ''}>50%</option>
-                <option value="1" ${state.zoomLevel === 1 ? 'selected' : ''}>100%</option>
-                <option value="1.5" ${state.zoomLevel === 1.5 ? 'selected' : ''}>150%</option>
-                <option value="2" ${state.zoomLevel === 2 ? 'selected' : ''}>200%</option>
-              </select>
+              <button class="stock-zoom-btn" id="stock-zoom-out">−</button>
+              <button class="stock-zoom-btn" id="stock-zoom-in">+</button>
             </div>
           </div>
         ` : ''}
@@ -662,14 +660,27 @@ const stocksCard = {
       background: var(--hover-bg);
     }
 
-    .stock-zoom-select {
-      margin-left: 8px;
-      padding: 2px 4px;
+    .stock-zoom-btn {
+      padding: 2px 8px;
       font-family: inherit;
-      font-size: 9px;
+      font-size: 11px;
       border: 1px solid var(--window-border);
       background: var(--input-bg);
       color: var(--text-color);
+      cursor: pointer;
+    }
+
+    .stock-zoom-btn:first-of-type {
+      border-radius: 3px 0 0 3px;
+    }
+
+    .stock-zoom-btn:last-of-type {
+      border-radius: 0 3px 3px 0;
+      border-left: none;
+    }
+
+    .stock-zoom-btn:hover {
+      background: var(--hover-bg);
     }
 
     .stock-chart-scroll-container {
@@ -1018,7 +1029,7 @@ const stocksCard = {
   },
 
   async fetchIntraday() {
-    if (!this.selectedTicker) return;
+    if (!this.liveTicker) return;
     if (typeof AlpacaProvider === 'undefined' || !AlpacaProvider.isConfigured()) {
       this.error = 'Alpaca API not configured';
       this.rerender();
@@ -1030,7 +1041,7 @@ const stocksCard = {
     this.rerender();
 
     try {
-      this.intradayData = await AlpacaProvider.getTodayBars(this.selectedTicker);
+      this.intradayData = await AlpacaProvider.getTodayBars(this.liveTicker);
       console.log('[Stock] fetchIntraday got data:', this.intradayData);
       this.error = null;
     } catch (e) {
@@ -1112,11 +1123,6 @@ const stocksCard = {
         await this.fetchOHLC();
       }
     }
-    if (e.target.id === 'stock-zoom-select') {
-      this.zoomLevel = parseFloat(e.target.value);
-      this.scrollPosition = 0; // Reset scroll when changing zoom
-      this.rerender();
-    }
   },
 
   async handleKeyDown(e) {
@@ -1128,11 +1134,13 @@ const stocksCard = {
 
   async loadTicker(value) {
     const ticker = value.toUpperCase().trim();
-    if (ticker === this.liveTicker) return;
+    const isNewTicker = ticker !== this.liveTicker;
     this.liveTicker = ticker;
-    this.scrollPosition = 0; // Reset scroll when loading new ticker
-    this.candleSize = '1m'; // Reset candle size when loading new ticker
-    this.zoomLevel = 1; // Reset zoom when loading new ticker
+    if (isNewTicker) {
+      this.scrollPosition = 0;
+      this.candleSize = '1m';
+      this.zoomLevel = 1;
+    }
     console.log('[Stock] liveTicker set to:', this.liveTicker);
     if (this.liveTicker) {
       await this.fetchIntraday();
@@ -1183,8 +1191,9 @@ const stocksCard = {
         localStorage.setItem('alpaca_api_key', apiKey);
         localStorage.setItem('alpaca_api_secret', apiSecret);
         this.alpacaConfigured = true;
-        if (this.selectedTicker) {
-          this.fetchData();
+        // After configuring API, fetch data if we have a live ticker, otherwise just rerender
+        if (this.liveTicker) {
+          this.fetchIntraday();
         } else {
           this.rerender();
         }
@@ -1210,6 +1219,20 @@ const stocksCard = {
         this.scrollPosition = 0; // Reset scroll when changing candle size
         this.rerender();
       }
+      return;
+    }
+    // Handle zoom buttons
+    if (e.target.id === 'stock-zoom-in' || e.target.id === 'stock-zoom-out') {
+      e.preventDefault();
+      const zoomFactor = 1.25;
+      const minZoom = 0.25;
+      const maxZoom = 4;
+      if (e.target.id === 'stock-zoom-in') {
+        this.zoomLevel = Math.min(maxZoom, this.zoomLevel * zoomFactor);
+      } else {
+        this.zoomLevel = Math.max(minZoom, this.zoomLevel / zoomFactor);
+      }
+      this.rerender();
       return;
     }
     // Handle scroll buttons
