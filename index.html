@@ -159,27 +159,51 @@
     /* Individual workspace tab */
     .workspace-tab {
       position: relative;
-      padding: 6px 16px 4px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 4px 4px 4px;
       margin: 0 6px;
       cursor: pointer;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      text-align: center;
       width: 200px;
       box-sizing: border-box;
       border-radius: 4px;
     }
 
+    .workspace-tab-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+      text-align: center;
+    }
+
     .workspace-tab:hover {
-      background: var(--hover-bg);
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    .workspace-tab-close {
+      opacity: 0;
+      font-size: 12px;
+      padding: 0 4px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .workspace-tab:hover .workspace-tab-close {
+      opacity: 0.6;
+    }
+
+    .workspace-tab-close:hover {
+      opacity: 1 !important;
+      background: rgba(0, 0, 0, 0.1);
     }
 
     /* Active workspace tab */
     .workspace-tab.active {
       top: 2px;
       background: var(--window-bg);
-      padding: 4px 16px 6px 16px;
+      padding: 4px 4px 6px 4px;
       margin: 0 6px -3px 6px;
       border: 1px solid var(--window-border);
       border-bottom: none;
@@ -2349,9 +2373,20 @@
         const tab = document.createElement('div');
         tab.className = 'workspace-tab' + (workspace.id === OS.activeWorkspaceId ? ' active' : '');
         tab.dataset.workspaceId = workspace.id;
-        tab.innerHTML = `<span class="workspace-tab-name">${workspace.name}</span>`;
 
-        tab.addEventListener('click', () => {
+        // Only show close button if there's more than one workspace
+        const closeBtn = OS.workspaces.length > 1
+          ? `<span class="workspace-tab-close" data-workspace-id="${workspace.id}">&times;</span>`
+          : '';
+        tab.innerHTML = `<span class="workspace-tab-name">${workspace.name}</span>${closeBtn}`;
+
+        tab.addEventListener('click', (e) => {
+          // Don't switch if clicking the close button
+          if (e.target.classList.contains('workspace-tab-close')) {
+            e.stopPropagation();
+            OS.deleteWorkspace(workspace.id);
+            return;
+          }
           OS.switchToWorkspace(workspace.id);
         });
 
