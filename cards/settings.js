@@ -35,6 +35,17 @@ const settingsCard = {
         </div>
       </div>
       <div class="settings-section">
+        <div class="settings-section-title">Window Management</div>
+        <div class="settings-row">
+          <label class="settings-label">Snap to Grid</label>
+          <input type="checkbox" class="settings-checkbox" id="setting-snap-to-grid" ${this.snapToGrid ? 'checked' : ''}>
+        </div>
+        <div class="settings-row">
+          <label class="settings-label">Grid Size: <span id="grid-size-value">${this.gridSize}px</span></label>
+          <input type="range" class="settings-slider" id="setting-grid-size" min="10" max="80" step="10" value="${this.gridSize}">
+        </div>
+      </div>
+      <div class="settings-section">
         <div class="settings-section-title"><s>Editor</s> (disabled in demo)</div>
         <div class="settings-row">
           <label class="settings-label"><s>Tab Size</s></label>
@@ -60,6 +71,8 @@ const settingsCard = {
   // Default values
   theme: 'light',
   fontSize: 'medium',
+  snapToGrid: false,
+  gridSize: 50,
 
   // CSS styles for this app
   styles: `
@@ -111,6 +124,11 @@ const settingsCard = {
     .settings-checkbox {
       width: 14px;
       height: 14px;
+      cursor: pointer;
+    }
+
+    .settings-slider {
+      width: 120px;
       cursor: pointer;
     }
   `,
@@ -173,9 +191,12 @@ const settingsCard = {
 
   // Called when app window is opened - receives system object
   init(system) {
-    // Extract settings from system state
-    this.theme = system?.state?.theme || 'light';
-    this.fontSize = system?.state?.fontSize || 'medium';
+    // Extract settings from system state (use global systemState as fallback)
+    const state = system?.state || (typeof systemState !== 'undefined' ? systemState : {});
+    this.theme = state.theme || 'light';
+    this.fontSize = state.fontSize || 'medium';
+    this.snapToGrid = state.snapToGrid === true;
+    this.gridSize = state.gridSize || 50;
   },
 
   // Called when app window is closed
@@ -195,11 +216,110 @@ const settingsCard = {
       this.applyFontSize(size);
       this.saveFontSize(size);
     }
+    if (e.target.id === 'setting-snap-to-grid') {
+      const enabled = e.target.checked;
+      this.snapToGrid = enabled;
+      this.saveSnapToGrid(enabled);
+    }
+    if (e.target.id === 'setting-grid-size') {
+      const size = parseInt(e.target.value);
+      this.gridSize = size;
+      // Update the label
+      const label = document.getElementById('grid-size-value');
+      if (label) label.textContent = size + 'px';
+      // Show grid overlay while sliding
+      this.showGridOverlay(size);
+    }
+  },
+
+  handleMouseUp(e) {
+    // When user releases the slider, save and hide overlay
+    if (e.target.id === 'setting-grid-size') {
+      this.hideGridOverlay();
+      this.saveGridSize(this.gridSize);
+    }
+  },
+
+  // Grid overlay management
+  showGridOverlay(size) {
+    let overlay = document.getElementById('grid-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'grid-overlay';
+      overlay.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        z-index: 9999;
+      `;
+      document.getElementById('desktop').appendChild(overlay);
+    }
+    overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+    overlay.style.backgroundImage = `
+      linear-gradient(to right, rgba(255,255,255,0.5) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.5) 1px, transparent 1px)
+    `;
+    overlay.style.backgroundSize = `${size}px ${size}px`;
+    overlay.style.display = 'block';
+    // Keep settings window above overlay
+    const settingsWindow = document.querySelector('[data-window-id="settings"]');
+    if (settingsWindow) {
+      settingsWindow.style.zIndex = 10000;
+    }
+  },
+
+  hideGridOverlay() {
+    const overlay = document.getElementById('grid-overlay');
+    if (overlay) {
+      overlay.style.display = 'none';
+    }
+    // Restore settings window z-index
+    const settingsWindow = document.querySelector('[data-window-id="settings"]');
+    if (settingsWindow) {
+      settingsWindow.style.zIndex = 200;
+    }
+  },
+
+  // Handle input event for real-time slider updates
+  handleInput(e) {
+    if (e.target.id === 'setting-grid-size') {
+      const size = parseInt(e.target.value);
+      this.gridSize = size;
+      // Update the label
+      const label = document.getElementById('grid-size-value');
+      if (label) label.textContent = size + 'px';
+      // Show grid overlay while sliding
+      this.showGridOverlay(size);
+    }
+  },
+
+  // Save snap to grid setting
+  saveSnapToGrid(enabled) {
+    if (typeof systemState !== 'undefined' && typeof saveSystemState === 'function') {
+      systemState.snapToGrid = enabled;
+      saveSystemState();
+    }
+  },
+
+  // Save grid size setting
+  saveGridSize(size) {
+    if (typeof systemState !== 'undefined' && typeof saveSystemState === 'function') {
+      systemState.gridSize = size;
+      saveSystemState();
+    }
   },
 
   // Boot - called once when OS starts (for system-wide initialization)
   boot() {
     this.loadTheme();
     this.loadFontSize();
+    // Load grid settings from systemState
+    if (typeof systemState !== 'undefined') {
+      this.snapToGrid = systemState.snapToGrid === true;
+      this.gridSize = systemState.gridSize || 50;
+    }
   }
 };

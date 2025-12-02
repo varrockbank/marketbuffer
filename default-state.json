@@ -1,8 +1,10 @@
 {
-  "version": "0.3.0-alpha.3",
+  "version": "0.3.0-alpha.4",
   "theme": "light",
   "fontSize": "medium",
   "wallpaper": "hokusai",
+  "snapToGrid": false,
+  "gridSize": 50,
   "fileTree": {},
   "defaultWindows": ["editor", "about"],
   "windows": null

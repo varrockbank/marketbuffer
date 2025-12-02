@@ -1702,12 +1702,15 @@
       }
       renderWindows();
 
-      // Inject styles from all cards
+      // Inject styles from all cards and call boot() if defined
       initialWindows.forEach(card => {
         if (card.styles) {
           const styleEl = document.createElement('style');
           styleEl.textContent = card.styles;
           document.head.appendChild(styleEl);
+        }
+        if (typeof card.boot === 'function') {
+          card.boot();
         }
       });
 
@@ -1984,6 +1987,51 @@
       saveState();
     }
 
+    // Helper to snap value to grid
+    function snapToGrid(value, gridSize) {
+      return Math.round(value / gridSize) * gridSize;
+    }
+
+    // Grid overlay for dragging
+    let gridOverlayTimeout = null;
+
+    function showDragGridOverlay(gridSize, excludeWindow) {
+      let overlay = document.getElementById('grid-overlay');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'grid-overlay';
+        overlay.style.cssText = `
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          pointer-events: none;
+          z-index: 9999;
+        `;
+        document.getElementById('desktop').appendChild(overlay);
+      }
+      overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+      overlay.style.backgroundImage = `
+        linear-gradient(to right, rgba(255,255,255,0.5) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.5) 1px, transparent 1px)
+      `;
+      overlay.style.backgroundSize = `${gridSize}px ${gridSize}px`;
+      overlay.style.display = 'block';
+
+      // Ensure active window stays above overlay
+      if (excludeWindow) {
+        excludeWindow.style.zIndex = 10000;
+      }
+    }
+
+    function hideDragGridOverlay() {
+      const overlay = document.getElementById('grid-overlay');
+      if (overlay) {
+        overlay.style.display = 'none';
+      }
+    }
+
     // Mouse move handler for dragging
     document.addEventListener('mousemove', (e) => {
       if (!activeWindow) return;
@@ -2004,6 +2052,22 @@
       top = Math.max(0, Math.min(top, maxTop));
       right = Math.max(0, Math.min(right, maxRight));
 
+      // Snap to grid if enabled
+      if (systemState && systemState.snapToGrid) {
+        const gridSize = systemState.gridSize || 50;
+        // Show grid overlay while dragging
+        showDragGridOverlay(gridSize, activeWindow);
+        // Convert right to left for snapping, then back
+        const left = desktopRect.width - right - windowWidth;
+        const snappedTop = snapToGrid(top, gridSize);
+        const snappedLeft = snapToGrid(left, gridSize);
+        top = snappedTop;
+        right = desktopRect.width - snappedLeft - windowWidth;
+        // Re-constrain after snapping
+        top = Math.max(0, Math.min(top, maxTop));
+        right = Math.max(0, Math.min(right, maxRight));
+      }
+
       activeWindow.style.top = top + 'px';
       activeWindow.style.right = right + 'px';
 
@@ -2018,6 +2082,9 @@
 
     document.addEventListener('mouseup', () => {
       if (activeWindow) {
+        // Hide grid overlay and restore z-index
+        hideDragGridOverlay();
+        activeWindow.style.zIndex = 200;
         saveState();
       }
       activeWindow = null;
@@ -2109,6 +2176,18 @@
       }
     });
 
+    // Delegate input events to cards (for real-time slider updates)
+    document.addEventListener('input', (e) => {
+      const windowEl = e.target.closest('[data-window-id]');
+      if (windowEl) {
+        const windowId = windowEl.dataset.windowId;
+        const card = initialWindows.find(c => c.id === windowId);
+        if (card && typeof card.handleInput === 'function') {
+          card.handleInput(e);
+        }
+      }
+    });
+
     // Delegate click events to cards
     document.addEventListener('click', (e) => {
       const windowEl = e.target.closest('[data-window-id]');
@@ -2151,6 +2230,17 @@
         const card = initialWindows.find(c => c.id === windowId);
         if (card && typeof card.handleMouseOut === 'function') {
           card.handleMouseOut(e);
+        }
+      }
+    });
+
+    document.addEventListener('mouseup', (e) => {
+      const windowEl = e.target.closest('[data-window-id]');
+      if (windowEl) {
+        const windowId = windowEl.dataset.windowId;
+        const card = initialWindows.find(c => c.id === windowId);
+        if (card && typeof card.handleMouseUp === 'function') {
+          card.handleMouseUp(e);
         }
       }
     });
