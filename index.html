@@ -186,8 +186,12 @@
       opacity: 0;
       font-size: 12px;
       padding: 0 4px;
+      height: 14px;
+      line-height: 14px;
       border-radius: 3px;
       flex-shrink: 0;
+      position: relative;
+      top: -2px;
     }
 
     .workspace-tab:hover .workspace-tab-close {
@@ -199,12 +203,16 @@
       background: rgba(0, 0, 0, 0.1);
     }
 
+    .workspace-tab.active .workspace-tab-close {
+      top: 0px;
+    }
+
     /* Active workspace tab */
     .workspace-tab.active {
-      top: 2px;
+      top: 0px;
       background: var(--window-bg);
-      padding: 2px 4px 4px 4px;
-      margin: 0 6px -3px 6px;
+      padding: 3px 4px 4px 4px;
+      margin: 0 6px -6px 6px;
       border: 1px solid var(--window-border);
       border-bottom: none;
       border-radius: 6px 6px 0 0;
@@ -241,15 +249,20 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 24px;
-      height: 24px;
+      width: 22px;
+      height: 22px;
       margin-left: 4px;
+      margin-top: 2px;
       border-radius: 4px;
       cursor: pointer;
       font-size: 16px;
       font-weight: bold;
+      line-height: 1;
+      padding-bottom: 2px;
       color: var(--text-color);
       opacity: 0.6;
+      position: relative;
+      top: -2px;
     }
 
     .workspace-add-btn:hover {
