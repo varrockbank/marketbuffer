@@ -20,7 +20,7 @@ const ServerService = {
     try {
       const go = new Go();
       const result = await WebAssembly.instantiateStreaming(
-        fetch('/server.wasm'),
+        fetch('server.wasm'),
         go.importObject,
       );
       // Start the Go runtime (don't await - it blocks forever)
