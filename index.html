@@ -112,6 +112,16 @@
       align-items: center;
     }
 
+    .sidebar-toggle-container {
+      width: 200px;
+      flex-shrink: 0;
+      transition: width 0.3s ease;
+    }
+
+    .sidebar-toggle-container.collapsed {
+      width: auto;
+    }
+
     .menu-bar-right {
       display: flex;
       align-items: center;
@@ -1441,7 +1451,9 @@
   <!-- Menu Bar -->
   <div class="menu-bar">
     <div class="menu-bar-left">
-      <span class="sidebar-toggle" id="sidebar-toggle" title="Toggle Sidebar">&lt;&lt;&lt;</span>
+      <div class="sidebar-toggle-container" id="sidebar-toggle-container">
+        <span class="sidebar-toggle" id="sidebar-toggle" title="Toggle Sidebar">&lt;&lt;&lt;</span>
+      </div>
       <div class="menu-item-container">
         <span class="menu-item menu-item-bold" id="active-window-menu"></span>
         <div class="menu-dropdown" id="active-window-dropdown"></div>
@@ -2491,9 +2503,11 @@
     // Sidebar toggle
     document.getElementById('sidebar-toggle').addEventListener('click', (e) => {
       e.stopPropagation();
-      const container = document.getElementById('sidebar-container');
+      const sidebarContainer = document.getElementById('sidebar-container');
+      const toggleContainer = document.getElementById('sidebar-toggle-container');
       const toggle = document.getElementById('sidebar-toggle');
-      container.classList.toggle('collapsed');
+      sidebarContainer.classList.toggle('collapsed');
+      toggleContainer.classList.toggle('collapsed');
       toggle.classList.toggle('collapsed');
     });
 
