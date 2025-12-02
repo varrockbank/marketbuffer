@@ -23,6 +23,25 @@ const stocksCard = {
   showLoadingSpinner: false, // Delayed spinner display
   error: null,
 
+  // Helper to get stock "path" for pinning (e.g., "AAPL.stock")
+  getStockPath(ticker) {
+    return `${ticker}.stock`;
+  },
+
+  // Check if a stock is being watched (pinned)
+  isWatching(ticker) {
+    if (typeof pinnedFiles === 'undefined') return false;
+    return pinnedFiles.includes(this.getStockPath(ticker));
+  },
+
+  // Toggle watch status for a stock
+  toggleWatch(ticker) {
+    if (typeof togglePinFile === 'function') {
+      togglePinFile(this.getStockPath(ticker));
+      this.rerender();
+    }
+  },
+
   content() {
     // Always use stocksCard to access state (openWindows contains shallow copies)
     const state = stocksCard;
@@ -199,6 +218,11 @@ const stocksCard = {
               <option value="daily" disabled>Daily</option>
             </select>
           </div>
+          ${state.selectedTicker ? `
+            <button class="stock-watch-btn ${stocksCard.isWatching(state.selectedTicker) ? 'watching' : ''}" id="stock-watch-btn">
+              ${stocksCard.isWatching(state.selectedTicker) ? '★ Unwatch' : '☆ Watch'}
+            </button>
+          ` : ''}
         </div>
         ${dataContent}
       </div>
@@ -359,6 +383,35 @@ const stocksCard = {
       text-align: right;
       margin-top: 8px;
     }
+
+    .stock-watch-btn {
+      padding: 4px 8px;
+      font-family: inherit;
+      font-size: 11px;
+      border: 1px solid var(--window-border);
+      background: var(--input-bg);
+      color: var(--text-color);
+      cursor: pointer;
+      margin-left: auto;
+      align-self: flex-end;
+    }
+
+    .stock-watch-btn:hover {
+      background: #00c853;
+      color: #fff;
+      border-color: #00c853;
+    }
+
+    .stock-watch-btn.watching {
+      background: #00c853;
+      color: #fff;
+      border-color: #00c853;
+    }
+
+    .stock-watch-btn.watching:hover {
+      background: #ff1744;
+      border-color: #ff1744;
+    }
   `,
 
   async fetchTickers() {
@@ -466,6 +519,36 @@ const stocksCard = {
         await this.fetchOHLC();
       }
     }
+  },
+
+  handleClick(e) {
+    if (e.target.id === 'stock-watch-btn') {
+      e.preventDefault();
+      if (this.selectedTicker) {
+        this.toggleWatch(this.selectedTicker);
+      }
+    }
+  },
+
+  // Called when opening a .stock "file" from pinned list
+  async openFile(path) {
+    // Extract ticker from path (e.g., "AAPL.stock" -> "AAPL")
+    const ticker = path.replace('.stock', '');
+    console.log('[Stock] openFile called with ticker:', ticker);
+
+    // Open the stocks window
+    if (typeof system !== 'undefined' && system.openWindow) {
+      system.openWindow('stocks');
+    }
+
+    // Wait for tickers to load if needed
+    if (this.loadingTickers) {
+      await this.fetchTickers();
+    }
+
+    // Set the ticker and fetch data
+    stocksCard.selectedTicker = ticker;
+    await stocksCard.fetchOHLC();
   },
 
   handleMouseOver(e) {

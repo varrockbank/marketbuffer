@@ -1618,7 +1618,8 @@
       'yaml': 'editor',
       'yml': 'editor',
       'xml': 'editor',
-      'svg': 'editor'
+      'svg': 'editor',
+      'stock': 'stocks',
     };
 
     // OS API: Open a file with the appropriate app
@@ -2418,6 +2419,18 @@
       }
     });
 
+    // Delegate click events to cards
+    document.addEventListener('click', (e) => {
+      const windowEl = e.target.closest('[data-window-id]');
+      if (windowEl) {
+        const windowId = windowEl.dataset.windowId;
+        const card = initialWindows.find(c => c.id === windowId);
+        if (card && typeof card.handleClick === 'function') {
+          card.handleClick(e);
+        }
+      }
+    });
+
     // Delegate mouse events to cards (for tooltips etc)
     document.addEventListener('mouseover', (e) => {
       const windowEl = e.target.closest('[data-window-id]');
@@ -2656,7 +2669,13 @@
 
     function openApplication(windowId) {
       const isOpen = openWindows.some(w => w.id === windowId);
-      if (!isOpen) {
+      if (isOpen) {
+        // Window already open - bring to front
+        const windowEl = document.querySelector(`[data-window-id="${windowId}"]`);
+        if (windowEl) {
+          bringToFront(windowEl);
+        }
+      } else {
         const win = initialWindows.find(w => w.id === windowId);
         if (win) {
           // Clean up any stale DOM element with the same ID
@@ -2691,6 +2710,9 @@
         }
       }
     }
+
+    // Expose openApplication as system.openWindow for cards to use
+    system.openWindow = openApplication;
 
     function renderSingleWindow(win) {
       const desktop = document.getElementById('desktop');
