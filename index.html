@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Marketbuffer</title>
   <script src="vendor/buffer.js"></script>
+  <script src="os.js"></script>
+  <script src="file-tree.js"></script>
   <link rel="stylesheet" href="vendor/buffer.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Chicago&display=swap');
@@ -276,6 +278,69 @@
     .tree-label {
       overflow: hidden;
       text-overflow: ellipsis;
+      flex: 1;
+    }
+
+    .tree-pin {
+      width: 14px;
+      height: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      opacity: 0;
+      cursor: pointer;
+      margin-left: auto;
+    }
+
+    .tree-item-row:hover .tree-pin {
+      opacity: 0.5;
+    }
+
+    .tree-pin:hover {
+      opacity: 1 !important;
+    }
+
+    .tree-pin.pinned {
+      opacity: 1;
+    }
+
+    .pinned-item {
+      display: flex;
+      align-items: center;
+      padding: 3px 8px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .pinned-item:hover {
+      background: var(--text-color);
+      color: var(--window-bg);
+    }
+
+    .pinned-item-icon {
+      margin-right: 4px;
+      font-size: 10px;
+    }
+
+    .pinned-item-name {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .pinned-item-unpin {
+      opacity: 0;
+      cursor: pointer;
+      font-size: 10px;
+    }
+
+    .pinned-item:hover .pinned-item-unpin {
+      opacity: 0.5;
+    }
+
+    .pinned-item-unpin:hover {
+      opacity: 1 !important;
     }
 
     .tree-children {
@@ -1432,15 +1497,10 @@
           Source Control
         </div>
       </div>
-      <div class="sidebar-section">
-        <div class="sidebar-section-header">Favorites</div>
-        <div class="sidebar-item">
-          <span class="sidebar-item-icon">&#9734;</span>
-          index.html
-        </div>
-        <div class="sidebar-item">
-          <span class="sidebar-item-icon">&#9734;</span>
-          styles.css
+      <div class="sidebar-section" id="pinned-section">
+        <div class="sidebar-section-header">Pinned</div>
+        <div id="pinned-files">
+          <!-- Pinned files rendered by JavaScript -->
         </div>
       </div>
       <div class="sidebar-section sidebar-section-files">
@@ -1476,290 +1536,73 @@
   <!-- Server Service (WASM/HTTP abstraction) -->
   <script src="wasm_exec.js"></script>
   <script src="server-service.js"></script>
+  <script src="alpaca-provider.js"></script>
   <script src="cards/stocks.js"></script>
 
   <script>
     // ============================================
-    // MARKETBUFFER OS - System Object
+    // MARKETBUFFER OS - Using os.js module
     // ============================================
-    const STATE_KEY = 'marketbuffer_state';
 
-    // Global system object (version loaded from default-state.json)
-    const system = {
-      version: null,
-      state: null,
-      close(windowId) {
-        closeWindow(windowId);
-      },
-    };
-
-    // Alias for backward compatibility
+    // Alias for backward compatibility with existing code
     let systemState = null;
 
-    // Load default state from JSON file (source of truth for version)
-    async function loadDefaultState() {
-      const response = await fetch('default-state.json');
-      return response.json();
-    }
-
-    // Load state from localStorage or default-state.json
+    // Load state from OS module
     async function loadSystemState() {
-      const defaultState = await loadDefaultState();
-      system.version = defaultState.version;
-
-      const saved = localStorage.getItem(STATE_KEY);
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          // Version mismatch - clear and reload
-          if (parsed.version !== system.version) {
-            console.log(`OS version mismatch: ${parsed.version} !== ${system.version}. Resetting state.`);
-            localStorage.clear();
-            location.reload();
-            return;
-          }
-          system.state = { ...defaultState, ...parsed };
-        } catch (e) {
-          console.error('Failed to parse system state:', e);
-          localStorage.clear();
-          location.reload();
-          system.state = { ...defaultState };
-        }
-      } else {
-        // First-time user: use default state
-        system.state = { ...defaultState };
-      }
-      systemState = system.state;
+      await OS.loadSystemState();
+      systemState = OS.state;
     }
 
-    // Save state to localStorage
+    // Save state via OS module
     function saveSystemState() {
-      system.state.version = system.version;
-      localStorage.setItem(STATE_KEY, JSON.stringify(system.state));
+      OS.saveSystemState();
     }
 
-    // File type handlers - maps extensions to app IDs
-    const fileHandlers = {
-      'js': 'editor',
-      'jsx': 'editor',
-      'ts': 'editor',
-      'tsx': 'editor',
-      'css': 'editor',
-      'html': 'editor',
-      'json': 'editor',
-      'md': 'editor',
-      'txt': 'editor',
-      'py': 'editor',
-      'rb': 'editor',
-      'go': 'editor',
-      'rs': 'editor',
-      'c': 'editor',
-      'cpp': 'editor',
-      'h': 'editor',
-      'sh': 'editor',
-      'yaml': 'editor',
-      'yml': 'editor',
-      'xml': 'editor',
-      'svg': 'editor'
-    };
-
-    // OS API: Open a file with the appropriate app
-    system.openFile = function(path) {
-      const ext = path.split('.').pop().toLowerCase();
-      const appId = fileHandlers[ext] || 'editor';
-      const card = initialWindows.find(c => c.id === appId);
-      if (card && typeof card.openFile === 'function') {
-        card.openFile(path);
+    // Render pinned files (DOM-specific, kept in index.html)
+    function renderPinnedFiles() {
+      const container = document.getElementById('pinned-files');
+      const pinnedFiles = OS.getPinnedFiles();
+      if (pinnedFiles.length === 0) {
+        container.innerHTML = '<div class="sidebar-item" style="color: #888; font-style: italic;">No pinned files</div>';
+        return;
       }
-    };
 
-    // ============================================
-    // File tree data structure
-    // ============================================
-    const fileTreeData = {
-      name: 'marketbuffer',
-      type: 'folder',
-      expanded: true,
-      children: [
-        {
-          name: 'src',
-          type: 'folder',
-          expanded: true,
-          children: [
-            {
-              name: 'components',
-              type: 'folder',
-              expanded: false,
-              children: [
-                { name: 'Button.js', type: 'file', path: 'demo/src/components/Button.js' },
-                { name: 'Modal.js', type: 'file', path: 'demo/src/components/Modal.js' },
-                { name: 'Sidebar.js', type: 'file', path: 'demo/src/components/Sidebar.js' }
-              ]
-            },
-            {
-              name: 'utils',
-              type: 'folder',
-              expanded: false,
-              children: [
-                { name: 'helpers.js', type: 'file', path: 'demo/src/utils/helpers.js' },
-                { name: 'constants.js', type: 'file', path: 'demo/src/utils/constants.js' }
-              ]
-            },
-            { name: 'index.js', type: 'file', path: 'demo/src/index.js' },
-            { name: 'App.js', type: 'file', path: 'demo/src/App.js' }
-          ]
-        },
-        {
-          name: 'public',
-          type: 'folder',
-          expanded: false,
-          children: [
-            { name: 'index.html', type: 'file', path: 'demo/public/index.html' },
-            { name: 'favicon.ico', type: 'file', path: 'demo/public/favicon.ico' }
-          ]
-        },
-        {
-          name: 'styles',
-          type: 'folder',
-          expanded: false,
-          children: [
-            { name: 'main.css', type: 'file', path: 'demo/styles/main.css' },
-            { name: 'variables.css', type: 'file', path: 'demo/styles/variables.css' }
-          ]
-        },
-        { name: 'package.json', type: 'file', path: 'demo/package.json' },
-        { name: 'README.md', type: 'file', path: 'demo/README.md' },
-        { name: '.gitignore', type: 'file', path: 'demo/.gitignore' }
-      ]
-    };
-
-    // Cache for loaded file contents (session memory)
-    const fileContentsCache = {};
-
-    // Render file tree
-    function renderFileTree() {
-      // Load saved expansion state before rendering
-      loadFileTreeState();
-
-      const container = document.getElementById('file-tree');
-      // Render children of root folder directly (don't show root)
       let html = '';
-      if (fileTreeData.children) {
-        fileTreeData.children.forEach(child => {
-          html += renderTreeNode(child, 0);
-        });
-      }
-      container.innerHTML = html;
-      attachTreeListeners();
-    }
-
-    function renderTreeNode(node, depth) {
-      const isFolder = node.type === 'folder';
-      const hasChildren = isFolder && node.children && node.children.length > 0;
-      const toggleIcon = hasChildren ? (node.expanded ? '&#9660;' : '&#9654;') : '';
-      const icon = isFolder ? '&#128193;' : '&#128196;';
-      const expandedClass = node.expanded ? 'expanded' : '';
-      const pathAttr = node.path ? `data-path="${node.path}"` : '';
-
-      let html = `
-        <div class="tree-item" data-depth="${depth}" data-type="${node.type}" data-name="${node.name}" ${pathAttr}>
-          <div class="tree-item-row">
-            <span class="tree-toggle">${toggleIcon}</span>
-            <span class="tree-icon">${icon}</span>
-            <span class="tree-label">${node.name}</span>
+      pinnedFiles.forEach(path => {
+        const name = path.split('/').pop();
+        const isStock = path.endsWith('.stock');
+        const icon = isStock ? '📈' : '&#128196;';
+        html += `
+          <div class="pinned-item" data-path="${path}">
+            <span class="pinned-item-icon">${icon}</span>
+            <span class="pinned-item-name">${name}</span>
+            <span class="pinned-item-unpin" data-path="${path}">&#10005;</span>
           </div>
-      `;
+        `;
+      });
+      container.innerHTML = html;
 
-      if (hasChildren) {
-        html += `<div class="tree-children ${expandedClass}">`;
-        node.children.forEach(child => {
-          html += renderTreeNode(child, depth + 1);
-        });
-        html += '</div>';
-      }
-
-      html += '</div>';
-      return html;
-    }
-
-    function attachTreeListeners() {
-      document.querySelectorAll('.tree-item-row').forEach(row => {
-        row.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const item = row.closest('.tree-item');
-          const type = item.dataset.type;
-          const name = item.dataset.name;
-          const path = item.dataset.path;
-
-          // Handle selection
-          document.querySelectorAll('.tree-item-row.selected').forEach(el => {
-            el.classList.remove('selected');
-          });
-          row.classList.add('selected');
-
-          // Toggle folder expansion
-          if (type === 'folder') {
-            const children = item.querySelector('.tree-children');
-            const toggle = row.querySelector('.tree-toggle');
-            if (children) {
-              const isExpanded = children.classList.toggle('expanded');
-              toggle.innerHTML = isExpanded ? '&#9660;' : '&#9654;';
-              // Update data model and save to localStorage
-              updateNodeExpanded(fileTreeData, name, isExpanded);
-              saveFileTreeState();
-            }
-          } else if (type === 'file' && path) {
-            // Open file with appropriate app
-            system.openFile(path);
+      // Attach click listeners
+      container.querySelectorAll('.pinned-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+          if (e.target.classList.contains('pinned-item-unpin')) {
+            e.stopPropagation();
+            OS.unpinFile(e.target.dataset.path);
+          } else {
+            OS.openFile(item.dataset.path);
           }
         });
       });
     }
 
-    function updateNodeExpanded(node, name, expanded) {
-      if (node.name === name) {
-        node.expanded = expanded;
-        return true;
-      }
-      if (node.children) {
-        for (const child of node.children) {
-          if (updateNodeExpanded(child, name, expanded)) return true;
-        }
-      }
-      return false;
-    }
+    // Initialize pinned files from OS module
+    OS.loadPinnedFiles();
 
-    // Save file tree expansion state to systemState
-    function saveFileTreeState() {
-      const state = {};
-      collectExpansionState(fileTreeData, state);
-      systemState.fileTree = state;
-      saveSystemState();
-    }
-
-    function collectExpansionState(node, state) {
-      if (node.type === 'folder') {
-        state[node.name] = node.expanded || false;
-      }
-      if (node.children) {
-        node.children.forEach(child => collectExpansionState(child, state));
-      }
-    }
-
-    function loadFileTreeState() {
-      if (systemState.fileTree && Object.keys(systemState.fileTree).length > 0) {
-        applyExpansionState(fileTreeData, systemState.fileTree);
-      }
-    }
-
-    function applyExpansionState(node, state) {
-      if (node.type === 'folder' && state.hasOwnProperty(node.name)) {
-        node.expanded = state[node.name];
-      }
-      if (node.children) {
-        node.children.forEach(child => applyExpansionState(child, state));
-      }
-    }
+    // Register FileTree callbacks (systemState available after loadSystemState)
+    FileTree.registerCallbacks({
+      getSystemState: () => systemState,
+      saveSystemState: saveSystemState,
+    });
 
     // Initial windows configuration (loaded from cards/*.js)
     const initialWindows = [
@@ -1845,7 +1688,8 @@
       loadFontSize();
       loadWallpaper();
 
-      // Render file tree in sidebar
+      // Render file tree and pinned files in sidebar
+      renderPinnedFiles();
       renderFileTree();
 
       // Try to load from localStorage, otherwise use initial windows
@@ -2265,6 +2109,18 @@
       }
     });
 
+    // Delegate click events to cards
+    document.addEventListener('click', (e) => {
+      const windowEl = e.target.closest('[data-window-id]');
+      if (windowEl) {
+        const windowId = windowEl.dataset.windowId;
+        const card = initialWindows.find(c => c.id === windowId);
+        if (card && typeof card.handleClick === 'function') {
+          card.handleClick(e);
+        }
+      }
+    });
+
     // Delegate mouse events to cards (for tooltips etc)
     document.addEventListener('mouseover', (e) => {
       const windowEl = e.target.closest('[data-window-id]');
@@ -2339,22 +2195,6 @@
       }
     });
 
-    // Highlight a file in the file tree by its path
-    function highlightFileInTree(filePath) {
-      // Remove existing selection
-      document.querySelectorAll('.tree-item-row.selected').forEach(el => {
-        el.classList.remove('selected');
-      });
-
-      // Find and select the matching file
-      const fileItem = document.querySelector(`.tree-item[data-path="${filePath}"]`);
-      if (fileItem) {
-        const row = fileItem.querySelector('.tree-item-row');
-        if (row) {
-          row.classList.add('selected');
-        }
-      }
-    }
 
     // Show upgrade alert when pane limit is reached
     function showUpgradeAlert() {
@@ -2440,7 +2280,7 @@
       if (card && typeof card.executeAction === 'function') {
         card.executeAction(action);
       } else if (action === 'close') {
-        system.close(windowId);
+        OS.close(windowId);
       }
     }
 
@@ -2495,7 +2335,7 @@
       closeAllItem.className = 'menu-dropdown-item';
       closeAllItem.textContent = 'Close All Windows';
       closeAllItem.addEventListener('click', () => {
-        openWindows.slice().forEach(w => system.close(w.id));
+        openWindows.slice().forEach(w => OS.close(w.id));
         closeApplicationsMenu();
       });
       dropdown.appendChild(closeAllItem);
@@ -2503,7 +2343,13 @@
 
     function openApplication(windowId) {
       const isOpen = openWindows.some(w => w.id === windowId);
-      if (!isOpen) {
+      if (isOpen) {
+        // Window already open - bring to front
+        const windowEl = document.querySelector(`[data-window-id="${windowId}"]`);
+        if (windowEl) {
+          bringToFront(windowEl);
+        }
+      } else {
         const win = initialWindows.find(w => w.id === windowId);
         if (win) {
           // Clean up any stale DOM element with the same ID
@@ -2538,6 +2384,15 @@
         }
       }
     }
+
+    // Register OS callbacks now that functions are defined
+    OS.registerCallbacks({
+      closeWindow: closeWindow,
+      openApplication: openApplication,
+      getCard: (appId) => initialWindows.find(c => c.id === appId),
+      renderPinnedFiles: renderPinnedFiles,
+      renderFileTree: () => FileTree.render(),
+    });
 
     function renderSingleWindow(win) {
       const desktop = document.getElementById('desktop');
