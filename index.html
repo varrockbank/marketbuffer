@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Marketbuffer</title>
   <script src="vendor/buffer.js"></script>
+  <script src="os.js"></script>
   <link rel="stylesheet" href="vendor/buffer.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Chicago&display=swap');
@@ -1538,146 +1539,27 @@
 
   <script>
     // ============================================
-    // MARKETBUFFER OS - System Object
+    // MARKETBUFFER OS - Using os.js module
     // ============================================
-    const STATE_KEY = 'marketbuffer_state';
 
-    // Global system object (version loaded from default-state.json)
-    const system = {
-      version: null,
-      state: null,
-      close(windowId) {
-        closeWindow(windowId);
-      },
-    };
-
-    // Alias for backward compatibility
+    // Alias for backward compatibility with existing code
     let systemState = null;
 
-    // Load default state from JSON file (source of truth for version)
-    async function loadDefaultState() {
-      const response = await fetch('default-state.json');
-      return response.json();
-    }
-
-    // Load state from localStorage or default-state.json
+    // Load state from OS module
     async function loadSystemState() {
-      const defaultState = await loadDefaultState();
-      system.version = defaultState.version;
-
-      const saved = localStorage.getItem(STATE_KEY);
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          // Version mismatch - clear and reload
-          if (parsed.version !== system.version) {
-            console.log(`OS version mismatch: ${parsed.version} !== ${system.version}. Resetting state.`);
-            localStorage.clear();
-            location.reload();
-            return;
-          }
-          system.state = { ...defaultState, ...parsed };
-        } catch (e) {
-          console.error('Failed to parse system state:', e);
-          localStorage.clear();
-          location.reload();
-          system.state = { ...defaultState };
-        }
-      } else {
-        // First-time user: use default state
-        system.state = { ...defaultState };
-      }
-      systemState = system.state;
+      await OS.loadSystemState();
+      systemState = OS.state;
     }
 
-    // Save state to localStorage
+    // Save state via OS module
     function saveSystemState() {
-      system.state.version = system.version;
-      localStorage.setItem(STATE_KEY, JSON.stringify(system.state));
+      OS.saveSystemState();
     }
 
-    // File type handlers - maps extensions to app IDs
-    const fileHandlers = {
-      'js': 'editor',
-      'jsx': 'editor',
-      'ts': 'editor',
-      'tsx': 'editor',
-      'css': 'editor',
-      'html': 'editor',
-      'json': 'editor',
-      'md': 'editor',
-      'txt': 'editor',
-      'py': 'editor',
-      'rb': 'editor',
-      'go': 'editor',
-      'rs': 'editor',
-      'c': 'editor',
-      'cpp': 'editor',
-      'h': 'editor',
-      'sh': 'editor',
-      'yaml': 'editor',
-      'yml': 'editor',
-      'xml': 'editor',
-      'svg': 'editor',
-      'stock': 'stocks',
-    };
-
-    // OS API: Open a file with the appropriate app
-    system.openFile = function(path) {
-      const ext = path.split('.').pop().toLowerCase();
-      const appId = fileHandlers[ext] || 'editor';
-      const card = initialWindows.find(c => c.id === appId);
-      if (card && typeof card.openFile === 'function') {
-        card.openFile(path);
-      }
-    };
-
-    // ============================================
-    // Pinned files
-    // ============================================
-    const PINNED_FILES_KEY = 'marketbuffer_pinned_files';
-    const DEFAULT_PINNED_FILES = ['demo/README.md'];
-
-    let pinnedFiles = [];
-
-    function loadPinnedFiles() {
-      const saved = localStorage.getItem(PINNED_FILES_KEY);
-      if (saved) {
-        pinnedFiles = JSON.parse(saved);
-      } else {
-        pinnedFiles = [...DEFAULT_PINNED_FILES];
-        savePinnedFiles();
-      }
-    }
-
-    function savePinnedFiles() {
-      localStorage.setItem(PINNED_FILES_KEY, JSON.stringify(pinnedFiles));
-    }
-
-    function togglePinFile(path) {
-      const index = pinnedFiles.indexOf(path);
-      if (index === -1) {
-        pinnedFiles.push(path);
-      } else {
-        pinnedFiles.splice(index, 1);
-      }
-      savePinnedFiles();
-      renderPinnedFiles();
-      renderFileTree();
-    }
-
-    function unpinFile(path) {
-      const index = pinnedFiles.indexOf(path);
-      if (index !== -1) {
-        pinnedFiles.splice(index, 1);
-        savePinnedFiles();
-        renderPinnedFiles();
-        renderFileTree();
-      }
-    }
-
+    // Render pinned files (DOM-specific, kept in index.html)
     function renderPinnedFiles() {
       const container = document.getElementById('pinned-files');
+      const pinnedFiles = OS.getPinnedFiles();
       if (pinnedFiles.length === 0) {
         container.innerHTML = '<div class="sidebar-item" style="color: #888; font-style: italic;">No pinned files</div>';
         return;
@@ -1701,16 +1583,16 @@
         item.addEventListener('click', (e) => {
           if (e.target.classList.contains('pinned-item-unpin')) {
             e.stopPropagation();
-            unpinFile(e.target.dataset.path);
+            OS.unpinFile(e.target.dataset.path);
           } else {
-            system.openFile(item.dataset.path);
+            OS.openFile(item.dataset.path);
           }
         });
       });
     }
 
-    // Initialize pinned files
-    loadPinnedFiles();
+    // Initialize pinned files from OS module
+    OS.loadPinnedFiles();
 
     // ============================================
     // File tree data structure
@@ -1799,7 +1681,7 @@
       const icon = isFolder ? '&#128193;' : '&#128196;';
       const expandedClass = node.expanded ? 'expanded' : '';
       const pathAttr = node.path ? `data-path="${node.path}"` : '';
-      const isPinned = !isFolder && node.path && pinnedFiles.includes(node.path);
+      const isPinned = !isFolder && node.path && OS.isPinned(node.path);
       const pinClass = isPinned ? 'pinned' : '';
       const pinIcon = isPinned ? '&#128204;' : '&#128204;'; // pushpin icon
 
@@ -1833,7 +1715,7 @@
             e.stopPropagation();
             const path = e.target.dataset.path;
             if (path) {
-              togglePinFile(path);
+              OS.togglePinFile(path);
             }
             return;
           }
@@ -1863,7 +1745,7 @@
             }
           } else if (type === 'file' && path) {
             // Open file with appropriate app
-            system.openFile(path);
+            OS.openFile(path);
           }
         });
       });
@@ -2606,7 +2488,7 @@
       if (card && typeof card.executeAction === 'function') {
         card.executeAction(action);
       } else if (action === 'close') {
-        system.close(windowId);
+        OS.close(windowId);
       }
     }
 
@@ -2661,7 +2543,7 @@
       closeAllItem.className = 'menu-dropdown-item';
       closeAllItem.textContent = 'Close All Windows';
       closeAllItem.addEventListener('click', () => {
-        openWindows.slice().forEach(w => system.close(w.id));
+        openWindows.slice().forEach(w => OS.close(w.id));
         closeApplicationsMenu();
       });
       dropdown.appendChild(closeAllItem);
@@ -2711,8 +2593,14 @@
       }
     }
 
-    // Expose openApplication as system.openWindow for cards to use
-    system.openWindow = openApplication;
+    // Register OS callbacks now that functions are defined
+    OS.registerCallbacks({
+      closeWindow: closeWindow,
+      openApplication: openApplication,
+      getCard: (appId) => initialWindows.find(c => c.id === appId),
+      renderPinnedFiles: renderPinnedFiles,
+      renderFileTree: renderFileTree,
+    });
 
     function renderSingleWindow(win) {
       const desktop = document.getElementById('desktop');

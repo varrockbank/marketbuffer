@@ -30,14 +30,14 @@ const stocksCard = {
 
   // Check if a stock is being watched (pinned)
   isWatching(ticker) {
-    if (typeof pinnedFiles === 'undefined') return false;
-    return pinnedFiles.includes(this.getStockPath(ticker));
+    if (typeof OS === 'undefined') return false;
+    return OS.isPinned(this.getStockPath(ticker));
   },
 
   // Toggle watch status for a stock
   toggleWatch(ticker) {
-    if (typeof togglePinFile === 'function') {
-      togglePinFile(this.getStockPath(ticker));
+    if (typeof OS !== 'undefined') {
+      OS.togglePinFile(this.getStockPath(ticker));
       this.rerender();
     }
   },
@@ -537,8 +537,8 @@ const stocksCard = {
     console.log('[Stock] openFile called with ticker:', ticker);
 
     // Open the stocks window
-    if (typeof system !== 'undefined' && system.openWindow) {
-      system.openWindow('stocks');
+    if (typeof OS !== 'undefined') {
+      OS.openWindow('stocks');
     }
 
     // Wait for tickers to load if needed
