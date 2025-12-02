@@ -13,15 +13,15 @@ const stocksCard = {
   ],
 
   // State
-  tickers: [],
   selectedTicker: '',
   selectedYear: 2024,
   selectedWindow: 'monthly',
+  viewMode: 'historical', // 'historical' or 'today'
   ohlcData: null,
+  intradayData: null,
   loading: false,
-  loadingTickers: true,
-  showLoadingSpinner: false, // Delayed spinner display
   error: null,
+  alpacaConfigured: false, // Whether Alpaca API is configured
 
   // Helper to get stock "path" for pinning (e.g., "AAPL.stock")
   getStockPath(ticker) {
@@ -63,22 +63,10 @@ const stocksCard = {
       `;
     }
 
-    if (state.showLoadingSpinner) {
-      return `
-        <div class="stock-content">
-          <div class="stock-loading">
-            <div class="stock-spinner"></div>
-            <div>Loading tickers...</div>
-          </div>
-        </div>
-      `;
-    }
 
-    const tickerOptions = state.loadingTickers
-      ? '<option value="">Loading...</option>'
-      : state.tickers.map(t =>
-          `<option value="${t}" ${state.selectedTicker === t ? 'selected' : ''}>${t}</option>`
-        ).join('');
+    // Determine which data to show based on view mode
+    const activeData = state.viewMode === 'today' ? state.intradayData : state.ohlcData;
+    const isIntraday = state.viewMode === 'today';
 
     let dataContent = '';
     if (state.loading) {
@@ -88,8 +76,8 @@ const stocksCard = {
           <div>Loading...</div>
         </div>
       `;
-    } else if (state.ohlcData && state.ohlcData.data && state.ohlcData.data.length > 0) {
-      const data = state.ohlcData.data;
+    } else if (activeData && activeData.data && activeData.data.length > 0) {
+      const data = activeData.data;
       const chartWidth = 420;
       const chartHeight = 200;
       const padding = { top: 20, right: 50, bottom: 30, left: 10 };
@@ -133,8 +121,10 @@ const stocksCard = {
         `;
       }).join('');
 
-      // X-axis labels
+      // X-axis labels - for intraday, show sparse labels (every 30 or 60 min)
+      const labelInterval = isIntraday ? Math.max(1, Math.floor(data.length / 8)) : 1;
       const xLabels = data.map((d, i) => {
+        if (i % labelInterval !== 0) return '';
         const x = xScale(i);
         return `<text x="${x}" y="${chartHeight - 8}" text-anchor="middle" class="stock-chart-label">${d.period}</text>`;
       }).join('');
@@ -158,13 +148,21 @@ const stocksCard = {
       const changeColor = change >= 0 ? '#00c853' : '#ff1744';
       const changeSign = change >= 0 ? '+' : '';
 
-      const dataSource = ServerService.USE_WASM
-        ? 'Data was fetched in statically served context from WASM-wrapped Go HTTP server'
-        : 'Data was fetched from an HTTP Server';
+      // Data source message
+      let dataSource;
+      if (isIntraday) {
+        const marketStatus = typeof AlpacaProvider !== 'undefined' ? AlpacaProvider.getMarketStatus() : '';
+        dataSource = `Live intraday day from Alpaca (15-min delay) ${marketStatus}`;
+      } else {
+        dataSource = ServerService.USE_WASM
+          ? 'Historical data from WASM-wrapped Go HTTP server'
+          : 'Historical data from HTTP Server';
+      }
 
       dataContent = `
         <div class="stock-chart-container">
           <div class="stock-chart-header">
+            <span class="stock-chart-ticker">${state.selectedTicker}</span>
             <span class="stock-chart-price">$${latest.close.toFixed(2)}</span>
             <span class="stock-chart-change" style="color: ${changeColor}">${changeSign}${change.toFixed(2)} (${changeSign}${changePercent}%)</span>
           </div>
@@ -182,49 +180,70 @@ const stocksCard = {
     } else if (state.selectedTicker) {
       dataContent = `<div class="stock-placeholder">No data available</div>`;
     } else {
-      dataContent = `<div class="stock-placeholder">Select a ticker to view data</div>`;
+      dataContent = `<div class="stock-placeholder">Specify a ticker to view data</div>`;
     }
+
+    // Check if Alpaca is configured
+    const alpacaAvailable = typeof AlpacaProvider !== 'undefined' && AlpacaProvider.isConfigured();
 
     return `
       <div class="stock-content">
-        <div class="stock-controls">
-          <div class="stock-control-group">
-            <label class="stock-label">Ticker</label>
-            <select class="stock-select" id="stock-ticker-select">
-              <option value="">Select ticker...</option>
-              ${tickerOptions}
-            </select>
-          </div>
-          <div class="stock-control-group">
-            <label class="stock-label">Year</label>
-            <select class="stock-select" id="stock-year-select">
-              <option value="2024" selected>2024</option>
-              <option value="2023" disabled>2023</option>
-              <option value="2022" disabled>2022</option>
-              <option value="2021" disabled>2021</option>
-              <option value="2020" disabled>2020</option>
-              <option value="2019" disabled>2019</option>
-              <option value="2018" disabled>2018</option>
-              <option value="2017" disabled>2017</option>
-              <option value="2016" disabled>2016</option>
-              <option value="2015" disabled>2015</option>
-            </select>
-          </div>
-          <div class="stock-control-group">
-            <label class="stock-label">Period</label>
-            <select class="stock-select" id="stock-window-select">
-              <option value="monthly" ${state.selectedWindow === 'monthly' ? 'selected' : ''}>Monthly</option>
-              <option value="weekly" disabled>Weekly</option>
-              <option value="daily" disabled>Daily</option>
-            </select>
-          </div>
-          ${state.selectedTicker ? `
-            <button class="stock-watch-btn ${stocksCard.isWatching(state.selectedTicker) ? 'watching' : ''}" id="stock-watch-btn">
-              ${stocksCard.isWatching(state.selectedTicker) ? '★ Unwatch' : '☆ Watch'}
-            </button>
-          ` : ''}
+        <div class="stock-tabs">
+          <button class="stock-tab ${state.viewMode === 'historical' ? 'active' : ''}" data-tab="historical">Historical</button>
+          <button class="stock-tab ${state.viewMode === 'today' ? 'active' : ''}" data-tab="today">Live</button>
         </div>
-        ${dataContent}
+        ${state.viewMode === 'historical' || alpacaAvailable ? `
+          <div class="stock-controls">
+            <div class="stock-control-group">
+              <label class="stock-label">Ticker</label>
+              <div class="stock-ticker-row">
+                <input type="text" class="stock-input" id="stock-ticker-input" placeholder="AAPL" value="${state.selectedTicker}" maxlength="5">
+                <button class="stock-go-btn" id="stock-ticker-go">Go</button>
+              </div>
+            </div>
+            ${state.viewMode === 'historical' ? `
+              <div class="stock-control-group">
+                <label class="stock-label">Year</label>
+                <select class="stock-select" id="stock-year-select">
+                  <option value="2024" selected>2024</option>
+                  <option value="2023" disabled>2023</option>
+                  <option value="2022" disabled>2022</option>
+                </select>
+              </div>
+              <div class="stock-control-group">
+                <label class="stock-label">Period</label>
+                <select class="stock-select" id="stock-window-select">
+                  <option value="monthly" ${state.selectedWindow === 'monthly' ? 'selected' : ''}>Monthly</option>
+                  <option value="weekly" disabled>Weekly</option>
+                  <option value="daily" disabled>Daily</option>
+                </select>
+              </div>
+            ` : ''}
+            ${state.selectedTicker ? `
+              <button class="stock-watch-btn ${stocksCard.isWatching(state.selectedTicker) ? 'watching' : ''}" id="stock-watch-btn">
+                ${stocksCard.isWatching(state.selectedTicker) ? '★ Unwatch' : '☆ Watch'}
+              </button>
+            ` : ''}
+          </div>
+        ` : ''}
+        ${!alpacaAvailable && state.viewMode === 'today' ? `
+          <div class="stock-api-setup">
+            <div class="stock-api-setup-title">Configure Alpaca API</div>
+            <div class="stock-api-setup-desc">Live intraday data requires an Alpaca API key (free)</div>
+            <div class="stock-api-setup-field">
+              <label for="alpaca-api-key">API Key ID</label>
+              <input type="text" id="alpaca-api-key" placeholder="PK...">
+            </div>
+            <div class="stock-api-setup-field">
+              <label for="alpaca-api-secret">API Secret Key</label>
+              <input type="password" id="alpaca-api-secret" placeholder="Your secret key">
+            </div>
+            <div class="stock-api-setup-actions">
+              <a href="https://app.alpaca.markets/signup" target="_blank" class="stock-api-setup-link">Get free API keys</a>
+              <button class="stock-api-setup-btn" id="stock-save-alpaca">Save</button>
+            </div>
+          </div>
+        ` : dataContent}
       </div>
     `;
   },
@@ -234,6 +253,51 @@ const stocksCard = {
       padding: 12px;
       background: var(--window-bg);
       min-height: 200px;
+    }
+
+    .stock-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--window-border);
+    }
+
+    .stock-tab {
+      padding: 6px 16px;
+      font-family: inherit;
+      font-size: 11px;
+      border: 1px solid var(--window-border);
+      border-bottom: none;
+      background: var(--sidebar-bg);
+      color: var(--text-color);
+      cursor: pointer;
+      margin-bottom: -1px;
+    }
+
+    .stock-tab:first-child {
+      border-radius: 3px 0 0 0;
+    }
+
+    .stock-tab:last-child {
+      border-radius: 0 3px 0 0;
+    }
+
+    .stock-tab.active {
+      background: var(--window-bg);
+      border-bottom: 1px solid var(--window-bg);
+    }
+
+    .stock-tab:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .stock-tab:not(:disabled):hover {
+      background: var(--hover-bg);
+    }
+
+    .stock-tab.active:hover {
+      background: var(--window-bg);
     }
 
     .stock-controls {
@@ -261,6 +325,37 @@ const stocksCard = {
       background: var(--input-bg);
       color: var(--text-color);
       min-width: 120px;
+    }
+
+    .stock-ticker-row {
+      display: flex;
+      gap: 0;
+    }
+
+    .stock-input {
+      padding: 4px 8px;
+      font-family: inherit;
+      font-size: 11px;
+      border: 1px solid var(--window-border);
+      background: var(--input-bg);
+      color: var(--text-color);
+      width: 60px;
+      text-transform: uppercase;
+    }
+
+    .stock-go-btn {
+      padding: 4px 8px;
+      font-family: inherit;
+      font-size: 11px;
+      border: 1px solid var(--window-border);
+      border-left: none;
+      background: var(--input-bg);
+      color: var(--text-color);
+      cursor: pointer;
+    }
+
+    .stock-go-btn:hover {
+      background: var(--hover-bg);
     }
 
     .stock-select option:disabled {
@@ -313,9 +408,15 @@ const stocksCard = {
     .stock-chart-header {
       display: flex;
       align-items: baseline;
-      gap: 12px;
+      gap: 8px;
       margin-bottom: 8px;
       padding: 0 4px;
+    }
+
+    .stock-chart-ticker {
+      font-size: 14px;
+      font-weight: bold;
+      color: #888;
     }
 
     .stock-chart-price {
@@ -412,22 +513,160 @@ const stocksCard = {
       background: #ff1744;
       border-color: #ff1744;
     }
-  `,
 
-  async fetchTickers() {
-    this.loadingTickers = true;
-    try {
-      const data = await ServerService.getTickers();
-      this.tickers = data.tickers || [];
-      this.error = null;
-    } catch (e) {
-      this.error = 'Cannot connect to server';
-      this.tickers = [];
-    } finally {
-      this.loadingTickers = false;
-      console.log('[Stock] fetchTickers done, loadingTickers:', this.loadingTickers);
+    .stock-api-setup {
+      padding: 20px;
+      text-align: center;
     }
-  },
+
+    .stock-api-setup-title {
+      font-weight: bold;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .stock-api-setup-desc {
+      font-size: 10px;
+      color: #888;
+      margin-bottom: 16px;
+    }
+
+    .stock-api-setup-field {
+      margin-bottom: 10px;
+      text-align: left;
+      max-width: 250px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .stock-api-setup-field label {
+      display: block;
+      font-size: 10px;
+      margin-bottom: 4px;
+    }
+
+    .stock-api-setup-field input {
+      width: 100%;
+      padding: 6px 8px;
+      font-family: inherit;
+      font-size: 11px;
+      border: 1px solid var(--window-border);
+      background: var(--input-bg);
+      color: var(--text-color);
+      box-sizing: border-box;
+    }
+
+    .stock-api-setup-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .stock-api-setup-link {
+      font-size: 10px;
+      color: #888;
+    }
+
+    .stock-api-setup-btn {
+      padding: 6px 16px;
+      font-family: inherit;
+      font-size: 11px;
+      border: 1px solid var(--window-border);
+      background: var(--text-color);
+      color: var(--window-bg);
+      cursor: pointer;
+    }
+
+    .stock-api-setup-btn:hover {
+      opacity: 0.9;
+    }
+
+    .stock-api-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    }
+
+    .stock-api-modal-content {
+      background: var(--window-bg);
+      border: 2px solid var(--window-border);
+      padding: 16px;
+      min-width: 320px;
+      box-shadow: 4px 4px 0 var(--window-border);
+    }
+
+    .stock-api-modal-title {
+      font-weight: bold;
+      margin-bottom: 12px;
+      font-size: 12px;
+    }
+
+    .stock-api-modal-field {
+      margin-bottom: 10px;
+    }
+
+    .stock-api-modal-field label {
+      display: block;
+      font-size: 10px;
+      margin-bottom: 4px;
+    }
+
+    .stock-api-modal-field input {
+      width: 100%;
+      padding: 4px 8px;
+      font-family: inherit;
+      font-size: 11px;
+      border: 1px solid var(--window-border);
+      background: var(--input-bg);
+      color: var(--text-color);
+      box-sizing: border-box;
+    }
+
+    .stock-api-modal-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .stock-api-modal-buttons button {
+      padding: 4px 12px;
+      font-family: inherit;
+      font-size: 11px;
+      border: 1px solid var(--window-border);
+      background: var(--input-bg);
+      color: var(--text-color);
+      cursor: pointer;
+    }
+
+    .stock-api-modal-buttons button:hover {
+      background: var(--hover-bg);
+    }
+
+    .stock-api-modal-buttons button.primary {
+      background: var(--text-color);
+      color: var(--window-bg);
+    }
+
+    .stock-api-modal-hint {
+      font-size: 9px;
+      color: #888;
+      margin-top: 8px;
+    }
+
+    .stock-api-modal-hint a {
+      color: inherit;
+    }
+  `,
 
   async fetchOHLC() {
     if (!this.selectedTicker) return;
@@ -454,6 +693,40 @@ const stocksCard = {
     this.rerender();
   },
 
+  async fetchIntraday() {
+    if (!this.selectedTicker) return;
+    if (typeof AlpacaProvider === 'undefined' || !AlpacaProvider.isConfigured()) {
+      this.error = 'Alpaca API not configured';
+      this.rerender();
+      return;
+    }
+
+    this.loading = true;
+    console.log('[Stock] fetchIntraday start');
+    this.rerender();
+
+    try {
+      this.intradayData = await AlpacaProvider.getTodayBars(this.selectedTicker);
+      console.log('[Stock] fetchIntraday got data:', this.intradayData);
+      this.error = null;
+    } catch (e) {
+      console.log('[Stock] fetchIntraday error:', e);
+      this.error = `Failed to fetch intraday data: ${e.message}`;
+      this.intradayData = null;
+    }
+    this.loading = false;
+    this.rerender();
+  },
+
+  // Fetch data based on current view mode
+  async fetchData() {
+    if (this.viewMode === 'today') {
+      await this.fetchIntraday();
+    } else {
+      await this.fetchOHLC();
+    }
+  },
+
   rerender() {
     const windowEl = document.querySelector(`[data-window-id="${this.id}"]`);
     console.log('[Stock] rerender windowEl:', windowEl);
@@ -471,30 +744,15 @@ const stocksCard = {
   init(system) {
     console.log('[Stock] init() called');
     // Use stocksCard directly since openWindows contains shallow copies
-    stocksCard.tickers = [];
     stocksCard.selectedTicker = '';
     stocksCard.selectedYear = 2024;
     stocksCard.selectedWindow = 'monthly';
+    stocksCard.viewMode = 'historical';
     stocksCard.ohlcData = null;
+    stocksCard.intradayData = null;
     stocksCard.loading = false;
-    stocksCard.loadingTickers = true;
-    stocksCard.showLoadingSpinner = false;
     stocksCard.error = null;
-
-    // Show spinner after 1 second delay (only if still loading)
-    const spinnerTimeout = setTimeout(() => {
-      if (stocksCard.loadingTickers) {
-        stocksCard.showLoadingSpinner = true;
-        stocksCard.rerender();
-      }
-    }, 1000);
-
-    // Fetch tickers asynchronously and rerender when done
-    stocksCard.fetchTickers().then(() => {
-      clearTimeout(spinnerTimeout);
-      stocksCard.showLoadingSpinner = false;
-      stocksCard.rerender();
-    });
+    stocksCard.alpacaConfigured = typeof AlpacaProvider !== 'undefined' && AlpacaProvider.isConfigured();
   },
 
   destroy() {
@@ -503,16 +761,6 @@ const stocksCard = {
 
   async handleChange(e) {
     console.log('[Stock] handleChange called, target:', e.target.id, 'value:', e.target.value);
-    if (e.target.id === 'stock-ticker-select') {
-      this.selectedTicker = e.target.value;
-      console.log('[Stock] selectedTicker set to:', this.selectedTicker);
-      if (this.selectedTicker) {
-        await this.fetchOHLC();
-      } else {
-        this.ohlcData = null;
-        this.rerender();
-      }
-    }
     if (e.target.id === 'stock-window-select') {
       this.selectedWindow = e.target.value;
       if (this.selectedTicker) {
@@ -521,13 +769,148 @@ const stocksCard = {
     }
   },
 
+  async handleKeyDown(e) {
+    if (e.target.id === 'stock-ticker-input' && e.key === 'Enter') {
+      e.preventDefault();
+      await this.loadTicker(e.target.value);
+    }
+  },
+
+  async loadTicker(value) {
+    const ticker = value.toUpperCase().trim();
+    if (ticker === this.selectedTicker) return;
+    this.selectedTicker = ticker;
+    console.log('[Stock] selectedTicker set to:', this.selectedTicker);
+    if (this.selectedTicker) {
+      await this.fetchData();
+    } else {
+      this.ohlcData = null;
+      this.intradayData = null;
+      this.rerender();
+    }
+  },
+
   handleClick(e) {
+    // Handle tab clicks
+    if (e.target.classList.contains('stock-tab')) {
+      e.preventDefault();
+      const tab = e.target.dataset.tab;
+      if (tab && tab !== this.viewMode) {
+        this.viewMode = tab;
+        if (this.selectedTicker && (tab !== 'today' || (typeof AlpacaProvider !== 'undefined' && AlpacaProvider.isConfigured()))) {
+          this.fetchData();
+        } else {
+          this.rerender();
+        }
+      }
+      return;
+    }
+    // Handle inline API save button
+    if (e.target.id === 'stock-save-alpaca') {
+      e.preventDefault();
+      const windowEl = document.querySelector(`[data-window-id="${this.id}"]`);
+      const apiKey = windowEl.querySelector('#alpaca-api-key')?.value.trim();
+      const apiSecret = windowEl.querySelector('#alpaca-api-secret')?.value.trim();
+      if (apiKey && apiSecret && typeof AlpacaProvider !== 'undefined') {
+        AlpacaProvider.configure(apiKey, apiSecret);
+        localStorage.setItem('alpaca_api_key', apiKey);
+        localStorage.setItem('alpaca_api_secret', apiSecret);
+        this.alpacaConfigured = true;
+        if (this.selectedTicker) {
+          this.fetchData();
+        } else {
+          this.rerender();
+        }
+      }
+      return;
+    }
+    // Handle Go button click
+    if (e.target.id === 'stock-ticker-go') {
+      e.preventDefault();
+      const windowEl = document.querySelector(`[data-window-id="${this.id}"]`);
+      const input = windowEl.querySelector('#stock-ticker-input');
+      if (input) {
+        this.loadTicker(input.value);
+      }
+      return;
+    }
     if (e.target.id === 'stock-watch-btn') {
       e.preventDefault();
       if (this.selectedTicker) {
         this.toggleWatch(this.selectedTicker);
       }
     }
+  },
+
+  showApiConfigModal(onSuccess) {
+    // Create modal overlay
+    const modal = document.createElement('div');
+    modal.className = 'stock-api-modal';
+    modal.innerHTML = `
+      <div class="stock-api-modal-content">
+        <div class="stock-api-modal-title">Configure Alpaca API</div>
+        <div class="stock-api-modal-field">
+          <label for="alpaca-api-key">API Key ID</label>
+          <input type="text" id="alpaca-api-key" placeholder="PK...">
+        </div>
+        <div class="stock-api-modal-field">
+          <label for="alpaca-api-secret">API Secret Key</label>
+          <input type="password" id="alpaca-api-secret" placeholder="Your secret key">
+        </div>
+        <div class="stock-api-modal-hint">
+          Get free API keys at <a href="https://app.alpaca.markets/signup" target="_blank">alpaca.markets</a>
+        </div>
+        <div class="stock-api-modal-buttons">
+          <button id="alpaca-cancel">Cancel</button>
+          <button id="alpaca-save" class="primary">Save</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Load existing values if configured
+    if (typeof AlpacaProvider !== 'undefined' && AlpacaProvider.apiKey) {
+      modal.querySelector('#alpaca-api-key').value = AlpacaProvider.apiKey;
+      modal.querySelector('#alpaca-api-secret').value = AlpacaProvider.apiSecret || '';
+    }
+
+    // Handle save
+    modal.querySelector('#alpaca-save').addEventListener('click', () => {
+      const apiKey = modal.querySelector('#alpaca-api-key').value.trim();
+      const apiSecret = modal.querySelector('#alpaca-api-secret').value.trim();
+
+      if (apiKey && apiSecret) {
+        if (typeof AlpacaProvider !== 'undefined') {
+          AlpacaProvider.configure(apiKey, apiSecret);
+          // Save to localStorage for persistence
+          localStorage.setItem('alpaca_api_key', apiKey);
+          localStorage.setItem('alpaca_api_secret', apiSecret);
+          this.alpacaConfigured = true;
+        }
+        document.body.removeChild(modal);
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          this.rerender();
+        }
+      } else {
+        document.body.removeChild(modal);
+        this.rerender();
+      }
+    });
+
+    // Handle cancel
+    modal.querySelector('#alpaca-cancel').addEventListener('click', () => {
+      document.body.removeChild(modal);
+    });
+
+    // Close on backdrop click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        document.body.removeChild(modal);
+      }
+    });
   },
 
   // Called when opening a .stock "file" from pinned list
@@ -541,14 +924,9 @@ const stocksCard = {
       OS.openWindow('stocks');
     }
 
-    // Wait for tickers to load if needed
-    if (this.loadingTickers) {
-      await this.fetchTickers();
-    }
-
     // Set the ticker and fetch data
     stocksCard.selectedTicker = ticker;
-    await stocksCard.fetchOHLC();
+    await stocksCard.fetchData();
   },
 
   handleMouseOver(e) {
@@ -615,6 +993,12 @@ const stocksCard = {
   },
 
   boot() {
-    // Nothing on boot
+    // Load saved Alpaca API credentials
+    const savedApiKey = localStorage.getItem('alpaca_api_key');
+    const savedApiSecret = localStorage.getItem('alpaca_api_secret');
+    if (savedApiKey && savedApiSecret && typeof AlpacaProvider !== 'undefined') {
+      AlpacaProvider.configure(savedApiKey, savedApiSecret);
+      console.log('[Stock] Loaded Alpaca API credentials from localStorage');
+    }
   },
 };
