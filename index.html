@@ -175,6 +175,37 @@
       margin: 4px 0;
     }
 
+    /* Sidebar Toggle Button */
+    .sidebar-toggle {
+      padding: 2px 8px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-right: 4px;
+      display: inline-block;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar-toggle:hover {
+      background: var(--text-color);
+      color: var(--window-bg);
+    }
+
+    .sidebar-toggle.collapsed {
+      transform: rotate(180deg);
+    }
+
+    /* Primary Sidebar Container */
+    .sidebar-container {
+      width: 200px;
+      flex-shrink: 0;
+      overflow: hidden;
+      transition: width 0.3s ease;
+    }
+
+    .sidebar-container.collapsed {
+      width: 0;
+    }
+
     /* Primary Sidebar */
     .primary-sidebar {
       width: 200px;
@@ -182,7 +213,7 @@
       border-right: 2px solid var(--window-border);
       display: flex;
       flex-direction: column;
-      flex-shrink: 0;
+      height: 100%;
     }
 
     .sidebar-section {
@@ -1462,6 +1493,7 @@
   <!-- Menu Bar -->
   <div class="menu-bar">
     <div class="menu-bar-left">
+      <span class="sidebar-toggle" id="sidebar-toggle" title="Toggle Sidebar">&lt;&lt;&lt;</span>
       <div class="menu-item-container">
         <span class="menu-item menu-item-bold" id="active-window-menu"></span>
         <div class="menu-dropdown" id="active-window-dropdown"></div>
@@ -1481,6 +1513,7 @@
   <!-- Main Layout -->
   <div class="main-layout">
     <!-- Primary Sidebar -->
+    <div class="sidebar-container" id="sidebar-container">
     <div class="primary-sidebar" id="primary-sidebar">
       <!-- <div class="sidebar-section">
         <div class="sidebar-section-header">Workspace</div>
@@ -1512,6 +1545,7 @@
       <div class="sidebar-footer">
         Marketbuffer v1.0
       </div>
+    </div>
     </div>
 
     <!-- Desktop -->
@@ -2505,6 +2539,15 @@
       const dropdown = document.getElementById('applications-dropdown');
       dropdown.classList.remove('open');
     }
+
+    // Sidebar toggle
+    document.getElementById('sidebar-toggle').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const container = document.getElementById('sidebar-container');
+      const toggle = document.getElementById('sidebar-toggle');
+      container.classList.toggle('collapsed');
+      toggle.classList.toggle('collapsed');
+    });
 
     // Active window menu event listeners
     document.getElementById('active-window-menu').addEventListener('click', (e) => {
