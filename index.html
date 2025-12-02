@@ -110,6 +110,7 @@
     .menu-bar-left {
       display: flex;
       align-items: center;
+      height: 100%;
     }
 
     .sidebar-toggle-container {
@@ -141,23 +142,38 @@
       color: var(--window-bg);
     }
 
+    /* Active window tab container */
+    .active-window-tab-container {
+      position: relative;
+      height: 100%;
+      padding-top: 4px;
+      box-sizing: border-box;
+    }
+
     /* Active window tab style */
     #active-window-menu {
+      display: block;
       position: relative;
-      top: 2px;
       background: var(--window-bg);
-      padding: 4px 16px 6px 16px;
-      margin: 0 6px -3px 6px;
+      padding: 4px 16px;
+      margin: 0 6px;
       border: 1px solid var(--window-border);
       border-bottom: none;
       border-radius: 6px 6px 0 0;
+      width: 200px;
+      height: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-align: center;
     }
 
     #active-window-menu::before,
     #active-window-menu::after {
       content: '';
       position: absolute;
-      bottom: 0;
+      bottom: -1px;
       width: 6px;
       height: 6px;
     }
@@ -175,6 +191,17 @@
     #active-window-menu:hover {
       background: var(--window-bg);
       color: var(--text-color);
+    }
+
+    /* Cover the navbar border below the tab */
+    .active-window-tab-container::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 7px;
+      right: 7px;
+      height: 2px;
+      background: var(--window-bg);
     }
 
     .menu-item-container {
@@ -1505,7 +1532,7 @@
       <div class="sidebar-toggle-container" id="sidebar-toggle-container">
         <span class="sidebar-toggle" id="sidebar-toggle" title="Toggle Sidebar">&lt;&lt;&lt;</span>
       </div>
-      <div class="menu-item-container">
+      <div class="active-window-tab-container">
         <span class="menu-item menu-item-bold" id="active-window-menu"></span>
         <div class="menu-dropdown" id="active-window-dropdown"></div>
       </div>
