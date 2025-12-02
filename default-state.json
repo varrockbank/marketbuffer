@@ -7,5 +7,6 @@
   "gridSize": 50,
   "fileTree": {},
   "defaultWindows": ["editor", "about"],
+  "defaultPinnedFiles": ["demo/README.md", "GME.stock"],
   "windows": null
 }

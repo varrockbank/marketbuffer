@@ -9,7 +9,6 @@ const OS = {
   // Storage keys
   STATE_KEY: 'marketbuffer_state',
   PINNED_FILES_KEY: 'marketbuffer_pinned_files',
-  DEFAULT_PINNED_FILES: ['demo/README.md'],
 
   // File type handlers - maps extensions to app IDs
   fileHandlers: {
@@ -131,7 +130,8 @@ const OS = {
     if (saved) {
       this.pinnedFiles = JSON.parse(saved);
     } else {
-      this.pinnedFiles = [...this.DEFAULT_PINNED_FILES];
+      // Use defaults from state (loaded from default-state.json)
+      this.pinnedFiles = [...(this.state?.defaultPinnedFiles || ['demo/README.md'])];
       this.savePinnedFiles();
     }
     return this.pinnedFiles;

@@ -1482,7 +1482,7 @@
   <div class="main-layout">
     <!-- Primary Sidebar -->
     <div class="primary-sidebar" id="primary-sidebar">
-      <div class="sidebar-section">
+      <!-- <div class="sidebar-section">
         <div class="sidebar-section-header">Workspace</div>
         <div class="sidebar-item active">
           <span class="sidebar-item-icon">&#9642;</span>
@@ -1496,7 +1496,7 @@
           <span class="sidebar-item-icon">&#9642;</span>
           Source Control
         </div>
-      </div>
+      </div> -->
       <div class="sidebar-section" id="pinned-section">
         <div class="sidebar-section-header">Pinned</div>
         <div id="pinned-files">
@@ -1595,9 +1595,6 @@
       });
     }
 
-    // Initialize pinned files from OS module
-    OS.loadPinnedFiles();
-
     // Register FileTree callbacks (systemState available after loadSystemState)
     FileTree.registerCallbacks({
       getSystemState: () => systemState,
@@ -1682,6 +1679,9 @@
     async function init() {
       // Load system state first (fetches version from default-state.json)
       await loadSystemState();
+
+      // Initialize pinned files (after state is loaded so defaults are available)
+      OS.loadPinnedFiles();
 
       // Apply theme, font size, and wallpaper after state is loaded
       loadTheme();
