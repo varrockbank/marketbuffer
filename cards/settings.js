@@ -8,6 +8,7 @@ const settingsCard = {
   top: 80,
   right: 300,
   width: 400,
+  height: 600,
   contextMenu: [
     { label: 'Close', action: 'close' }
   ],
@@ -48,6 +49,10 @@ const settingsCard = {
       <div class="settings-section">
         <div class="settings-section-title"><s>Editor</s> (disabled in demo)</div>
         <div class="settings-row">
+          <label class="settings-label"><s>Tab inserts spaces</s></label>
+          <input type="checkbox" class="settings-checkbox" id="setting-tab-insert-spaces" ${this.tabInsertSpaces ? 'checked' : ''} disabled>
+        </div>
+        <div class="settings-row">
           <label class="settings-label"><s>Tab Size</s></label>
           <select class="settings-select" id="setting-tab-size" disabled>
             <option value="2">2 spaces</option>
@@ -60,7 +65,7 @@ const settingsCard = {
           <input type="checkbox" class="settings-checkbox" id="setting-word-wrap" disabled>
         </div>
         <div class="settings-row">
-          <label class="settings-label"><s>Line Numbers</s></label>
+          <label class="settings-label"><s>Show line numbers</s></label>
           <input type="checkbox" class="settings-checkbox" id="setting-line-numbers" checked disabled>
         </div>
       </div>
@@ -73,6 +78,7 @@ const settingsCard = {
   fontSize: 'medium',
   snapToGrid: false,
   gridSize: 50,
+  tabInsertSpaces: true,
 
   // CSS styles for this app
   styles: `
@@ -197,6 +203,7 @@ const settingsCard = {
     this.fontSize = state.fontSize || 'medium';
     this.snapToGrid = state.snapToGrid === true;
     this.gridSize = state.gridSize || 50;
+    this.tabInsertSpaces = state.tabInsertSpaces !== false;
   },
 
   // Called when app window is closed
@@ -220,6 +227,11 @@ const settingsCard = {
       const enabled = e.target.checked;
       this.snapToGrid = enabled;
       this.saveSnapToGrid(enabled);
+    }
+    if (e.target.id === 'setting-tab-insert-spaces') {
+      const enabled = e.target.checked;
+      this.tabInsertSpaces = enabled;
+      this.saveTabInsertSpaces(enabled);
     }
     if (e.target.id === 'setting-grid-size') {
       const size = parseInt(e.target.value);
@@ -312,6 +324,14 @@ const settingsCard = {
     }
   },
 
+  // Save tab insert spaces setting
+  saveTabInsertSpaces(enabled) {
+    if (typeof systemState !== 'undefined' && typeof saveSystemState === 'function') {
+      systemState.tabInsertSpaces = enabled;
+      saveSystemState();
+    }
+  },
+
   // Boot - called once when OS starts (for system-wide initialization)
   boot() {
     this.loadTheme();
@@ -320,6 +340,7 @@ const settingsCard = {
     if (typeof systemState !== 'undefined') {
       this.snapToGrid = systemState.snapToGrid === true;
       this.gridSize = systemState.gridSize || 50;
+      this.tabInsertSpaces = systemState.tabInsertSpaces !== false;
     }
   }
 };
