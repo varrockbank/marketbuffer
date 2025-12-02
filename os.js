@@ -12,11 +12,16 @@ const OS = {
 
   // Window state
   initialWindows: [],    // All available window cards
-  openWindows: [],       // Currently open windows
+  openWindows: [],       // Currently open windows (for current workspace)
   activeWindowId: null,  // ID of the focused window
   activeWindow: null,    // DOM element being dragged
   dragOffsetX: 0,
   dragOffsetY: 0,
+
+  // Workspace state
+  workspaces: [],           // Array of workspace objects { id, name, openApps: [] }
+  activeWorkspaceId: null,  // ID of the current workspace
+  nextWorkspaceId: 1,       // Counter for generating workspace IDs
 
   // File type handlers - maps extensions to app IDs
   fileHandlers: {
@@ -53,6 +58,8 @@ const OS = {
     openApplication: null,
     renderPinnedFiles: null,
     renderFileTree: null,
+    renderWorkspaceTabs: null,
+    switchWorkspace: null,
   },
 
   // Register callbacks from index.html
@@ -346,6 +353,132 @@ const OS = {
 
   getPinnedFiles() {
     return this.pinnedFiles;
+  },
+
+  // ============================================
+  // Workspace Management
+  // ============================================
+
+  // Initialize workspaces (called on boot)
+  initWorkspaces() {
+    // Load from state or create default workspace
+    if (this.state?.workspaces && this.state.workspaces.length > 0) {
+      this.workspaces = this.state.workspaces;
+      this.activeWorkspaceId = this.state.activeWorkspaceId || this.workspaces[0].id;
+      this.nextWorkspaceId = Math.max(...this.workspaces.map(w => w.id)) + 1;
+    } else {
+      // Create default workspace
+      this.workspaces = [{
+        id: 1,
+        name: 'Workspace 1',
+        openApps: [],
+      }];
+      this.activeWorkspaceId = 1;
+      this.nextWorkspaceId = 2;
+    }
+    return this.workspaces;
+  },
+
+  // Get active workspace
+  getActiveWorkspace() {
+    return this.workspaces.find(w => w.id === this.activeWorkspaceId);
+  },
+
+  // Get workspace by ID
+  getWorkspace(id) {
+    return this.workspaces.find(w => w.id === id);
+  },
+
+  // Create new workspace
+  createWorkspace(name) {
+    const workspace = {
+      id: this.nextWorkspaceId++,
+      name: name || `Workspace ${this.nextWorkspaceId - 1}`,
+      openApps: [],
+    };
+    this.workspaces.push(workspace);
+    this.saveWorkspaces();
+    if (this._callbacks.renderWorkspaceTabs) {
+      this._callbacks.renderWorkspaceTabs();
+    }
+    return workspace;
+  },
+
+  // Delete workspace
+  deleteWorkspace(id) {
+    if (this.workspaces.length <= 1) return false; // Can't delete last workspace
+    const index = this.workspaces.findIndex(w => w.id === id);
+    if (index === -1) return false;
+
+    this.workspaces.splice(index, 1);
+
+    // If we deleted the active workspace, switch to first available
+    if (this.activeWorkspaceId === id) {
+      this.switchToWorkspace(this.workspaces[0].id);
+    }
+
+    this.saveWorkspaces();
+    if (this._callbacks.renderWorkspaceTabs) {
+      this._callbacks.renderWorkspaceTabs();
+    }
+    return true;
+  },
+
+  // Rename workspace
+  renameWorkspace(id, newName) {
+    const workspace = this.getWorkspace(id);
+    if (workspace) {
+      workspace.name = newName;
+      this.saveWorkspaces();
+      if (this._callbacks.renderWorkspaceTabs) {
+        this._callbacks.renderWorkspaceTabs();
+      }
+    }
+  },
+
+  // Switch to workspace
+  switchToWorkspace(id) {
+    if (this.activeWorkspaceId === id) return;
+
+    const workspace = this.getWorkspace(id);
+    if (!workspace) return;
+
+    // Save current workspace's open apps
+    const currentWorkspace = this.getActiveWorkspace();
+    if (currentWorkspace) {
+      currentWorkspace.openApps = this.openWindows.map(w => w.id);
+    }
+
+    // Switch to new workspace
+    this.activeWorkspaceId = id;
+
+    // Trigger callback to handle the actual window switching
+    if (this._callbacks.switchWorkspace) {
+      this._callbacks.switchWorkspace(workspace);
+    }
+
+    this.saveWorkspaces();
+    if (this._callbacks.renderWorkspaceTabs) {
+      this._callbacks.renderWorkspaceTabs();
+    }
+  },
+
+  // Update current workspace's open apps
+  updateWorkspaceApps() {
+    const workspace = this.getActiveWorkspace();
+    if (workspace) {
+      workspace.openApps = this.openWindows.map(w => w.id);
+      this.saveWorkspaces();
+    }
+  },
+
+  // Save workspaces to state
+  saveWorkspaces() {
+    if (this.state) {
+      this.state.workspaces = this.workspaces;
+      this.state.activeWorkspaceId = this.activeWorkspaceId;
+      this.saveSystemState();
+    }
   },
 };
 

@@ -142,66 +142,81 @@
       color: var(--window-bg);
     }
 
-    /* Active window tab container */
-    .active-window-tab-container {
-      position: relative;
+    /* Workspace tabs container */
+    .workspace-tabs-container {
+      display: flex;
+      align-items: center;
       height: 100%;
-      padding-top: 4px;
-      box-sizing: border-box;
     }
 
-    /* Active window tab style */
-    #active-window-menu {
-      display: block;
+    /* Individual workspace tab */
+    .workspace-tab {
       position: relative;
-      background: var(--window-bg);
-      padding: 4px 16px;
-      margin: 0 6px;
+      top: 2px;
+      display: block;
+      background: var(--menu-bg);
+      padding: 4px 16px 6px 16px;
+      margin: 0 6px -3px 6px;
       border: 1px solid var(--window-border);
       border-bottom: none;
       border-radius: 6px 6px 0 0;
       width: 200px;
-      height: 100%;
       box-sizing: border-box;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
       text-align: center;
+      cursor: pointer;
+      opacity: 0.7;
     }
 
-    #active-window-menu::before,
-    #active-window-menu::after {
+    .workspace-tab.active {
+      background: var(--window-bg);
+      opacity: 1;
+    }
+
+    .workspace-tab:hover {
+      opacity: 1;
+    }
+
+    .workspace-tab.active::before,
+    .workspace-tab.active::after {
       content: '';
       position: absolute;
-      bottom: -1px;
+      bottom: 0;
       width: 6px;
       height: 6px;
     }
 
-    #active-window-menu::before {
+    .workspace-tab.active::before {
       left: -6px;
       background: radial-gradient(circle at 0 0, transparent 5px, var(--window-border) 5px, var(--window-border) 6px, var(--window-bg) 6px);
     }
 
-    #active-window-menu::after {
+    .workspace-tab.active::after {
       right: -6px;
       background: radial-gradient(circle at 100% 0, transparent 5px, var(--window-border) 5px, var(--window-border) 6px, var(--window-bg) 6px);
     }
 
-    #active-window-menu:hover {
-      background: var(--window-bg);
+    /* Add workspace button */
+    .workspace-add-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      margin-left: 4px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
       color: var(--text-color);
+      opacity: 0.6;
     }
 
-    /* Cover the navbar border below the tab */
-    .active-window-tab-container::after {
-      content: '';
-      position: absolute;
-      bottom: -2px;
-      left: 7px;
-      right: 7px;
-      height: 2px;
-      background: var(--window-bg);
+    .workspace-add-btn:hover {
+      background: var(--hover-bg);
+      opacity: 1;
     }
 
     .menu-item-container {
@@ -1532,10 +1547,10 @@
       <div class="sidebar-toggle-container" id="sidebar-toggle-container">
         <span class="sidebar-toggle" id="sidebar-toggle" title="Toggle Sidebar">&lt;&lt;&lt;</span>
       </div>
-      <div class="active-window-tab-container">
-        <span class="menu-item menu-item-bold" id="active-window-menu"></span>
-        <div class="menu-dropdown" id="active-window-dropdown"></div>
+      <div class="workspace-tabs-container" id="workspace-tabs-container">
+        <!-- Workspace tabs rendered dynamically -->
       </div>
+      <div class="workspace-add-btn" id="workspace-add-btn" title="Add Workspace">+</div>
     </div>
     <div class="menu-bar-right">
       <div class="menu-item-container">
@@ -1751,6 +1766,10 @@
 
       // Initialize pinned files (after state is loaded so defaults are available)
       OS.loadPinnedFiles();
+
+      // Initialize workspaces
+      OS.initWorkspaces();
+      renderWorkspaceTabs();
 
       // Apply theme, font size, and wallpaper after state is loaded
       loadTheme();
@@ -1979,6 +1998,9 @@
         }
         updateActiveWindowMenu();
       }
+
+      // Update workspace apps
+      OS.updateWorkspaceApps();
 
       saveState();
     }
@@ -2287,14 +2309,55 @@
       });
     }
 
-    // Active window menu
+    // Active window menu (legacy - kept for compatibility)
     function updateActiveWindowMenu() {
-      const menuItem = document.getElementById('active-window-menu');
-      const win = OS.getOpenWindow(OS.activeWindowId);
-      if (win) {
-        menuItem.textContent = win.title;
+      // Now handled by workspace tabs
+    }
+
+    // Workspace tabs
+    function renderWorkspaceTabs() {
+      const container = document.getElementById('workspace-tabs-container');
+      container.innerHTML = '';
+
+      OS.workspaces.forEach(workspace => {
+        const tab = document.createElement('div');
+        tab.className = 'workspace-tab' + (workspace.id === OS.activeWorkspaceId ? ' active' : '');
+        tab.dataset.workspaceId = workspace.id;
+        tab.innerHTML = `<span class="workspace-tab-name">${workspace.name}</span>`;
+
+        tab.addEventListener('click', () => {
+          OS.switchToWorkspace(workspace.id);
+        });
+
+        container.appendChild(tab);
+      });
+    }
+
+    function switchWorkspace(workspace) {
+      // Close all current windows (remove from DOM)
+      document.querySelectorAll('.window').forEach(w => w.remove());
+      const tabbedWindow = document.getElementById('tabbed-window');
+      if (tabbedWindow) tabbedWindow.remove();
+
+      // Clear open windows
+      OS.openWindows = [];
+
+      // Open the apps for this workspace
+      if (workspace.openApps && workspace.openApps.length > 0) {
+        workspace.openApps.forEach(appId => {
+          const card = OS.getCard(appId);
+          if (card) {
+            openApplication(appId);
+          }
+        });
+      }
+
+      // Update active window
+      if (OS.openWindows.length > 0) {
+        const topWindow = OS.getTopWindow();
+        OS.activeWindowId = topWindow.id;
       } else {
-        menuItem.textContent = '';
+        OS.activeWindowId = null;
       }
     }
 
@@ -2432,6 +2495,8 @@
           OS.addOpenWindow(newWin);
           // Set as active window
           OS.activeWindowId = windowId;
+          // Update workspace apps
+          OS.updateWorkspaceApps();
           saveState();
           // Render just the new window (DOM manipulation)
           renderSingleWindow(newWin);
@@ -2446,6 +2511,8 @@
       openApplication: openApplication,
       renderPinnedFiles: renderPinnedFiles,
       renderFileTree: () => FileTree.render(),
+      renderWorkspaceTabs: renderWorkspaceTabs,
+      switchWorkspace: switchWorkspace,
     });
 
     function renderSingleWindow(win) {
@@ -2594,11 +2661,11 @@
       toggle.classList.toggle('collapsed');
     });
 
-    // Active window menu event listeners
-    document.getElementById('active-window-menu').addEventListener('click', (e) => {
+    // Add workspace button
+    document.getElementById('workspace-add-btn').addEventListener('click', (e) => {
       e.stopPropagation();
-      closeApplicationsMenu();
-      toggleActiveWindowMenu();
+      const workspace = OS.createWorkspace();
+      OS.switchToWorkspace(workspace.id);
     });
 
     // Applications menu event listeners

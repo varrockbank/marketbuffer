@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0 - December 2, 2025
+- Added workspaces feature with multiple tabs
+- Each workspace maintains its own set of open windows
+- Click + button to create new workspace
+- Click tabs to switch between workspaces
+- Workspace state persists in localStorage
+
 ## 0.3.0-alpha.6 - December 2, 2025
 - Terminal prompt is now part of flex layout instead of floating
 - Desktop viewport and terminal prompt share space properly
