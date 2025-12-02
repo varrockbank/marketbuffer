@@ -447,17 +447,31 @@
     .main-layout {
       display: flex;
       position: fixed;
-      top: 20px;
+      top: 28px;
       left: 0;
       right: 0;
       bottom: 0;
     }
 
+    /* Desktop Area (viewport + prompt) */
+    .desktop-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
     /* Desktop */
     .desktop {
       flex: 1;
+      min-height: 0;
       position: relative;
       overflow: hidden;
+    }
+
+    /* Prompt Container */
+    .prompt-container {
+      flex-shrink: 0;
     }
 
     /* Desktop Icons */
@@ -1545,9 +1559,14 @@
     </div>
     </div>
 
-    <!-- Desktop -->
-    <div class="desktop" id="desktop">
-      <!-- Windows are rendered dynamically -->
+    <!-- Desktop Area (viewport + prompt) -->
+    <div class="desktop-area">
+      <div class="desktop" id="desktop">
+        <!-- Windows are rendered dynamically -->
+      </div>
+      <div class="prompt-container" id="prompt-container">
+        <!-- Terminal prompt rendered by JavaScript -->
+      </div>
     </div>
   </div>
 
@@ -1774,7 +1793,7 @@
       terminalEl.className = 'terminal-prompt-box';
       terminalEl.id = 'terminal-prompt-box';
       terminalEl.innerHTML = terminalCard.render();
-      document.body.appendChild(terminalEl);
+      document.getElementById('prompt-container').appendChild(terminalEl);
 
       // Initialize terminal state
       terminalCard.init(system);

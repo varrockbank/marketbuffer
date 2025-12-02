@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.0-alpha.6 - December 2, 2025
+- Terminal prompt is now part of flex layout instead of floating
+- Desktop viewport and terminal prompt share space properly
+- Sidebar toggle with animated collapse/expand
+
+## 0.3.0-alpha.5 - December 2, 2025
+- Refactored window management logic into os.js module
+- Added sidebar toggle button (<<<) with animation
+- Fixed settings content height issue
+
 ## 0.3.0-alpha.4 - December 2, 2025
 - Added Stocks app with Historical and Live tabs
 - Live tab integrates with Alpaca API for real-time intraday data
