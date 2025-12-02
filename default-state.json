@@ -6,7 +6,7 @@
   "snapToGrid": true,
   "gridSize": 50,
   "fileTree": {},
-  "defaultWindows": ["editor", "about"],
+  "defaultWindows": ["stocks", "about"],
   "defaultPinnedFiles": ["demo/README.md", "GME.stock"],
   "windows": null
 }
