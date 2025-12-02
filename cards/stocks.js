@@ -13,7 +13,10 @@ const stocksCard = {
   ],
 
   // State
-  selectedTicker: '',
+  tickers: [], // Available tickers for historical data
+  loadingTickers: false,
+  selectedTicker: '', // Historical ticker
+  liveTicker: '', // Live ticker (persists when switching tabs)
   selectedYear: 2024,
   selectedWindow: 'monthly',
   viewMode: 'historical', // 'historical' or 'today'
@@ -22,6 +25,9 @@ const stocksCard = {
   loading: false,
   error: null,
   alpacaConfigured: false, // Whether Alpaca API is configured
+  scrollPosition: 0, // Track scroll position for dynamic scaling
+  candleSize: '1m', // '1m', '5m', '15m', '30m', '60m' for candle aggregation
+  zoomLevel: 1, // Zoom multiplier for viewport (0.5 = zoomed out, 2 = zoomed in)
 
   // Helper to get stock "path" for pinning (e.g., "AAPL.stock")
   getStockPath(ticker) {
@@ -42,14 +48,244 @@ const stocksCard = {
     }
   },
 
+  // Aggregate 1-minute data into N-minute buckets
+  aggregateToMinutes(data, intervalMinutes) {
+    if (!data || data.length === 0) return [];
+    const buckets = [];
+    let currentBucket = null;
+
+    for (const bar of data) {
+      // Parse time to get the bucket
+      const timeParts = bar.period.split(':');
+      const hour = parseInt(timeParts[0]);
+      const minute = parseInt(timeParts[1]);
+      const totalMinutes = hour * 60 + minute;
+      const bucketStart = Math.floor(totalMinutes / intervalMinutes) * intervalMinutes;
+      const bucketHour = Math.floor(bucketStart / 60);
+      const bucketMinute = bucketStart % 60;
+      const bucketKey = `${bucketHour}:${bucketMinute.toString().padStart(2, '0')}`;
+
+      if (!currentBucket || currentBucket.period !== bucketKey) {
+        // Start a new bucket
+        if (currentBucket) buckets.push(currentBucket);
+        currentBucket = {
+          period: bucketKey,
+          open: bar.open,
+          high: bar.high,
+          low: bar.low,
+          close: bar.close,
+          volume: bar.volume,
+        };
+      } else {
+        // Update current bucket
+        currentBucket.high = Math.max(currentBucket.high, bar.high);
+        currentBucket.low = Math.min(currentBucket.low, bar.low);
+        currentBucket.close = bar.close;
+        currentBucket.volume += bar.volume;
+      }
+    }
+    if (currentBucket) buckets.push(currentBucket);
+    return buckets;
+  },
+
+  // Helper to render chart for given data
+  renderChart(data, ticker, isIntraday) {
+    const state = stocksCard;
+    const viewportWidth = 420;
+    const chartHeight = 200;
+    const padding = { top: 20, right: 50, bottom: 30, left: 10 };
+
+    // For intraday, apply zoom level to candle spacing
+    const baseSpacing = 12;
+    const zoomMultiplier = state.zoomLevel || 1;
+    const minCandleSpacing = isIntraday ? baseSpacing * zoomMultiplier : 0;
+    const calculatedWidth = isIntraday
+      ? Math.max(viewportWidth, data.length * minCandleSpacing + padding.left + padding.right)
+      : viewportWidth;
+    const chartWidth = calculatedWidth;
+    const needsScroll = chartWidth > viewportWidth;
+
+    const innerWidth = chartWidth - padding.left - padding.right;
+    const innerHeight = chartHeight - padding.top - padding.bottom;
+    const candleSpacing = innerWidth / data.length;
+
+    // Calculate visible data range based on scroll position
+    let visibleStartIndex = 0;
+    let visibleEndIndex = data.length - 1;
+    if (needsScroll) {
+      const scrollPos = state.scrollPosition || 0;
+      visibleStartIndex = Math.max(0, Math.floor((scrollPos - padding.left) / candleSpacing));
+      visibleEndIndex = Math.min(data.length - 1, Math.ceil((scrollPos + viewportWidth - padding.left) / candleSpacing));
+    }
+
+    // Calculate price range based on visible data only
+    const visibleData = data.slice(visibleStartIndex, visibleEndIndex + 1);
+    const visiblePrices = visibleData.flatMap(d => [d.high, d.low]);
+    const minPrice = Math.min(...visiblePrices);
+    const maxPrice = Math.max(...visiblePrices);
+    const priceRange = maxPrice - minPrice;
+    const pricePadding = priceRange * 0.1 || 1;
+    const yMin = minPrice - pricePadding;
+    const yMax = maxPrice + pricePadding;
+
+    // Scale functions
+    const xScale = (i) => padding.left + (i + 0.5) * candleSpacing;
+    const yScale = (price) => padding.top + innerHeight - ((price - yMin) / (yMax - yMin)) * innerHeight;
+
+    const candleWidth = Math.max(4, Math.min(20, candleSpacing * 0.6));
+
+    // Build candlesticks with hover areas
+    const hoverWidth = innerWidth / data.length;
+    const candles = data.map((d, i) => {
+      const x = xScale(i);
+      const isUp = d.close >= d.open;
+      const color = isUp ? '#00c853' : '#ff1744';
+      const bodyTop = yScale(Math.max(d.open, d.close));
+      const bodyBottom = yScale(Math.min(d.open, d.close));
+      const bodyHeight = Math.max(1, bodyBottom - bodyTop);
+
+      const dataAttrs = `data-period="${d.period}" data-open="${d.open.toFixed(2)}" data-high="${d.high.toFixed(2)}" data-low="${d.low.toFixed(2)}" data-close="${d.close.toFixed(2)}" data-volume="${(d.volume / 1000000).toFixed(1)}"`;
+
+      return `
+        <g class="stock-candle" ${dataAttrs}>
+          <rect x="${x - hoverWidth/2}" y="${padding.top}" width="${hoverWidth}" height="${innerHeight}" fill="transparent" class="stock-candle-hover"/>
+          <line x1="${x}" y1="${yScale(d.high)}" x2="${x}" y2="${yScale(d.low)}" stroke="${color}" stroke-width="1"/>
+          <rect x="${x - candleWidth/2}" y="${bodyTop}" width="${candleWidth}" height="${bodyHeight}" fill="${color}" stroke="${color}"/>
+        </g>
+      `;
+    }).join('');
+
+    // X-axis labels
+    const labelInterval = isIntraday ? 10 : 1;
+    const xLabels = data.map((d, i) => {
+      if (isIntraday && i % labelInterval !== 0) return '';
+      const x = xScale(i);
+      return `<text x="${x}" y="${chartHeight - 8}" text-anchor="middle" class="stock-chart-label">${d.period}</text>`;
+    }).join('');
+
+    // Y-axis grid lines and price labels
+    const yTicks = 5;
+    const yGridLines = Array.from({ length: yTicks }, (_, i) => {
+      const price = yMin + (yMax - yMin) * (i / (yTicks - 1));
+      const y = yScale(price);
+      return `<line x1="${padding.left}" y1="${y}" x2="${chartWidth - padding.right}" y2="${y}" stroke="var(--window-border)" stroke-width="0.5" stroke-dasharray="2,2"/>`;
+    }).join('');
+
+    const formatPrice = (price) => {
+      if (priceRange < 1) return price.toFixed(2);
+      if (priceRange < 10) return price.toFixed(1);
+      return price.toFixed(0);
+    };
+
+    const priceLabels = Array.from({ length: yTicks }, (_, i) => {
+      const price = yMin + (yMax - yMin) * (i / (yTicks - 1));
+      const topOffset = padding.top + (innerHeight * (1 - i / (yTicks - 1)));
+      return `<div class="stock-price-label" style="top: ${topOffset}px;">${formatPrice(price)}</div>`;
+    }).join('');
+
+    const yLabels = Array.from({ length: yTicks }, (_, i) => {
+      const price = yMin + (yMax - yMin) * (i / (yTicks - 1));
+      const y = yScale(price);
+      return `
+        <line x1="${padding.left}" y1="${y}" x2="${chartWidth - padding.right}" y2="${y}" stroke="var(--window-border)" stroke-width="0.5" stroke-dasharray="2,2"/>
+        <text x="${chartWidth - padding.right + 5}" y="${y + 3}" class="stock-chart-label">${formatPrice(price)}</text>
+      `;
+    }).join('');
+
+    // Current price info
+    const latest = data[data.length - 1];
+    const first = data[0];
+    const change = latest.close - first.open;
+    const changePercent = ((change / first.open) * 100).toFixed(2);
+    const changeColor = change >= 0 ? '#00c853' : '#ff1744';
+    const changeSign = change >= 0 ? '+' : '';
+
+    // Data source message
+    let dataSource;
+    if (isIntraday) {
+      const marketStatus = typeof AlpacaProvider !== 'undefined' ? AlpacaProvider.getMarketStatus() : '';
+      dataSource = `Intraday data from Alpaca (15m delay, ET) ${marketStatus}`;
+    } else {
+      dataSource = ServerService.USE_WASM
+        ? 'Historical data from WASM-wrapped Go HTTP server'
+        : 'Historical data from HTTP Server';
+    }
+
+    return `
+      <div class="stock-chart-container">
+        <div class="stock-chart-header">
+          <span class="stock-chart-ticker">${ticker}</span>
+          <span class="stock-chart-price">$${latest.close.toFixed(2)}</span>
+          <span class="stock-chart-change" style="color: ${changeColor}">${changeSign}${change.toFixed(2)} (${changeSign}${changePercent}%)</span>
+        </div>
+        ${isIntraday ? (() => {
+          const scrollPos = state.scrollPosition || 0;
+          const maxScroll = Math.max(0, chartWidth - viewportWidth);
+          const canScrollLeft = scrollPos > 0;
+          const canScrollRight = scrollPos < maxScroll;
+          return `
+          <div class="stock-chart-scroll-container">
+            <button class="stock-scroll-btn stock-scroll-left ${!canScrollLeft ? 'hidden' : ''}" id="stock-scroll-left">◀</button>
+            <div class="stock-chart-scroll-area">
+              <div class="stock-chart-viewport">
+                <div class="stock-chart-wrapper">
+                  <svg class="stock-chart" viewBox="0 0 ${chartWidth} ${chartHeight}" style="width: ${chartWidth}px;">
+                    ${yGridLines}
+                    ${candles}
+                    ${xLabels}
+                  </svg>
+                  <div class="stock-tooltip" style="display: none;"></div>
+                </div>
+              </div>
+              <div class="stock-price-overlay">
+                ${priceLabels}
+              </div>
+            </div>
+            <button class="stock-scroll-btn stock-scroll-right ${!canScrollRight ? 'hidden' : ''}" id="stock-scroll-right">▶</button>
+          </div>
+        `;
+        })() : `
+          <div class="stock-chart-wrapper">
+            <svg class="stock-chart" viewBox="0 0 ${chartWidth} ${chartHeight}">
+              ${yLabels}
+              ${candles}
+              ${xLabels}
+            </svg>
+            <div class="stock-tooltip" style="display: none;"></div>
+          </div>
+        `}
+        ${isIntraday ? `
+          <div class="stock-chart-controls">
+            <div class="stock-candle-controls">
+              <span class="stock-control-label">Candle:</span>
+              <button class="stock-candle-btn ${state.candleSize === '1m' ? 'active' : ''}" data-candle="1m">1m</button>
+              <button class="stock-candle-btn ${state.candleSize === '5m' ? 'active' : ''}" data-candle="5m">5m</button>
+              <button class="stock-candle-btn ${state.candleSize === '15m' ? 'active' : ''}" data-candle="15m">15m</button>
+              <button class="stock-candle-btn ${state.candleSize === '30m' ? 'active' : ''}" data-candle="30m">30m</button>
+              <button class="stock-candle-btn ${state.candleSize === '60m' ? 'active' : ''}" data-candle="60m">1h</button>
+            </div>
+            <div class="stock-zoom-control">
+              <span class="stock-control-label">Zoom:</span>
+              <select class="stock-zoom-select" id="stock-zoom-select">
+                <option value="0.5" ${state.zoomLevel === 0.5 ? 'selected' : ''}>50%</option>
+                <option value="1" ${state.zoomLevel === 1 ? 'selected' : ''}>100%</option>
+                <option value="1.5" ${state.zoomLevel === 1.5 ? 'selected' : ''}>150%</option>
+                <option value="2" ${state.zoomLevel === 2 ? 'selected' : ''}>200%</option>
+              </select>
+            </div>
+          </div>
+        ` : ''}
+      </div>
+      <div class="stock-data-source">${dataSource}</div>
+    `;
+  },
+
   content() {
-    // Always use stocksCard to access state (openWindows contains shallow copies)
     const state = stocksCard;
 
     console.log('[Stock] content() called, state:', {
       error: state.error,
       loadingTickers: state.loadingTickers,
-      showLoadingSpinner: state.showLoadingSpinner,
       loading: state.loading,
       ohlcData: state.ohlcData,
       selectedTicker: state.selectedTicker,
@@ -63,128 +299,67 @@ const stocksCard = {
       `;
     }
 
+    const alpacaAvailable = typeof AlpacaProvider !== 'undefined' && AlpacaProvider.isConfigured();
 
-    // Determine which data to show based on view mode
-    const activeData = state.viewMode === 'today' ? state.intradayData : state.ohlcData;
-    const isIntraday = state.viewMode === 'today';
-
-    let dataContent = '';
-    if (state.loading) {
-      dataContent = `
+    // Build historical panel content
+    let historicalContent = '';
+    if (state.loading && state.viewMode === 'historical') {
+      historicalContent = `
         <div class="stock-loading">
           <div class="stock-spinner"></div>
           <div>Loading...</div>
         </div>
       `;
-    } else if (activeData && activeData.data && activeData.data.length > 0) {
-      const data = activeData.data;
-      const chartWidth = 420;
-      const chartHeight = 200;
-      const padding = { top: 20, right: 50, bottom: 30, left: 10 };
-      const innerWidth = chartWidth - padding.left - padding.right;
-      const innerHeight = chartHeight - padding.top - padding.bottom;
-
-      // Calculate price range
-      const allPrices = data.flatMap(d => [d.high, d.low]);
-      const minPrice = Math.min(...allPrices);
-      const maxPrice = Math.max(...allPrices);
-      const priceRange = maxPrice - minPrice;
-      const pricePadding = priceRange * 0.1;
-      const yMin = minPrice - pricePadding;
-      const yMax = maxPrice + pricePadding;
-
-      // Scale functions
-      const xScale = (i) => padding.left + (i + 0.5) * (innerWidth / data.length);
-      const yScale = (price) => padding.top + innerHeight - ((price - yMin) / (yMax - yMin)) * innerHeight;
-
-      const candleWidth = Math.max(4, Math.min(20, (innerWidth / data.length) * 0.6));
-
-      // Build candlesticks with hover areas
-      const hoverWidth = innerWidth / data.length;
-      const candles = data.map((d, i) => {
-        const x = xScale(i);
-        const isUp = d.close >= d.open;
-        const color = isUp ? '#00c853' : '#ff1744';
-        const bodyTop = yScale(Math.max(d.open, d.close));
-        const bodyBottom = yScale(Math.min(d.open, d.close));
-        const bodyHeight = Math.max(1, bodyBottom - bodyTop);
-
-        // Encode OHLC data in data attributes for hover
-        const dataAttrs = `data-period="${d.period}" data-open="${d.open.toFixed(2)}" data-high="${d.high.toFixed(2)}" data-low="${d.low.toFixed(2)}" data-close="${d.close.toFixed(2)}" data-volume="${(d.volume / 1000000).toFixed(1)}"`;
-
-        return `
-          <g class="stock-candle" ${dataAttrs}>
-            <rect x="${x - hoverWidth/2}" y="${padding.top}" width="${hoverWidth}" height="${innerHeight}" fill="transparent" class="stock-candle-hover"/>
-            <line x1="${x}" y1="${yScale(d.high)}" x2="${x}" y2="${yScale(d.low)}" stroke="${color}" stroke-width="1"/>
-            <rect x="${x - candleWidth/2}" y="${bodyTop}" width="${candleWidth}" height="${bodyHeight}" fill="${color}" stroke="${color}"/>
-          </g>
-        `;
-      }).join('');
-
-      // X-axis labels - for intraday, show sparse labels (every 30 or 60 min)
-      const labelInterval = isIntraday ? Math.max(1, Math.floor(data.length / 8)) : 1;
-      const xLabels = data.map((d, i) => {
-        if (i % labelInterval !== 0) return '';
-        const x = xScale(i);
-        return `<text x="${x}" y="${chartHeight - 8}" text-anchor="middle" class="stock-chart-label">${d.period}</text>`;
-      }).join('');
-
-      // Y-axis labels (price scale on right)
-      const yTicks = 5;
-      const yLabels = Array.from({ length: yTicks }, (_, i) => {
-        const price = yMin + (yMax - yMin) * (i / (yTicks - 1));
-        const y = yScale(price);
-        return `
-          <line x1="${padding.left}" y1="${y}" x2="${chartWidth - padding.right}" y2="${y}" stroke="var(--window-border)" stroke-width="0.5" stroke-dasharray="2,2"/>
-          <text x="${chartWidth - padding.right + 5}" y="${y + 3}" class="stock-chart-label">${price.toFixed(0)}</text>
-        `;
-      }).join('');
-
-      // Current price info
-      const latest = data[data.length - 1];
-      const first = data[0];
-      const change = latest.close - first.open;
-      const changePercent = ((change / first.open) * 100).toFixed(2);
-      const changeColor = change >= 0 ? '#00c853' : '#ff1744';
-      const changeSign = change >= 0 ? '+' : '';
-
-      // Data source message
-      let dataSource;
-      if (isIntraday) {
-        const marketStatus = typeof AlpacaProvider !== 'undefined' ? AlpacaProvider.getMarketStatus() : '';
-        dataSource = `Live intraday day from Alpaca (15-min delay) ${marketStatus}`;
-      } else {
-        dataSource = ServerService.USE_WASM
-          ? 'Historical data from WASM-wrapped Go HTTP server'
-          : 'Historical data from HTTP Server';
-      }
-
-      dataContent = `
-        <div class="stock-chart-container">
-          <div class="stock-chart-header">
-            <span class="stock-chart-ticker">${state.selectedTicker}</span>
-            <span class="stock-chart-price">$${latest.close.toFixed(2)}</span>
-            <span class="stock-chart-change" style="color: ${changeColor}">${changeSign}${change.toFixed(2)} (${changeSign}${changePercent}%)</span>
-          </div>
-          <div class="stock-chart-wrapper">
-            <svg class="stock-chart" viewBox="0 0 ${chartWidth} ${chartHeight}">
-              ${yLabels}
-              ${candles}
-              ${xLabels}
-            </svg>
-            <div class="stock-tooltip" style="display: none;"></div>
-          </div>
-        </div>
-        <div class="stock-data-source">${dataSource}</div>
-      `;
+    } else if (state.ohlcData && state.ohlcData.data && state.ohlcData.data.length > 0) {
+      historicalContent = this.renderChart(state.ohlcData.data, state.selectedTicker, false);
     } else if (state.selectedTicker) {
-      dataContent = `<div class="stock-placeholder">No data available</div>`;
+      historicalContent = `<div class="stock-placeholder">No data available</div>`;
     } else {
-      dataContent = `<div class="stock-placeholder">Specify a ticker to view data</div>`;
+      historicalContent = `<div class="stock-placeholder">Select a ticker to view data</div>`;
     }
 
-    // Check if Alpaca is configured
-    const alpacaAvailable = typeof AlpacaProvider !== 'undefined' && AlpacaProvider.isConfigured();
+    // Build live panel content
+    let liveContent = '';
+    if (!alpacaAvailable) {
+      liveContent = `
+        <div class="stock-api-setup">
+          <div class="stock-api-setup-title">Configure Alpaca API</div>
+          <div class="stock-api-setup-desc">Live intraday data requires an Alpaca API key (free)</div>
+          <div class="stock-api-setup-field">
+            <label for="alpaca-api-key">API Key ID</label>
+            <input type="text" id="alpaca-api-key" placeholder="PK...">
+          </div>
+          <div class="stock-api-setup-field">
+            <label for="alpaca-api-secret">API Secret Key</label>
+            <input type="password" id="alpaca-api-secret" placeholder="Your secret key">
+          </div>
+          <div class="stock-api-setup-actions">
+            <a href="https://app.alpaca.markets/signup" target="_blank" class="stock-api-setup-link">Get free API keys</a>
+            <button class="stock-api-setup-btn" id="stock-save-alpaca">Save</button>
+          </div>
+        </div>
+      `;
+    } else if (state.loading && state.viewMode === 'today') {
+      liveContent = `
+        <div class="stock-loading">
+          <div class="stock-spinner"></div>
+          <div>Loading...</div>
+        </div>
+      `;
+    } else if (state.intradayData && state.intradayData.data && state.intradayData.data.length > 0) {
+      // Apply candle size aggregation
+      let data = state.intradayData.data;
+      if (state.candleSize !== '1m') {
+        const intervalMap = { '5m': 5, '15m': 15, '30m': 30, '60m': 60 };
+        const interval = intervalMap[state.candleSize];
+        if (interval) data = stocksCard.aggregateToMinutes(state.intradayData.data, interval);
+      }
+      liveContent = this.renderChart(data, state.liveTicker, true);
+    } else if (state.liveTicker) {
+      liveContent = `<div class="stock-placeholder">No data available</div>`;
+    } else {
+      liveContent = `<div class="stock-placeholder">Specify a ticker to view data</div>`;
+    }
 
     return `
       <div class="stock-content">
@@ -192,58 +367,59 @@ const stocksCard = {
           <button class="stock-tab ${state.viewMode === 'historical' ? 'active' : ''}" data-tab="historical">Historical</button>
           <button class="stock-tab ${state.viewMode === 'today' ? 'active' : ''}" data-tab="today">Live</button>
         </div>
-        ${state.viewMode === 'historical' || alpacaAvailable ? `
+        <div class="stock-panel-historical ${state.viewMode !== 'historical' ? 'hidden' : ''}">
           <div class="stock-controls">
             <div class="stock-control-group">
               <label class="stock-label">Ticker</label>
-              <div class="stock-ticker-row">
-                <input type="text" class="stock-input" id="stock-ticker-input" placeholder="AAPL" value="${state.selectedTicker}" maxlength="5">
-                <button class="stock-go-btn" id="stock-ticker-go">Go</button>
-              </div>
+              <select class="stock-select" id="stock-ticker-select">
+                <option value="">Select ticker...</option>
+                ${state.loadingTickers ? '<option value="">Loading...</option>' :
+                  state.tickers.map(t => `<option value="${t}" ${state.selectedTicker === t ? 'selected' : ''}>${t}</option>`).join('')}
+              </select>
             </div>
-            ${state.viewMode === 'historical' ? `
-              <div class="stock-control-group">
-                <label class="stock-label">Year</label>
-                <select class="stock-select" id="stock-year-select">
-                  <option value="2024" selected>2024</option>
-                  <option value="2023" disabled>2023</option>
-                  <option value="2022" disabled>2022</option>
-                </select>
-              </div>
-              <div class="stock-control-group">
-                <label class="stock-label">Period</label>
-                <select class="stock-select" id="stock-window-select">
-                  <option value="monthly" ${state.selectedWindow === 'monthly' ? 'selected' : ''}>Monthly</option>
-                  <option value="weekly" disabled>Weekly</option>
-                  <option value="daily" disabled>Daily</option>
-                </select>
-              </div>
-            ` : ''}
+            <div class="stock-control-group">
+              <label class="stock-label">Year</label>
+              <select class="stock-select" id="stock-year-select">
+                <option value="2024" selected>2024</option>
+                <option value="2023" disabled>2023</option>
+                <option value="2022" disabled>2022</option>
+              </select>
+            </div>
+            <div class="stock-control-group">
+              <label class="stock-label">Period</label>
+              <select class="stock-select" id="stock-window-select">
+                <option value="monthly" ${state.selectedWindow === 'monthly' ? 'selected' : ''}>Monthly</option>
+                <option value="weekly" disabled>Weekly</option>
+                <option value="daily" disabled>Daily</option>
+              </select>
+            </div>
             ${state.selectedTicker ? `
-              <button class="stock-watch-btn ${stocksCard.isWatching(state.selectedTicker) ? 'watching' : ''}" id="stock-watch-btn">
+              <button class="stock-watch-btn ${stocksCard.isWatching(state.selectedTicker) ? 'watching' : ''}" id="stock-watch-btn" data-panel="historical">
                 ${stocksCard.isWatching(state.selectedTicker) ? '★ Unwatch' : '☆ Watch'}
               </button>
             ` : ''}
           </div>
-        ` : ''}
-        ${!alpacaAvailable && state.viewMode === 'today' ? `
-          <div class="stock-api-setup">
-            <div class="stock-api-setup-title">Configure Alpaca API</div>
-            <div class="stock-api-setup-desc">Live intraday data requires an Alpaca API key (free)</div>
-            <div class="stock-api-setup-field">
-              <label for="alpaca-api-key">API Key ID</label>
-              <input type="text" id="alpaca-api-key" placeholder="PK...">
+          ${historicalContent}
+        </div>
+        <div class="stock-panel-live ${state.viewMode !== 'today' ? 'hidden' : ''}">
+          ${alpacaAvailable ? `
+            <div class="stock-controls">
+              <div class="stock-control-group">
+                <label class="stock-label">Ticker</label>
+                <div class="stock-ticker-row">
+                  <input type="text" class="stock-input" id="stock-ticker-input" placeholder="AAPL" value="${state.liveTicker}" maxlength="5">
+                  <button class="stock-go-btn" id="stock-ticker-go">Go</button>
+                </div>
+              </div>
+              ${state.liveTicker ? `
+                <button class="stock-watch-btn ${stocksCard.isWatching(state.liveTicker) ? 'watching' : ''}" id="stock-watch-btn" data-panel="live">
+                  ${stocksCard.isWatching(state.liveTicker) ? '★ Unwatch' : '☆ Watch'}
+                </button>
+              ` : ''}
             </div>
-            <div class="stock-api-setup-field">
-              <label for="alpaca-api-secret">API Secret Key</label>
-              <input type="password" id="alpaca-api-secret" placeholder="Your secret key">
-            </div>
-            <div class="stock-api-setup-actions">
-              <a href="https://app.alpaca.markets/signup" target="_blank" class="stock-api-setup-link">Get free API keys</a>
-              <button class="stock-api-setup-btn" id="stock-save-alpaca">Save</button>
-            </div>
-          </div>
-        ` : dataContent}
+          ` : ''}
+          ${liveContent}
+        </div>
       </div>
     `;
   },
@@ -253,6 +429,11 @@ const stocksCard = {
       padding: 12px;
       background: var(--window-bg);
       min-height: 200px;
+    }
+
+    .stock-panel-historical.hidden,
+    .stock-panel-live.hidden {
+      display: none;
     }
 
     .stock-tabs {
@@ -426,6 +607,135 @@ const stocksCard = {
 
     .stock-chart-change {
       font-size: 12px;
+    }
+
+    .stock-chart-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--window-border);
+    }
+
+    .stock-control-label {
+      font-size: 9px;
+      color: #888;
+      margin-right: 6px;
+    }
+
+    .stock-candle-controls {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .stock-zoom-control {
+      display: flex;
+      align-items: center;
+    }
+
+    .stock-candle-btn {
+      padding: 2px 6px;
+      font-family: inherit;
+      font-size: 9px;
+      border: 1px solid var(--window-border);
+      background: var(--input-bg);
+      color: var(--text-color);
+      cursor: pointer;
+    }
+
+    .stock-candle-btn:first-child {
+      border-radius: 3px 0 0 3px;
+    }
+
+    .stock-candle-btn:last-child {
+      border-radius: 0 3px 3px 0;
+    }
+
+    .stock-candle-btn.active {
+      background: var(--text-color);
+      color: var(--window-bg);
+    }
+
+    .stock-candle-btn:not(.active):hover {
+      background: var(--hover-bg);
+    }
+
+    .stock-zoom-select {
+      margin-left: 8px;
+      padding: 2px 4px;
+      font-family: inherit;
+      font-size: 9px;
+      border: 1px solid var(--window-border);
+      background: var(--input-bg);
+      color: var(--text-color);
+    }
+
+    .stock-chart-scroll-container {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .stock-chart-scroll-area {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stock-chart-viewport {
+      width: 100%;
+      overflow-x: scroll;
+      overflow-y: hidden;
+      scrollbar-width: none;
+    }
+
+    .stock-chart-viewport::-webkit-scrollbar {
+      display: none;
+    }
+
+    .stock-price-overlay {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 45px;
+      height: 100%;
+      background: linear-gradient(to right, transparent, var(--window-bg) 30%);
+      pointer-events: none;
+    }
+
+    .stock-price-label {
+      position: absolute;
+      right: 5px;
+      font-size: 9px;
+      color: var(--text-color);
+      transform: translateY(-50%);
+    }
+
+    .stock-scroll-btn {
+      width: 24px;
+      height: 40px;
+      padding: 0;
+      font-family: inherit;
+      font-size: 10px;
+      border: 1px solid var(--window-border);
+      background: var(--input-bg);
+      color: var(--text-color);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .stock-scroll-btn:hover {
+      background: var(--hover-bg);
+    }
+
+    .stock-scroll-btn:active {
+      background: var(--window-border);
+    }
+
+    .stock-scroll-btn.hidden {
+      visibility: hidden;
     }
 
     .stock-chart {
@@ -668,6 +978,20 @@ const stocksCard = {
     }
   `,
 
+  async fetchTickers() {
+    this.loadingTickers = true;
+    try {
+      const data = await ServerService.getTickers();
+      this.tickers = data.tickers || [];
+      this.error = null;
+    } catch (e) {
+      this.error = 'Cannot connect to server';
+      this.tickers = [];
+    } finally {
+      this.loadingTickers = false;
+    }
+  },
+
   async fetchOHLC() {
     if (!this.selectedTicker) return;
 
@@ -753,6 +1077,16 @@ const stocksCard = {
     stocksCard.loading = false;
     stocksCard.error = null;
     stocksCard.alpacaConfigured = typeof AlpacaProvider !== 'undefined' && AlpacaProvider.isConfigured();
+    stocksCard.scrollPosition = 0;
+    stocksCard.candleSize = '1m';
+    stocksCard.zoomLevel = 1;
+    stocksCard.tickers = [];
+    stocksCard.loadingTickers = false;
+
+    // Fetch available tickers for historical data
+    stocksCard.fetchTickers().then(() => {
+      stocksCard.rerender();
+    });
   },
 
   destroy() {
@@ -761,11 +1095,27 @@ const stocksCard = {
 
   async handleChange(e) {
     console.log('[Stock] handleChange called, target:', e.target.id, 'value:', e.target.value);
+    // Historical ticker dropdown
+    if (e.target.id === 'stock-ticker-select') {
+      this.selectedTicker = e.target.value;
+      this.scrollPosition = 0;
+      if (this.selectedTicker) {
+        await this.fetchOHLC();
+      } else {
+        this.ohlcData = null;
+        this.rerender();
+      }
+    }
     if (e.target.id === 'stock-window-select') {
       this.selectedWindow = e.target.value;
       if (this.selectedTicker) {
         await this.fetchOHLC();
       }
+    }
+    if (e.target.id === 'stock-zoom-select') {
+      this.zoomLevel = parseFloat(e.target.value);
+      this.scrollPosition = 0; // Reset scroll when changing zoom
+      this.rerender();
     }
   },
 
@@ -778,13 +1128,15 @@ const stocksCard = {
 
   async loadTicker(value) {
     const ticker = value.toUpperCase().trim();
-    if (ticker === this.selectedTicker) return;
-    this.selectedTicker = ticker;
-    console.log('[Stock] selectedTicker set to:', this.selectedTicker);
-    if (this.selectedTicker) {
-      await this.fetchData();
+    if (ticker === this.liveTicker) return;
+    this.liveTicker = ticker;
+    this.scrollPosition = 0; // Reset scroll when loading new ticker
+    this.candleSize = '1m'; // Reset candle size when loading new ticker
+    this.zoomLevel = 1; // Reset zoom when loading new ticker
+    console.log('[Stock] liveTicker set to:', this.liveTicker);
+    if (this.liveTicker) {
+      await this.fetchIntraday();
     } else {
-      this.ohlcData = null;
       this.intradayData = null;
       this.rerender();
     }
@@ -797,10 +1149,25 @@ const stocksCard = {
       const tab = e.target.dataset.tab;
       if (tab && tab !== this.viewMode) {
         this.viewMode = tab;
-        if (this.selectedTicker && (tab !== 'today' || (typeof AlpacaProvider !== 'undefined' && AlpacaProvider.isConfigured()))) {
-          this.fetchData();
-        } else {
-          this.rerender();
+        this.scrollPosition = 0;
+        // Toggle visibility via CSS classes - no rerender needed
+        const windowEl = document.querySelector(`[data-window-id="${this.id}"]`);
+        if (windowEl) {
+          const historicalPanel = windowEl.querySelector('.stock-panel-historical');
+          const livePanel = windowEl.querySelector('.stock-panel-live');
+          const historicalTab = windowEl.querySelector('[data-tab="historical"]');
+          const liveTab = windowEl.querySelector('[data-tab="today"]');
+          if (tab === 'today') {
+            historicalPanel?.classList.add('hidden');
+            livePanel?.classList.remove('hidden');
+            historicalTab?.classList.remove('active');
+            liveTab?.classList.add('active');
+          } else {
+            livePanel?.classList.add('hidden');
+            historicalPanel?.classList.remove('hidden');
+            liveTab?.classList.remove('active');
+            historicalTab?.classList.add('active');
+          }
         }
       }
       return;
@@ -834,10 +1201,42 @@ const stocksCard = {
       }
       return;
     }
+    // Handle candle size buttons
+    if (e.target.classList.contains('stock-candle-btn')) {
+      e.preventDefault();
+      const newSize = e.target.dataset.candle;
+      if (newSize && this.candleSize !== newSize) {
+        this.candleSize = newSize;
+        this.scrollPosition = 0; // Reset scroll when changing candle size
+        this.rerender();
+      }
+      return;
+    }
+    // Handle scroll buttons
+    if (e.target.id === 'stock-scroll-left' || e.target.id === 'stock-scroll-right') {
+      e.preventDefault();
+      const windowEl = document.querySelector(`[data-window-id="${this.id}"]`);
+      const viewport = windowEl.querySelector('.stock-chart-viewport');
+      if (viewport) {
+        const scrollAmount = 100;
+        const direction = e.target.id === 'stock-scroll-left' ? -1 : 1;
+        viewport.scrollLeft += scrollAmount * direction;
+        // Update scroll position and rerender for dynamic scaling
+        this.scrollPosition = viewport.scrollLeft;
+        this.rerender();
+        // Restore scroll position after rerender
+        requestAnimationFrame(() => {
+          const newViewport = document.querySelector(`[data-window-id="${this.id}"] .stock-chart-viewport`);
+          if (newViewport) newViewport.scrollLeft = this.scrollPosition;
+        });
+      }
+      return;
+    }
     if (e.target.id === 'stock-watch-btn') {
       e.preventDefault();
-      if (this.selectedTicker) {
-        this.toggleWatch(this.selectedTicker);
+      const ticker = this.viewMode === 'today' ? this.liveTicker : this.selectedTicker;
+      if (ticker) {
+        this.toggleWatch(ticker);
       }
     }
   },
