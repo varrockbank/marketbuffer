@@ -1601,8 +1601,8 @@
       saveSystemState: saveSystemState,
     });
 
-    // Initial windows configuration (loaded from cards/*.js)
-    const initialWindows = [
+    // Register windows with OS
+    OS.registerWindows([
       editorCard,
       finderCard,
       aboutCard,
@@ -1614,22 +1614,14 @@
       neogotchiCard,
       trinaleCard,
       stocksCard,
-    ];
+    ]);
 
-    // Open windows list (copy from initial on load)
-    let openWindows = [];
-
-    // Active window ID
-    let activeWindowId = null;
-
-    // Dragging state
-    let activeWindow = null;
-    let offsetX = 0;
-    let offsetY = 0;
+    // Alias for backward compatibility within this file
+    const initialWindows = OS.initialWindows;
 
     // Save windows state to systemState
     function saveState() {
-      const state = openWindows.map(win => ({
+      const state = OS.openWindows.map(win => ({
         id: win.id,
         zIndex: win.zIndex,
         top: win.top,
@@ -1652,8 +1644,8 @@
       if (systemState.windows !== null && systemState.windows !== undefined) {
         try {
           // Merge saved state with initial windows (to get non-serialized properties)
-          openWindows = systemState.windows.map(savedWin => {
-            const initialWin = initialWindows.find(w => w.id === savedWin.id);
+          OS.openWindows = systemState.windows.map(savedWin => {
+            const initialWin = OS.getCard(savedWin.id);
             if (initialWin) {
               const merged = { ...initialWin, ...savedWin };
               // Restore pane content for tabbed windows
@@ -1696,7 +1688,7 @@
       if (!loadState()) {
         // Open only default windows, not all
         const defaultWindowIds = systemState.defaultWindows || ['editor', 'about'];
-        openWindows = initialWindows
+        OS.openWindows = initialWindows
           .filter(win => defaultWindowIds.includes(win.id))
           .map(win => ({ ...win }));
       }
@@ -1715,9 +1707,9 @@
       });
 
       // Set initial active window to the one with highest zIndex
-      if (openWindows.length > 0) {
-        const topWindow = openWindows.reduce((a, b) => a.zIndex > b.zIndex ? a : b);
-        activeWindowId = topWindow.id;
+      if (OS.openWindows.length > 0) {
+        const topWindow = OS.getTopWindow();
+        OS.activeWindowId = topWindow.id;
         updateActiveWindowMenu();
       }
 
@@ -1788,7 +1780,7 @@
       const desktop = document.getElementById('desktop');
       desktop.innerHTML = '';
 
-      openWindows.forEach((win, index) => {
+      OS.openWindows.forEach((win, index) => {
         const windowEl = document.createElement('div');
 
         if (win.tabbed) {
@@ -1796,11 +1788,7 @@
           windowEl.className = 'tabbed-window';
           windowEl.id = 'tabbed-window';
           windowEl.dataset.windowId = win.id;
-          windowEl.style.zIndex = win.zIndex;
-          windowEl.style.top = win.top + 'px';
-          windowEl.style.left = win.left + 'px';
-          windowEl.style.right = win.right + 'px';
-          windowEl.style.bottom = win.bottom + 'px';
+          OS.applyTabbedWindowStyles(windowEl, win);
 
           // Find the card and use its render method
           const card = initialWindows.find(c => c.id === win.id);
@@ -1811,23 +1799,11 @@
           // Regular window - positioned relative to desktop container
           windowEl.className = `window ${win.draggable ? 'window-draggable' : ''}`;
           windowEl.dataset.windowId = win.id;
-          windowEl.style.top = win.top + 'px';
-          windowEl.style.right = win.right + 'px';
-          windowEl.style.width = win.width + 'px';
-          windowEl.style.zIndex = win.zIndex;
+          OS.applyWindowStyles(windowEl, win);
 
-          const closeBoxHtml = win.closeable
-            ? `<div class="close-box" data-window-id="${win.id}"></div>`
-            : '';
-
+          const closeBoxHtml = OS.getCloseBoxHTML(win);
           const contentHtml = typeof win.content === 'function' ? win.content() : win.content;
-          windowEl.innerHTML = `
-            <div class="window-title-bar">
-              ${closeBoxHtml}
-              <span class="window-title">${win.title}</span>
-            </div>
-            ${contentHtml}
-          `;
+          windowEl.innerHTML = OS.createWindowHTML(win, closeBoxHtml, contentHtml);
         }
 
         desktop.appendChild(windowEl);
@@ -1869,13 +1845,13 @@
         titleBar.addEventListener('mousedown', (e) => {
           if (e.target.closest('.close-box')) return;
 
-          activeWindow = titleBar.closest('.window');
-          const rect = activeWindow.getBoundingClientRect();
-          offsetX = e.clientX - rect.left;
-          offsetY = e.clientY - rect.top;
+          OS.activeWindow = titleBar.closest('.window');
+          const rect = OS.activeWindow.getBoundingClientRect();
+          OS.dragOffsetX = e.clientX - rect.left;
+          OS.dragOffsetY = e.clientY - rect.top;
 
           // Bring window to front
-          bringToFront(activeWindow);
+          bringToFront(OS.activeWindow);
         });
       });
 
@@ -1900,8 +1876,8 @@
     // Close a window (only if closeable)
     function closeWindow(windowId) {
       // Check if window exists and is closeable
-      const win = openWindows.find(w => w.id === windowId);
-      const initialWin = initialWindows.find(w => w.id === windowId);
+      const win = OS.getOpenWindow(windowId);
+      const initialWin = OS.getCard(windowId);
       const isCloseable = win ? win.closeable : (initialWin ? initialWin.closeable : true);
 
       if (!isCloseable) return; // Can't close non-closeable windows
@@ -1913,16 +1889,16 @@
       }
 
       // Remove from openWindows if present
-      const wasInArray = openWindows.some(w => w.id === windowId);
-      openWindows = openWindows.filter(w => w.id !== windowId);
+      const wasInArray = OS.isWindowOpen(windowId);
+      OS.removeOpenWindow(windowId);
 
       // Update active window
-      if (activeWindowId === windowId || !wasInArray) {
-        if (openWindows.length > 0) {
-          const topWindow = openWindows.reduce((a, b) => a.zIndex > b.zIndex ? a : b);
-          activeWindowId = topWindow.id;
+      if (OS.activeWindowId === windowId || !wasInArray) {
+        const topWindow = OS.getTopWindow();
+        if (topWindow) {
+          OS.activeWindowId = topWindow.id;
         } else {
-          activeWindowId = null;
+          OS.activeWindowId = null;
         }
         updateActiveWindowMenu();
       }
@@ -1933,117 +1909,30 @@
     // Bring window to front
     function bringToFront(windowEl) {
       const windowId = windowEl.dataset.windowId;
-
-      // Check if window is actually in our managed list
-      const win = openWindows.find(w => w.id === windowId);
-      if (!win) return; // Don't bring to front if not in openWindows
-
-      // Update zIndex in openWindows array
-      openWindows.forEach(w => {
-        if (w.tabbed) {
-          w.zIndex = 50;
-        } else {
-          w.zIndex = 100;
-        }
-      });
-      win.zIndex = 200;
-
-      // Update DOM
-      document.querySelectorAll('.window').forEach(w => w.style.zIndex = 100);
-      const tabbedWin = document.getElementById('tabbed-window');
-      if (tabbedWin) tabbedWin.style.zIndex = 50;
-      windowEl.style.zIndex = 200;
-
-      // Set active window
-      activeWindowId = windowId;
+      OS.bringToFront(windowId);
       updateActiveWindowMenu();
-
       saveState();
     }
 
     // Bring tabbed window to front
     function bringTabbedToFront() {
-      // Update zIndex in openWindows array
-      const tabbedWindow = openWindows.find(w => w.tabbed);
-      openWindows.forEach(w => {
-        if (w.tabbed) {
-          w.zIndex = 200;
-        } else {
-          w.zIndex = 100;
-        }
-      });
-
-      // Update DOM
-      document.querySelectorAll('.window').forEach(w => w.style.zIndex = 100);
-      const tabbedWin = document.getElementById('tabbed-window');
-      if (tabbedWin) tabbedWin.style.zIndex = 200;
-
-      // Set active window
-      if (tabbedWindow) {
-        activeWindowId = tabbedWindow.id;
-        updateActiveWindowMenu();
-      }
-
+      OS.bringTabbedToFront();
+      updateActiveWindowMenu();
       saveState();
-    }
-
-    // Helper to snap value to grid
-    function snapToGrid(value, gridSize) {
-      return Math.round(value / gridSize) * gridSize;
-    }
-
-    // Grid overlay for dragging
-    let gridOverlayTimeout = null;
-
-    function showDragGridOverlay(gridSize, excludeWindow) {
-      let overlay = document.getElementById('grid-overlay');
-      if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'grid-overlay';
-        overlay.style.cssText = `
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          pointer-events: none;
-          z-index: 9999;
-        `;
-        document.getElementById('desktop').appendChild(overlay);
-      }
-      overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
-      overlay.style.backgroundImage = `
-        linear-gradient(to right, rgba(255,255,255,0.5) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255,255,255,0.5) 1px, transparent 1px)
-      `;
-      overlay.style.backgroundSize = `${gridSize}px ${gridSize}px`;
-      overlay.style.display = 'block';
-
-      // Ensure active window stays above overlay
-      if (excludeWindow) {
-        excludeWindow.style.zIndex = 10000;
-      }
-    }
-
-    function hideDragGridOverlay() {
-      const overlay = document.getElementById('grid-overlay');
-      if (overlay) {
-        overlay.style.display = 'none';
-      }
     }
 
     // Mouse move handler for dragging
     document.addEventListener('mousemove', (e) => {
-      if (!activeWindow) return;
+      if (!OS.activeWindow) return;
 
       const desktop = document.getElementById('desktop');
       const desktopRect = desktop.getBoundingClientRect();
-      const windowWidth = activeWindow.offsetWidth;
-      const windowHeight = activeWindow.offsetHeight;
+      const windowWidth = OS.activeWindow.offsetWidth;
+      const windowHeight = OS.activeWindow.offsetHeight;
 
       // Calculate position relative to desktop
-      let top = e.clientY - desktopRect.top - offsetY;
-      let right = desktopRect.right - e.clientX - (windowWidth - offsetX);
+      let top = e.clientY - desktopRect.top - OS.dragOffsetY;
+      let right = desktopRect.right - e.clientX - (windowWidth - OS.dragOffsetX);
 
       // Constrain to desktop bounds (all four edges)
       const maxTop = desktopRect.height - windowHeight;
@@ -2056,11 +1945,11 @@
       if (systemState && systemState.snapToGrid) {
         const gridSize = systemState.gridSize || 50;
         // Show grid overlay while dragging
-        showDragGridOverlay(gridSize, activeWindow);
+        OS.showDragGridOverlay(gridSize, OS.activeWindow);
         // Convert right to left for snapping, then back
         const left = desktopRect.width - right - windowWidth;
-        const snappedTop = snapToGrid(top, gridSize);
-        const snappedLeft = snapToGrid(left, gridSize);
+        const snappedTop = OS.snapToGrid(top, gridSize);
+        const snappedLeft = OS.snapToGrid(left, gridSize);
         top = snappedTop;
         right = desktopRect.width - snappedLeft - windowWidth;
         // Re-constrain after snapping
@@ -2068,12 +1957,12 @@
         right = Math.max(0, Math.min(right, maxRight));
       }
 
-      activeWindow.style.top = top + 'px';
-      activeWindow.style.right = right + 'px';
+      OS.activeWindow.style.top = top + 'px';
+      OS.activeWindow.style.right = right + 'px';
 
       // Update position in openWindows array
-      const windowId = activeWindow.dataset.windowId;
-      const win = openWindows.find(w => w.id === windowId);
+      const windowId = OS.activeWindow.dataset.windowId;
+      const win = OS.getOpenWindow(windowId);
       if (win) {
         win.top = top;
         win.right = right;
@@ -2081,13 +1970,13 @@
     });
 
     document.addEventListener('mouseup', () => {
-      if (activeWindow) {
+      if (OS.activeWindow) {
         // Hide grid overlay and restore z-index
-        hideDragGridOverlay();
-        activeWindow.style.zIndex = 200;
+        OS.hideDragGridOverlay();
+        OS.activeWindow.style.zIndex = 200;
         saveState();
       }
-      activeWindow = null;
+      OS.activeWindow = null;
     });
 
     // Initialize
@@ -2324,7 +2213,7 @@
     // Active window menu
     function updateActiveWindowMenu() {
       const menuItem = document.getElementById('active-window-menu');
-      const win = openWindows.find(w => w.id === activeWindowId);
+      const win = OS.getOpenWindow(OS.activeWindowId);
       if (win) {
         menuItem.textContent = win.title;
       } else {
@@ -2336,7 +2225,7 @@
       const dropdown = document.getElementById('active-window-dropdown');
       dropdown.innerHTML = '';
 
-      const win = openWindows.find(w => w.id === activeWindowId);
+      const win = OS.getOpenWindow(OS.activeWindowId);
       if (!win || !win.contextMenu) return;
 
       win.contextMenu.forEach(item => {
@@ -2404,7 +2293,7 @@
       dropdown.innerHTML = '';
 
       initialWindows.forEach(win => {
-        const isOpen = openWindows.some(w => w.id === win.id);
+        const isOpen = OS.isWindowOpen(win.id);
         const item = document.createElement('div');
         item.className = `menu-dropdown-item ${isOpen ? 'checked' : ''}`;
         item.textContent = win.title;
@@ -2425,29 +2314,28 @@
       closeAllItem.className = 'menu-dropdown-item';
       closeAllItem.textContent = 'Close All Windows';
       closeAllItem.addEventListener('click', () => {
-        openWindows.slice().forEach(w => OS.close(w.id));
+        OS.openWindows.slice().forEach(w => OS.close(w.id));
         closeApplicationsMenu();
       });
       dropdown.appendChild(closeAllItem);
     }
 
     function openApplication(windowId) {
-      const isOpen = openWindows.some(w => w.id === windowId);
-      if (isOpen) {
+      if (OS.isWindowOpen(windowId)) {
         // Window already open - bring to front
         const windowEl = document.querySelector(`[data-window-id="${windowId}"]`);
         if (windowEl) {
           bringToFront(windowEl);
         }
       } else {
-        const win = initialWindows.find(w => w.id === windowId);
+        const win = OS.getCard(windowId);
         if (win) {
           // Clean up any stale DOM element with the same ID
           const existingEl = document.querySelector(`[data-window-id="${windowId}"]`);
           if (existingEl) existingEl.remove();
 
           // Reset all z-indexes in data and DOM
-          openWindows.forEach(w => {
+          OS.openWindows.forEach(w => {
             w.zIndex = w.tabbed ? 50 : 100;
             const el = document.querySelector(`[data-window-id="${w.id}"]`);
             if (el) el.style.zIndex = w.zIndex;
@@ -2458,15 +2346,15 @@
           // Ensure tabbed windows have at least one tab
           if (newWin.tabbed && (!newWin.tabs || newWin.tabs.length === 0)) {
             // Find the card and let it initialize its default state
-            const card = initialWindows.find(c => c.id === newWin.id);
+            const card = OS.getCard(newWin.id);
             if (card && typeof card.initDefaultTab === 'function') {
               card.initDefaultTab(newWin);
             }
           }
 
-          openWindows.push(newWin);
+          OS.addOpenWindow(newWin);
           // Set as active window
-          activeWindowId = windowId;
+          OS.activeWindowId = windowId;
           saveState();
           // Render just the new window (DOM manipulation)
           renderSingleWindow(newWin);
@@ -2479,7 +2367,6 @@
     OS.registerCallbacks({
       closeWindow: closeWindow,
       openApplication: openApplication,
-      getCard: (appId) => initialWindows.find(c => c.id === appId),
       renderPinnedFiles: renderPinnedFiles,
       renderFileTree: () => FileTree.render(),
     });
@@ -2493,11 +2380,7 @@
         windowEl.className = 'tabbed-window';
         windowEl.id = 'tabbed-window';
         windowEl.dataset.windowId = win.id;
-        windowEl.style.zIndex = win.zIndex;
-        windowEl.style.top = win.top + 'px';
-        windowEl.style.left = win.left + 'px';
-        windowEl.style.right = win.right + 'px';
-        windowEl.style.bottom = win.bottom + 'px';
+        OS.applyTabbedWindowStyles(windowEl, win);
 
         // Find the card and use its render method
         const card = initialWindows.find(c => c.id === win.id);
@@ -2516,14 +2399,9 @@
         // Regular window
         windowEl.className = `window ${win.draggable ? 'window-draggable' : ''}`;
         windowEl.dataset.windowId = win.id;
-        windowEl.style.top = win.top + 'px';
-        windowEl.style.right = win.right + 'px';
-        windowEl.style.width = win.width + 'px';
-        windowEl.style.zIndex = win.zIndex;
+        OS.applyWindowStyles(windowEl, win);
 
-        const closeBoxHtml = win.closeable
-          ? `<div class="close-box" data-window-id="${win.id}"></div>`
-          : '';
+        const closeBoxHtml = OS.getCloseBoxHTML(win);
 
         // Call init() on win before rendering content so it can set up state
         if (typeof win.init === 'function') {
@@ -2531,13 +2409,7 @@
         }
 
         const contentHtml = typeof win.content === 'function' ? win.content() : win.content;
-        windowEl.innerHTML = `
-          <div class="window-title-bar">
-            ${closeBoxHtml}
-            <span class="window-title">${win.title}</span>
-          </div>
-          ${contentHtml}
-        `;
+        windowEl.innerHTML = OS.createWindowHTML(win, closeBoxHtml, contentHtml);
 
         desktop.appendChild(windowEl);
         attachWindowEventListeners(windowEl, win);
@@ -2567,10 +2439,10 @@
         if (titleBar) {
           titleBar.addEventListener('mousedown', (e) => {
             if (e.target.closest('.close-box')) return;
-            activeWindow = windowEl;
+            OS.activeWindow = windowEl;
             const rect = windowEl.getBoundingClientRect();
-            offsetX = e.clientX - rect.left;
-            offsetY = e.clientY - rect.top;
+            OS.dragOffsetX = e.clientX - rect.left;
+            OS.dragOffsetY = e.clientY - rect.top;
             bringToFront(windowEl);
           });
         }
@@ -2584,7 +2456,7 @@
 
       // Delegate clicks to card's handleClick
       windowEl.addEventListener('click', (e) => {
-        const card = initialWindows.find(c => c.id === win.id);
+        const card = OS.getCard(win.id);
         if (card && typeof card.handleClick === 'function') {
           card.handleClick(e);
         }

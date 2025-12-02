@@ -8,7 +8,7 @@ const settingsCard = {
   top: 80,
   right: 300,
   width: 400,
-  height: 600,
+  height: 500,
   contextMenu: [
     { label: 'Close', action: 'close' }
   ],
