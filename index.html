@@ -2393,13 +2393,19 @@
         container.appendChild(tab);
       });
 
-      // Add trailing separator before the + button (if last tab is not active)
+      // Add trailing separator before the + button (if last tab is not active and not at max)
       const lastWorkspace = OS.workspaces[OS.workspaces.length - 1];
-      if (lastWorkspace && lastWorkspace.id !== OS.activeWorkspaceId) {
+      if (lastWorkspace && lastWorkspace.id !== OS.activeWorkspaceId && OS.workspaces.length < 4) {
         const separator = document.createElement('span');
         separator.className = 'workspace-tab-separator';
         separator.textContent = '|';
         container.appendChild(separator);
+      }
+
+      // Hide/show the + button based on workspace count
+      const addBtn = document.getElementById('workspace-add-btn');
+      if (addBtn) {
+        addBtn.style.display = OS.workspaces.length >= 4 ? 'none' : 'flex';
       }
     }
 
