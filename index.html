@@ -95,7 +95,7 @@
     .menu-bar {
       background: var(--menu-bg);
       border-bottom: 2px solid var(--menu-border);
-      height: 20px;
+      height: 28px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -128,7 +128,7 @@
     }
 
     .menu-item {
-      padding: 2px 12px;
+      padding: 6px 12px;
       cursor: pointer;
     }
 
@@ -141,9 +141,46 @@
       color: var(--window-bg);
     }
 
+    /* Active window tab style */
+    #active-window-menu {
+      position: relative;
+      top: 2px;
+      background: var(--window-bg);
+      padding: 4px 16px 6px 16px;
+      margin: 0 6px -3px 6px;
+      border: 1px solid var(--window-border);
+      border-bottom: none;
+      border-radius: 6px 6px 0 0;
+    }
+
+    #active-window-menu::before,
+    #active-window-menu::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      width: 6px;
+      height: 6px;
+    }
+
+    #active-window-menu::before {
+      left: -6px;
+      background: radial-gradient(circle at 0 0, transparent 5px, var(--window-border) 5px, var(--window-border) 6px, var(--window-bg) 6px);
+    }
+
+    #active-window-menu::after {
+      right: -6px;
+      background: radial-gradient(circle at 100% 0, transparent 5px, var(--window-border) 5px, var(--window-border) 6px, var(--window-bg) 6px);
+    }
+
+    #active-window-menu:hover {
+      background: var(--window-bg);
+      color: var(--text-color);
+    }
+
     .menu-item-container {
       position: relative;
     }
+
 
     .menu-dropdown {
       display: none;
@@ -187,7 +224,7 @@
 
     /* Sidebar Toggle Button */
     .sidebar-toggle {
-      padding: 2px 8px;
+      padding: 6px 8px;
       cursor: pointer;
       font-size: 12px;
       margin-right: 4px;
