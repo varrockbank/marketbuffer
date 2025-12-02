@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.4.0 - December 2, 2025
+## 0.4.0-alpha.2 - December 2, 2025
+- Workspaces now preserve window positions when switching tabs
+- Window state (position, size, tabs) restored when returning to a workspace
+
+## 0.4.0-alpha.1 - December 2, 2025
 - Added workspaces feature with multiple tabs
 - Each workspace maintains its own set of open windows
 - Click + button to create new workspace

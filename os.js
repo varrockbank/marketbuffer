@@ -60,6 +60,7 @@ const OS = {
     renderFileTree: null,
     renderWorkspaceTabs: null,
     switchWorkspace: null,
+    getWindowState: null,  // Get serialized window state for saving
   },
 
   // Register callbacks from index.html
@@ -443,10 +444,21 @@ const OS = {
     const workspace = this.getWorkspace(id);
     if (!workspace) return;
 
-    // Save current workspace's open apps
+    // Save current workspace's window state (positions, etc.)
     const currentWorkspace = this.getActiveWorkspace();
     if (currentWorkspace) {
-      currentWorkspace.openApps = this.openWindows.map(w => w.id);
+      if (this._callbacks.getWindowState) {
+        currentWorkspace.windowState = this._callbacks.getWindowState();
+      } else {
+        currentWorkspace.windowState = this.openWindows.map(w => ({
+          id: w.id,
+          top: w.top,
+          left: w.left,
+          right: w.right,
+          bottom: w.bottom,
+          zIndex: w.zIndex,
+        }));
+      }
     }
 
     // Switch to new workspace
@@ -463,11 +475,22 @@ const OS = {
     }
   },
 
-  // Update current workspace's open apps
+  // Update current workspace's window state
   updateWorkspaceApps() {
     const workspace = this.getActiveWorkspace();
     if (workspace) {
-      workspace.openApps = this.openWindows.map(w => w.id);
+      if (this._callbacks.getWindowState) {
+        workspace.windowState = this._callbacks.getWindowState();
+      } else {
+        workspace.windowState = this.openWindows.map(w => ({
+          id: w.id,
+          top: w.top,
+          left: w.left,
+          right: w.right,
+          bottom: w.bottom,
+          zIndex: w.zIndex,
+        }));
+      }
       this.saveWorkspaces();
     }
   },

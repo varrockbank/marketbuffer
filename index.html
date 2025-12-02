@@ -2436,8 +2436,26 @@
       // Clear open windows
       OS.openWindows = [];
 
-      // Open the apps for this workspace
-      if (workspace.openApps && workspace.openApps.length > 0) {
+      // Restore windows with saved state (positions, tabs, etc.)
+      if (workspace.windowState && workspace.windowState.length > 0) {
+        workspace.windowState.forEach(savedWin => {
+          const card = OS.getCard(savedWin.id);
+          if (card) {
+            // Merge card defaults with saved state
+            const restoredWin = { ...card, ...savedWin };
+            // Restore pane content for tabbed windows
+            if (restoredWin.tabs && editorCard) {
+              restoredWin.tabs = restoredWin.tabs.map(tab => ({
+                ...tab,
+                panes: tab.panes ? editorCard.restorePaneContent(tab.panes) : null,
+              }));
+            }
+            OS.addOpenWindow(restoredWin);
+            renderSingleWindow(restoredWin);
+          }
+        });
+      } else if (workspace.openApps && workspace.openApps.length > 0) {
+        // Fallback for old workspaces that only have app IDs
         workspace.openApps.forEach(appId => {
           const card = OS.getCard(appId);
           if (card) {
@@ -2599,6 +2617,25 @@
       }
     }
 
+    // Get serialized window state for workspace saving
+    function getWindowState() {
+      return OS.openWindows.map(win => ({
+        id: win.id,
+        zIndex: win.zIndex,
+        top: win.top,
+        left: win.left,
+        right: win.right,
+        bottom: win.bottom,
+        width: win.width,
+        height: win.height,
+        activeTab: win.activeTab,
+        tabs: win.tabs ? win.tabs.map(tab => ({
+          ...tab,
+          panes: tab.panes && editorCard ? editorCard.stripPaneContent(tab.panes) : null,
+        })) : undefined,
+      }));
+    }
+
     // Register OS callbacks now that functions are defined
     OS.registerCallbacks({
       closeWindow: closeWindow,
@@ -2607,6 +2644,7 @@
       renderFileTree: () => FileTree.render(),
       renderWorkspaceTabs: renderWorkspaceTabs,
       switchWorkspace: switchWorkspace,
+      getWindowState: getWindowState,
     });
 
     function renderSingleWindow(win) {
