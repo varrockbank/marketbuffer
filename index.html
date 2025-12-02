@@ -276,6 +276,69 @@
     .tree-label {
       overflow: hidden;
       text-overflow: ellipsis;
+      flex: 1;
+    }
+
+    .tree-pin {
+      width: 14px;
+      height: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      opacity: 0;
+      cursor: pointer;
+      margin-left: auto;
+    }
+
+    .tree-item-row:hover .tree-pin {
+      opacity: 0.5;
+    }
+
+    .tree-pin:hover {
+      opacity: 1 !important;
+    }
+
+    .tree-pin.pinned {
+      opacity: 1;
+    }
+
+    .pinned-item {
+      display: flex;
+      align-items: center;
+      padding: 3px 8px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .pinned-item:hover {
+      background: var(--text-color);
+      color: var(--window-bg);
+    }
+
+    .pinned-item-icon {
+      margin-right: 4px;
+      font-size: 10px;
+    }
+
+    .pinned-item-name {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .pinned-item-unpin {
+      opacity: 0;
+      cursor: pointer;
+      font-size: 10px;
+    }
+
+    .pinned-item:hover .pinned-item-unpin {
+      opacity: 0.5;
+    }
+
+    .pinned-item-unpin:hover {
+      opacity: 1 !important;
     }
 
     .tree-children {
@@ -1432,15 +1495,10 @@
           Source Control
         </div>
       </div>
-      <div class="sidebar-section">
-        <div class="sidebar-section-header">Favorites</div>
-        <div class="sidebar-item">
-          <span class="sidebar-item-icon">&#9734;</span>
-          index.html
-        </div>
-        <div class="sidebar-item">
-          <span class="sidebar-item-icon">&#9734;</span>
-          styles.css
+      <div class="sidebar-section" id="pinned-section">
+        <div class="sidebar-section-header">Pinned</div>
+        <div id="pinned-files">
+          <!-- Pinned files rendered by JavaScript -->
         </div>
       </div>
       <div class="sidebar-section sidebar-section-files">
@@ -1574,6 +1632,86 @@
     };
 
     // ============================================
+    // Pinned files
+    // ============================================
+    const PINNED_FILES_KEY = 'marketbuffer_pinned_files';
+    const DEFAULT_PINNED_FILES = ['demo/README.md'];
+
+    let pinnedFiles = [];
+
+    function loadPinnedFiles() {
+      const saved = localStorage.getItem(PINNED_FILES_KEY);
+      if (saved) {
+        pinnedFiles = JSON.parse(saved);
+      } else {
+        pinnedFiles = [...DEFAULT_PINNED_FILES];
+        savePinnedFiles();
+      }
+    }
+
+    function savePinnedFiles() {
+      localStorage.setItem(PINNED_FILES_KEY, JSON.stringify(pinnedFiles));
+    }
+
+    function togglePinFile(path) {
+      const index = pinnedFiles.indexOf(path);
+      if (index === -1) {
+        pinnedFiles.push(path);
+      } else {
+        pinnedFiles.splice(index, 1);
+      }
+      savePinnedFiles();
+      renderPinnedFiles();
+      renderFileTree();
+    }
+
+    function unpinFile(path) {
+      const index = pinnedFiles.indexOf(path);
+      if (index !== -1) {
+        pinnedFiles.splice(index, 1);
+        savePinnedFiles();
+        renderPinnedFiles();
+        renderFileTree();
+      }
+    }
+
+    function renderPinnedFiles() {
+      const container = document.getElementById('pinned-files');
+      if (pinnedFiles.length === 0) {
+        container.innerHTML = '<div class="sidebar-item" style="color: #888; font-style: italic;">No pinned files</div>';
+        return;
+      }
+
+      let html = '';
+      pinnedFiles.forEach(path => {
+        const name = path.split('/').pop();
+        html += `
+          <div class="pinned-item" data-path="${path}">
+            <span class="pinned-item-icon">&#128196;</span>
+            <span class="pinned-item-name">${name}</span>
+            <span class="pinned-item-unpin" data-path="${path}">&#10005;</span>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+
+      // Attach click listeners
+      container.querySelectorAll('.pinned-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+          if (e.target.classList.contains('pinned-item-unpin')) {
+            e.stopPropagation();
+            unpinFile(e.target.dataset.path);
+          } else {
+            system.openFile(item.dataset.path);
+          }
+        });
+      });
+    }
+
+    // Initialize pinned files
+    loadPinnedFiles();
+
+    // ============================================
     // File tree data structure
     // ============================================
     const fileTreeData = {
@@ -1660,6 +1798,9 @@
       const icon = isFolder ? '&#128193;' : '&#128196;';
       const expandedClass = node.expanded ? 'expanded' : '';
       const pathAttr = node.path ? `data-path="${node.path}"` : '';
+      const isPinned = !isFolder && node.path && pinnedFiles.includes(node.path);
+      const pinClass = isPinned ? 'pinned' : '';
+      const pinIcon = isPinned ? '&#128204;' : '&#128204;'; // pushpin icon
 
       let html = `
         <div class="tree-item" data-depth="${depth}" data-type="${node.type}" data-name="${node.name}" ${pathAttr}>
@@ -1667,6 +1808,7 @@
             <span class="tree-toggle">${toggleIcon}</span>
             <span class="tree-icon">${icon}</span>
             <span class="tree-label">${node.name}</span>
+            ${!isFolder && node.path ? `<span class="tree-pin ${pinClass}" data-path="${node.path}">${pinIcon}</span>` : ''}
           </div>
       `;
 
@@ -1685,6 +1827,16 @@
     function attachTreeListeners() {
       document.querySelectorAll('.tree-item-row').forEach(row => {
         row.addEventListener('click', (e) => {
+          // Handle pin button click
+          if (e.target.classList.contains('tree-pin')) {
+            e.stopPropagation();
+            const path = e.target.dataset.path;
+            if (path) {
+              togglePinFile(path);
+            }
+            return;
+          }
+
           e.stopPropagation();
           const item = row.closest('.tree-item');
           const type = item.dataset.type;
@@ -1845,7 +1997,8 @@
       loadFontSize();
       loadWallpaper();
 
-      // Render file tree in sidebar
+      // Render file tree and pinned files in sidebar
+      renderPinnedFiles();
       renderFileTree();
 
       // Try to load from localStorage, otherwise use initial windows
