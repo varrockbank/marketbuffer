@@ -2358,16 +2358,17 @@
       container.innerHTML = '';
 
       OS.workspaces.forEach((workspace, index) => {
-        // Add separator before non-active tabs (except first)
+        // Add separator before tabs (except first)
         if (index > 0) {
           const prevWorkspace = OS.workspaces[index - 1];
-          // Only show separator if neither adjacent tab is active
-          if (workspace.id !== OS.activeWorkspaceId && prevWorkspace.id !== OS.activeWorkspaceId) {
-            const separator = document.createElement('span');
-            separator.className = 'workspace-tab-separator';
-            separator.textContent = '|';
-            container.appendChild(separator);
+          const separator = document.createElement('span');
+          separator.className = 'workspace-tab-separator';
+          separator.textContent = '|';
+          // Hide separator if either adjacent tab is active
+          if (workspace.id === OS.activeWorkspaceId || prevWorkspace.id === OS.activeWorkspaceId) {
+            separator.style.visibility = 'hidden';
           }
+          container.appendChild(separator);
         }
 
         const tab = document.createElement('div');
@@ -2393,12 +2394,16 @@
         container.appendChild(tab);
       });
 
-      // Add trailing separator before the + button (if last tab is not active and not at max)
+      // Add trailing separator before the + button
       const lastWorkspace = OS.workspaces[OS.workspaces.length - 1];
-      if (lastWorkspace && lastWorkspace.id !== OS.activeWorkspaceId && OS.workspaces.length < 4) {
+      if (OS.workspaces.length < 4) {
         const separator = document.createElement('span');
         separator.className = 'workspace-tab-separator';
         separator.textContent = '|';
+        // Hide if last tab is active
+        if (lastWorkspace && lastWorkspace.id === OS.activeWorkspaceId) {
+          separator.style.visibility = 'hidden';
+        }
         container.appendChild(separator);
       }
 
