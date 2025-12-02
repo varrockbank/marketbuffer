@@ -85,7 +85,6 @@ const settingsCard = {
     .settings-content {
       padding: 12px;
       background: var(--window-bg);
-      max-height: 350px;
       overflow-y: auto;
     }
 
