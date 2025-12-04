@@ -1,7 +1,7 @@
 // Stock Simulator Card - Paper trading simulator
 const simulatorCard = {
   id: 'simulator',
-  title: 'Stock Simulator',
+  title: 'Perfect-Liquidity Simulator',
   draggable: true,
   closeable: true,
   zIndex: 106,
@@ -449,7 +449,7 @@ const simulatorCard = {
 
         <div class="sim-footer">
           <button class="sim-btn-link" id="sim-replay-btn">↻ Start Over</button>
-          <button class="sim-btn-link" id="sim-details-btn">${state.showDetails && !state.detailsOpening ? '<< Hide' : 'Details >>'}</button>
+          <button class="sim-btn-link" id="sim-details-btn" ${state.detailsOpening || state.detailsClosing ? 'disabled' : ''}>${state.showDetails && !state.detailsOpening ? '<< Hide' : 'Details >>'}</button>
         </div>
       </div>
       ${state.showDetails ? `
@@ -942,8 +942,13 @@ const simulatorCard = {
       cursor: pointer;
     }
 
-    .sim-btn-link:hover {
+    .sim-btn-link:hover:not(:disabled) {
       background: var(--hover-bg);
+    }
+
+    .sim-btn-link:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
 
     .sim-portfolio-label {
