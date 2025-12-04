@@ -25,6 +25,8 @@ const simulatorCard = {
   previousTickerData: null, // OHLC data for position ticker on previous date
   loading: false,
   showFastForward: false, // Show fast forward date picker
+  showDetails: false,  // Show details panel
+  ledger: [],          // Array of {type: 'open'|'close', ticker, shares, price, date, pnl?}
 
   // Calculate midpoint price
   getMidpoint(data) {
@@ -174,6 +176,15 @@ const simulatorCard = {
     this.cash = this.cash - cost;
     this.previousTickerData = null; // Reset - will be set on next advanceDate
 
+    // Record in ledger
+    this.ledger.push({
+      type: 'open',
+      ticker: this.ticker,
+      shares: maxShares,
+      price: price,
+      date: this.currentDate,
+    });
+
     this.advanceDate();
   },
 
@@ -183,6 +194,20 @@ const simulatorCard = {
 
     const price = this.getMidpoint(this.tickerData);
     const proceeds = this.shares * price;
+
+    // Find the open position to calculate P&L
+    const openEntry = [...this.ledger].reverse().find(e => e.type === 'open' && e.ticker === this.ticker);
+    const pnl = openEntry ? (price - openEntry.price) * this.shares : 0;
+
+    // Record in ledger
+    this.ledger.push({
+      type: 'close',
+      ticker: this.ticker,
+      shares: this.shares,
+      price: price,
+      date: this.currentDate,
+      pnl: pnl,
+    });
 
     this.cash = this.cash + proceeds;
     this.ticker = null;
@@ -206,9 +231,17 @@ const simulatorCard = {
     this.tickerData = null;
     this.previousTickerData = null;
     this.previousDate = null;
+    this.ledger = [];
+    this.showDetails = false;
     if (this.dates.length > 0) {
       this.currentDate = this.dates[0];
     }
+    this.rerender();
+  },
+
+  // Toggle details panel
+  toggleDetails() {
+    this.showDetails = !this.showDetails;
     this.rerender();
   },
 
@@ -256,7 +289,17 @@ const simulatorCard = {
     // Format number with commas
     const formatMoney = (n) => '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
+    // Format ledger date
+    const formatLedgerDate = (dateKey) => {
+      const str = String(dateKey);
+      const year = str.slice(0, 4);
+      const month = str.slice(4, 6);
+      const day = str.slice(6, 8);
+      return `${year}-${month}-${day}`;
+    };
+
     return `
+      <div class="sim-wrapper ${state.showDetails ? 'sim-expanded' : ''}">
       <div class="sim-content">
         <div class="sim-status">
           <div class="sim-header-row">
@@ -331,17 +374,128 @@ const simulatorCard = {
         `}
 
         <div class="sim-footer">
-          <button class="sim-btn-link" id="sim-replay-btn">↻ Replay</button>
-          <button class="sim-btn-link" id="sim-details-btn">Details >></button>
+          <button class="sim-btn-link" id="sim-replay-btn">↻ Start Over</button>
+          <button class="sim-btn-link" id="sim-details-btn">${state.showDetails ? '<< Hide' : 'Details >>'}</button>
         </div>
+      </div>
+      ${state.showDetails ? `
+        <div class="sim-details">
+          <div class="sim-details-top">
+          </div>
+          <div class="sim-details-bottom">
+            <div class="sim-ledger-header">Trade History</div>
+            <div class="sim-ledger">
+              ${state.ledger.length === 0 ? `
+                <div class="sim-ledger-empty">No trades yet</div>
+              ` : `
+                <table class="sim-ledger-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Type</th>
+                      <th>Ticker</th>
+                      <th>Shares</th>
+                      <th>Price</th>
+                      <th>P&L</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${state.ledger.map(entry => `
+                      <tr>
+                        <td>${formatLedgerDate(entry.date)}</td>
+                        <td class="${entry.type === 'open' ? 'sim-ledger-buy' : 'sim-ledger-sell'}">${entry.type === 'open' ? 'BUY' : 'SELL'}</td>
+                        <td>${entry.ticker}</td>
+                        <td>${entry.shares.toFixed(1)}</td>
+                        <td>${formatMoney(entry.price)}</td>
+                        <td class="${entry.pnl !== undefined ? (entry.pnl >= 0 ? 'sim-delta-up' : 'sim-delta-down') : ''}">${entry.pnl !== undefined ? (entry.pnl >= 0 ? '+' : '') + formatMoney(entry.pnl) : '-'}</td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              `}
+            </div>
+          </div>
+        </div>
+      ` : ''}
       </div>
     `;
   },
 
   styles: `
+    .sim-wrapper {
+      display: flex;
+    }
+
     .sim-content {
       padding: 12px;
       font-size: 11px;
+      width: 396px;
+      flex-shrink: 0;
+    }
+
+    .sim-details {
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid var(--window-border);
+      border-top: 1px solid var(--window-border);
+      border-right: 1px solid var(--window-border);
+      border-bottom: 1px solid var(--window-border);
+      width: 300px;
+      flex-shrink: 0;
+    }
+
+    .sim-details-top {
+      flex: 1;
+      border-bottom: 1px solid var(--window-border);
+      min-height: 100px;
+      background: #fff;
+    }
+
+    .sim-details-bottom {
+      flex: 1;
+      padding: 8px;
+      overflow-y: auto;
+      max-height: 250px;
+      background: #fff;
+    }
+
+    .sim-ledger-header {
+      font-weight: bold;
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+
+    .sim-ledger-empty {
+      color: #666;
+      font-size: 11px;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .sim-ledger-table {
+      width: 100%;
+      font-size: 10px;
+      border-collapse: collapse;
+    }
+
+    .sim-ledger-table th,
+    .sim-ledger-table td {
+      padding: 4px 6px;
+      text-align: left;
+      border-bottom: 1px solid var(--window-border);
+    }
+
+    .sim-ledger-table th {
+      font-weight: bold;
+      background: var(--input-bg);
+    }
+
+    .sim-ledger-buy {
+      color: #00c853;
+    }
+
+    .sim-ledger-sell {
+      color: #ff1744;
     }
 
     .sim-status {
@@ -572,9 +726,9 @@ const simulatorCard = {
   rerender() {
     const windowEl = document.querySelector(`[data-window-id="${this.id}"]`);
     if (windowEl) {
-      const contentEl = windowEl.querySelector('.sim-content');
-      if (contentEl) {
-        contentEl.outerHTML = simulatorCard.content();
+      const wrapperEl = windowEl.querySelector('.sim-wrapper');
+      if (wrapperEl) {
+        wrapperEl.outerHTML = simulatorCard.content();
       }
     }
   },
@@ -589,6 +743,8 @@ const simulatorCard = {
     simulatorCard.previousDate = null;
     simulatorCard.loading = false;
     simulatorCard.showFastForward = false;
+    simulatorCard.showDetails = false;
+    simulatorCard.ledger = [];
     simulatorCard.dates = [];
     simulatorCard.tickers = [];
 
@@ -657,6 +813,11 @@ const simulatorCard = {
     if (e.target.id === 'sim-replay-btn') {
       e.preventDefault();
       this.replay();
+      return;
+    }
+    if (e.target.id === 'sim-details-btn') {
+      e.preventDefault();
+      this.toggleDetails();
       return;
     }
     if (e.target.classList.contains('sim-ff-date')) {
