@@ -240,9 +240,9 @@ const simulatorCard = {
         ` : `
           <div class="sim-action-buttons">
             ${hasPosition ? `
-              <button class="sim-btn sim-btn-sell" id="sim-close-btn" ${!state.tickerData ? 'disabled' : ''}>Sell</button>
+              <button class="sim-btn sim-btn-sell" id="sim-close-btn" ${!state.tickerData ? 'disabled' : ''}>Sell [↵]</button>
             ` : `
-              <button class="sim-btn sim-btn-buy" id="sim-buy-btn" ${!state.tickerData ? 'disabled' : ''}>Buy</button>
+              <button class="sim-btn sim-btn-buy" id="sim-buy-btn" ${!state.tickerData ? 'disabled' : ''}>Buy [↵]</button>
             `}
             <button class="sim-btn sim-btn-secondary" id="sim-next-btn">Next Day [→]</button>
           </div>
@@ -557,6 +557,21 @@ const simulatorCard = {
         }, 100);
       } else {
         this.advanceDate();
+      }
+    }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const hasPosition = this.ticker !== null;
+      const btn = document.getElementById(hasPosition ? 'sim-close-btn' : 'sim-buy-btn');
+      if (btn && !btn.disabled) {
+        btn.classList.add('sim-btn-blink');
+        setTimeout(() => {
+          if (hasPosition) {
+            this.close();
+          } else {
+            this.buy();
+          }
+        }, 100);
       }
     }
   },
