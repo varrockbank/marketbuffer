@@ -17,10 +17,12 @@ const simulatorCard = {
   shares: 0,           // Number of shares owned
   cash: 1000,          // Cash balance
   currentDate: null,   // Current simulation date (YYYYMMDD)
+  previousDate: null,  // Previous trading date (for delta calculation)
   dates: [],           // All available trading dates
   tickers: [],         // All available tickers
   selectedTicker: '',  // Ticker selected for inquiry
   tickerData: null,    // OHLC data for selected ticker on current date
+  previousTickerData: null, // OHLC data for position ticker on previous date
   loading: false,
   showFastForward: false, // Show fast forward date picker
 
@@ -49,6 +51,42 @@ const simulatorCard = {
     return null;
   },
 
+  // Get previous trading date (1 trading day before current)
+  getPreviousDate() {
+    const currentIndex = this.dates.indexOf(this.currentDate);
+    if (currentIndex > 0) {
+      return this.dates[currentIndex - 1];
+    }
+    return null;
+  },
+
+  // Fetch previous day's ticker data for position
+  async fetchPreviousTickerData() {
+    if (!this.ticker || !this.previousDate) {
+      this.previousTickerData = null;
+      return;
+    }
+
+    try {
+      await ServerService.initWasm();
+      const result = JSON.parse(window.getTickerForDate(this.ticker, this.previousDate));
+      if (result.error) {
+        this.previousTickerData = null;
+      } else {
+        this.previousTickerData = {
+          ticker: result.ticker,
+          open: result.open,
+          high: result.high,
+          low: result.low,
+          close: result.close,
+          volume: result.volume,
+        };
+      }
+    } catch (e) {
+      this.previousTickerData = null;
+    }
+  },
+
   // Get next N trading dates
   getNextDates(n) {
     const currentIndex = this.dates.indexOf(this.currentDate);
@@ -67,11 +105,13 @@ const simulatorCard = {
   },
 
   // Jump to specific date
-  jumpToDate(dateKey) {
+  async jumpToDate(dateKey) {
     this.currentDate = dateKey;
+    this.previousDate = this.getPreviousDate();
     this.showFastForward = false;
     if (this.ticker) {
       this.selectedTicker = this.ticker;
+      await this.fetchPreviousTickerData();
     }
     if (this.selectedTicker) {
       this.fetchTickerData(this.selectedTicker);
@@ -132,6 +172,7 @@ const simulatorCard = {
     this.ticker = this.selectedTicker;
     this.shares = maxShares;
     this.cash = this.cash - cost;
+    this.previousTickerData = null; // Reset - will be set on next advanceDate
 
     this.advanceDate();
   },
@@ -146,6 +187,7 @@ const simulatorCard = {
     this.cash = this.cash + proceeds;
     this.ticker = null;
     this.shares = 0;
+    this.previousTickerData = null;
 
     this.advanceDate();
   },
@@ -156,13 +198,15 @@ const simulatorCard = {
   },
 
   // Advance to next trading date
-  advanceDate() {
+  async advanceDate() {
     const nextDate = this.getNextDate();
     if (nextDate) {
+      this.previousDate = this.currentDate;
       this.currentDate = nextDate;
-      // If we have a position, show that ticker's data
+      // If we have a position, show that ticker's data and fetch previous day data
       if (this.ticker) {
         this.selectedTicker = this.ticker;
+        await this.fetchPreviousTickerData();
       }
       // Fetch data for selected ticker (position or inquiry)
       if (this.selectedTicker) {
@@ -186,10 +230,23 @@ const simulatorCard = {
     const equityValue = hasPosition && state.tickerData ? state.shares * this.getMidpoint(state.tickerData) : 0;
     const totalValue = state.cash + equityValue;
 
+    // Calculate delta (change from previous trading day)
+    let delta = null;
+    let deltaPercent = null;
+    if (hasPosition && state.tickerData && state.previousTickerData) {
+      const currentMid = this.getMidpoint(state.tickerData);
+      const previousMid = this.getMidpoint(state.previousTickerData);
+      delta = (currentMid - previousMid) * state.shares;
+      deltaPercent = ((currentMid - previousMid) / previousMid) * 100;
+    }
+
     return `
       <div class="sim-content">
         <div class="sim-status">
-          <div class="sim-date">${state.currentDate ? this.formatDate(state.currentDate) : 'Loading...'}</div>
+          <div class="sim-date-row">
+            <span class="sim-date">${state.currentDate ? this.formatDate(state.currentDate) : 'Loading...'}</span>
+            <span class="${delta !== null ? (delta >= 0 ? 'sim-delta-up' : 'sim-delta-down') : 'sim-delta-none'}">${delta !== null ? (delta >= 0 ? '+' : '') + '$' + delta.toFixed(2) + ' (' + (deltaPercent >= 0 ? '+' : '') + deltaPercent.toFixed(2) + '%)' : ''}</span>
+          </div>
           <div class="sim-portfolio-label">Your position:</div>
           <div class="sim-portfolio-grid">
             <div class="sim-portfolio-row">
@@ -270,10 +327,16 @@ const simulatorCard = {
       margin-bottom: 8px;
     }
 
+    .sim-date-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
     .sim-date {
       font-size: 14px;
       font-weight: bold;
-      margin-bottom: 4px;
     }
 
     .sim-portfolio-label {
@@ -308,6 +371,14 @@ const simulatorCard = {
     .sim-label {
       color: #666;
       margin-right: 4px;
+    }
+
+    .sim-delta-up {
+      color: #00c853;
+    }
+
+    .sim-delta-down {
+      color: #ff1744;
     }
 
     .sim-divider {
@@ -470,6 +541,8 @@ const simulatorCard = {
     simulatorCard.cash = 1000;
     simulatorCard.selectedTicker = '';
     simulatorCard.tickerData = null;
+    simulatorCard.previousTickerData = null;
+    simulatorCard.previousDate = null;
     simulatorCard.loading = false;
     simulatorCard.showFastForward = false;
     simulatorCard.dates = [];
