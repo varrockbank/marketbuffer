@@ -231,27 +231,28 @@ const simulatorCard = {
     const totalValue = state.cash + equityValue;
 
     // Calculate delta (change from previous trading day)
-    let delta = null;
     let deltaPercent = null;
     if (hasPosition && state.tickerData && state.previousTickerData) {
       const currentMid = this.getMidpoint(state.tickerData);
       const previousMid = this.getMidpoint(state.previousTickerData);
-      delta = (currentMid - previousMid) * state.shares;
       deltaPercent = ((currentMid - previousMid) / previousMid) * 100;
     }
+
+    // Format number with commas
+    const formatMoney = (n) => '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
     return `
       <div class="sim-content">
         <div class="sim-status">
           <div class="sim-date-row">
             <span class="sim-date">${state.currentDate ? this.formatDate(state.currentDate) : 'Loading...'}</span>
-            <span class="${delta !== null ? (delta >= 0 ? 'sim-delta-up' : 'sim-delta-down') : 'sim-delta-none'}">${delta !== null ? (delta >= 0 ? '+' : '') + '$' + delta.toFixed(2) + ' (' + (deltaPercent >= 0 ? '+' : '') + deltaPercent.toFixed(2) + '%)' : ''}</span>
+            <span class="${deltaPercent !== null ? (deltaPercent >= 0 ? 'sim-delta-up' : 'sim-delta-down') : 'sim-delta-none'}">${deltaPercent !== null ? (deltaPercent >= 0 ? '+' : '') + deltaPercent.toFixed(2) + '%' : ''}</span>
           </div>
           <div class="sim-portfolio-label">Your position:</div>
           <div class="sim-portfolio-grid">
             <div class="sim-portfolio-row">
               <span class="sim-label">Cash:</span>
-              <span>$${state.cash.toFixed(2)}</span>
+              <span>${formatMoney(state.cash)}</span>
             </div>
             <div class="sim-portfolio-row">
               <span class="sim-label">Ticker:</span>
@@ -263,11 +264,11 @@ const simulatorCard = {
             </div>
             <div class="sim-portfolio-row">
               <span class="sim-label">Equity Value:</span>
-              <span>${hasPosition ? '$' + equityValue.toFixed(2) : '-'}</span>
+              <span>${hasPosition ? formatMoney(equityValue) : '-'}</span>
             </div>
             <div class="sim-portfolio-row sim-total">
               <span class="sim-label">Total Value:</span>
-              <span>$${totalValue.toFixed(2)}</span>
+              <span>${formatMoney(totalValue)}</span>
             </div>
           </div>
         </div>
@@ -284,11 +285,11 @@ const simulatorCard = {
           </div>
 
           <div class="sim-ohlc">
-            <div class="sim-ohlc-row"><span>Open:</span> <span>${state.tickerData ? '$' + state.tickerData.open.toFixed(2) : '-'}</span></div>
-            <div class="sim-ohlc-row"><span>High:</span> <span>${state.tickerData ? '$' + state.tickerData.high.toFixed(2) : '-'}</span></div>
-            <div class="sim-ohlc-row"><span>Low:</span> <span>${state.tickerData ? '$' + state.tickerData.low.toFixed(2) : '-'}</span></div>
-            <div class="sim-ohlc-row"><span>Close:</span> <span>${state.tickerData ? '$' + state.tickerData.close.toFixed(2) : '-'}</span></div>
-            <div class="sim-ohlc-row sim-midpoint"><span>Midpoint:</span> <span>${state.tickerData ? '$' + this.getMidpoint(state.tickerData).toFixed(2) : '-'}</span></div>
+            <div class="sim-ohlc-row"><span>Open:</span> <span>${state.tickerData ? formatMoney(state.tickerData.open) : '-'}</span></div>
+            <div class="sim-ohlc-row"><span>High:</span> <span>${state.tickerData ? formatMoney(state.tickerData.high) : '-'}</span></div>
+            <div class="sim-ohlc-row"><span>Low:</span> <span>${state.tickerData ? formatMoney(state.tickerData.low) : '-'}</span></div>
+            <div class="sim-ohlc-row"><span>Close:</span> <span>${state.tickerData ? formatMoney(state.tickerData.close) : '-'}</span></div>
+            <div class="sim-ohlc-row sim-midpoint"><span>Midpoint:</span> <span>${state.tickerData ? formatMoney(this.getMidpoint(state.tickerData)) : '-'}</span></div>
           </div>
         </div>
 
