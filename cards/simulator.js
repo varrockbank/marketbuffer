@@ -1191,6 +1191,12 @@ const simulatorCard = {
       simulatorCard.currentDate = simulatorCard.dates[0];
     }
 
+    // Default to first ticker if none selected
+    if (!simulatorCard.selectedTicker && simulatorCard.tickers.length > 0) {
+      simulatorCard.selectedTicker = simulatorCard.tickers[0];
+      simulatorCard.fetchTickerData(simulatorCard.selectedTicker);
+    }
+
     // Add keyboard listener
     simulatorCard._keyHandler = (e) => {
       // Only handle if simulator window is open
