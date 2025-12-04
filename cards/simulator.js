@@ -646,7 +646,7 @@ const simulatorCard = {
     .sim-details-top {
       flex: 0 0 auto;
       border-bottom: 1px solid var(--window-border);
-      height: 240px;
+      height: 170px;
       background: #fff;
       width: 300px;
       min-width: 300px;
@@ -665,7 +665,7 @@ const simulatorCard = {
     .sim-timeline-info {
       height: 20px;
       font-size: 10px;
-      padding: 4px 0;
+      padding: 4px 0 0 0;
       white-space: nowrap;
       flex-shrink: 0;
       display: flex;
@@ -704,7 +704,7 @@ const simulatorCard = {
       overflow-x: auto;
       display: flex;
       align-items: flex-end;
-      padding-top: 20px;
+      padding-top: 10px;
     }
 
     .sim-timeline-segments {
@@ -716,7 +716,7 @@ const simulatorCard = {
 
     .sim-timeline-segment {
       width: 10px;
-      height: 160px;
+      height: 100px;
       position: relative;
       flex-shrink: 0;
       cursor: pointer;
@@ -724,7 +724,7 @@ const simulatorCard = {
     }
 
     .sim-timeline-segment:hover {
-      height: 180px;
+      height: 110px;
     }
 
     .sim-timeline-hover-arrow {
@@ -748,7 +748,7 @@ const simulatorCard = {
       bottom: 100%;
       left: 50%;
       transform: translateX(-50%);
-      margin-bottom: 4px;
+      margin-bottom: 0;
       font-size: 12px;
       color: var(--text-color);
     }
@@ -783,7 +783,7 @@ const simulatorCard = {
     .sim-ledger-header {
       font-weight: bold;
       font-size: 11px;
-      margin-bottom: 8px;
+      margin-bottom: 4px;
     }
 
     .sim-ledger-empty {
