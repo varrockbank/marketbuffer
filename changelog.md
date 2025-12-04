@@ -1,5 +1,37 @@
 # Changelog
 
+## 0.4.0-alpha.2 - December 2, 2025
+- Workspaces now preserve window positions when switching tabs
+- Window state (position, size, tabs) restored when returning to a workspace
+
+## 0.4.0-alpha.1 - December 2, 2025
+- Added workspaces feature with multiple tabs
+- Each workspace maintains its own set of open windows
+- Click + button to create new workspace
+- Click tabs to switch between workspaces
+- Workspace state persists in localStorage
+
+## 0.3.0-alpha.6 - December 2, 2025
+- Terminal prompt is now part of flex layout instead of floating
+- Desktop viewport and terminal prompt share space properly
+- Sidebar toggle with animated collapse/expand
+
+## 0.3.0-alpha.5 - December 2, 2025
+- Refactored window management logic into os.js module
+- Added sidebar toggle button (<<<) with animation
+- Fixed settings content height issue
+
+## 0.3.0-alpha.4 - December 2, 2025
+- Added Stocks app with Historical and Live tabs
+- Live tab integrates with Alpaca API for real-time intraday data
+- Candlestick charts with configurable candle sizes (1m, 5m, 15m, 30m, 1h)
+- Zoom controls for chart viewing
+- Scrollable charts with dynamic Y-axis scaling
+- Pin stocks to sidebar for quick access
+- Added Window Management settings section
+- Snap to Grid feature for window dragging
+- Configurable grid size (10-80px) with live preview overlay
+
 ## 0.3.0-alpha.3 - November 29, 2025
 - Added Tamagotchi virtual pet app
 - Added Triple Triad card game

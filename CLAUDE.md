@@ -59,3 +59,19 @@ When making changes, always update:
 ## Code Style
 
 - Always use trailing commas in arrays and objects
+
+## Data API
+
+The stock data API has two implementations that must be kept in sync:
+- `server/main.go` - HTTP server for local development
+- `server/wasm/main.go` - WASM module for static deployment
+
+When adding or modifying API endpoints:
+1. Update both `main.go` and `wasm/main.go` with the same logic
+2. Update `server-service.js` to call the new function
+3. Rebuild WASM with `cd server && make wasm`
+
+Current API functions:
+- `getTickers()` - List available stock tickers
+- `getOHLC(ticker, year, window)` - Get monthly OHLC data
+- `getDaily(ticker, year, month)` - Get daily prices for a specific month

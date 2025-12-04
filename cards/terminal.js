@@ -25,33 +25,15 @@ const terminalCard = {
 
   styles: `
     .terminal-prompt-box {
-      position: fixed;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 560px;
-      max-width: calc(100vw - 40px);
+      width: 100%;
       background: #7A68AA;
       border: none;
       border-top: 4px solid #83C18D;
       box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.2);
-      transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-                  width 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.6s,
-                  left 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.6s,
-                  max-width 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.6s,
-                  transform 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.6s;
       z-index: 400;
       display: flex;
       flex-direction: column;
       overflow: hidden;
-    }
-
-    .terminal-prompt-box.expanded {
-      left: 0;
-      transform: translateX(0);
-      width: 100%;
-      max-width: 100%;
-      height: 50vh;
     }
 
     .terminal-prompt-box,
@@ -70,9 +52,18 @@ const terminalCard = {
       transition: opacity 0.5s ease;
     }
 
+    .terminal-output-drawer {
+      height: 0;
+      overflow: hidden;
+      transition: height 1s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .terminal-prompt-box.expanded .terminal-output-drawer {
+      height: calc(50vh - 48px);
+    }
+
     .terminal-output {
-      flex: 1;
-      min-height: 0;
+      height: calc(50vh - 48px);
       overflow-y: auto;
       padding: 20px 24px 8px;
       font-family: 'SF Mono', Monaco, 'Courier New', monospace;
@@ -82,15 +73,11 @@ const terminalCard = {
       word-wrap: break-word;
       line-height: 1.5;
       opacity: 0;
-      transform: translateY(20px);
-      transition: opacity 0.4s ease 0.2s, transform 0.4s ease 0.2s;
-      display: none;
+      transition: opacity 0.3s ease;
     }
 
     .terminal-prompt-box.expanded .terminal-output {
-      display: block;
       opacity: 1;
-      transform: translateY(0);
     }
 
     .terminal-output::-webkit-scrollbar {
@@ -173,7 +160,9 @@ const terminalCard = {
 
   render() {
     return `
-      <div class="terminal-output" id="terminal-output"></div>
+      <div class="terminal-output-drawer">
+        <div class="terminal-output" id="terminal-output"></div>
+      </div>
       <div class="terminal-input-wrapper">
         <span class="terminal-caret">&gt;</span>
         <input type="text" class="terminal-input" id="terminal-input" placeholder="Ask anything..." autocomplete="off" spellcheck="false">

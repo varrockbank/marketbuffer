@@ -95,7 +95,7 @@
     .menu-bar {
       background: var(--menu-bg);
       border-bottom: 2px solid var(--menu-border);
-      height: 20px;
+      height: 28px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -110,6 +110,17 @@
     .menu-bar-left {
       display: flex;
       align-items: center;
+      height: 100%;
+    }
+
+    .sidebar-toggle-container {
+      width: 200px;
+      flex-shrink: 0;
+      transition: width 0.3s ease;
+    }
+
+    .sidebar-toggle-container.collapsed {
+      width: auto;
     }
 
     .menu-bar-right {
@@ -118,7 +129,7 @@
     }
 
     .menu-item {
-      padding: 2px 12px;
+      padding: 6px 12px;
       cursor: pointer;
     }
 
@@ -131,9 +142,138 @@
       color: var(--window-bg);
     }
 
+    /* Workspace tabs container */
+    .workspace-tabs-container {
+      display: flex;
+      align-items: center;
+      height: 100%;
+    }
+
+    /* Separator between tabs */
+    .workspace-tab-separator {
+      color: var(--window-border);
+      margin: 0 4px;
+      user-select: none;
+    }
+
+    /* Individual workspace tab */
+    .workspace-tab {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 4px 2px 4px;
+      margin: 0 6px;
+      cursor: pointer;
+      width: 200px;
+      box-sizing: border-box;
+      border-radius: 4px;
+    }
+
+    .workspace-tab-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+      text-align: center;
+    }
+
+    .workspace-tab:hover {
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    .workspace-tab-close {
+      opacity: 0;
+      font-size: 12px;
+      padding: 0 4px;
+      height: 14px;
+      line-height: 14px;
+      border-radius: 3px;
+      flex-shrink: 0;
+      position: relative;
+      top: -2px;
+    }
+
+    .workspace-tab:hover .workspace-tab-close {
+      opacity: 0.6;
+    }
+
+    .workspace-tab-close:hover {
+      opacity: 1 !important;
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    .workspace-tab.active .workspace-tab-close {
+      top: 0px;
+    }
+
+    /* Active workspace tab */
+    .workspace-tab.active {
+      top: 0px;
+      background: var(--window-bg);
+      padding: 3px 4px 4px 4px;
+      margin: 0 6px -6px 6px;
+      border: 1px solid var(--window-border);
+      border-bottom: none;
+      border-radius: 6px 6px 0 0;
+      width: 200px;
+      max-width: 200px;
+      box-sizing: border-box;
+    }
+
+    .workspace-tab.active:hover {
+      background: var(--window-bg);
+    }
+
+    .workspace-tab.active::before,
+    .workspace-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      width: 6px;
+      height: 6px;
+    }
+
+    .workspace-tab.active::before {
+      left: -6px;
+      background: radial-gradient(circle at 0 0, transparent 5px, var(--window-border) 5px, var(--window-border) 6px, var(--window-bg) 6px);
+    }
+
+    .workspace-tab.active::after {
+      right: -6px;
+      background: radial-gradient(circle at 100% 0, transparent 5px, var(--window-border) 5px, var(--window-border) 6px, var(--window-bg) 6px);
+    }
+
+    /* Add workspace button */
+    .workspace-add-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      margin-left: 4px;
+      margin-top: 2px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      line-height: 1;
+      padding-bottom: 2px;
+      color: var(--text-color);
+      opacity: 0.6;
+      position: relative;
+      top: -2px;
+    }
+
+    .workspace-add-btn:hover {
+      background: var(--hover-bg);
+      opacity: 1;
+    }
+
     .menu-item-container {
       position: relative;
     }
+
 
     .menu-dropdown {
       display: none;
@@ -175,6 +315,37 @@
       margin: 4px 0;
     }
 
+    /* Sidebar Toggle Button */
+    .sidebar-toggle {
+      padding: 6px 8px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-right: 4px;
+      display: inline-block;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar-toggle:hover {
+      background: var(--text-color);
+      color: var(--window-bg);
+    }
+
+    .sidebar-toggle.collapsed {
+      transform: rotate(180deg);
+    }
+
+    /* Primary Sidebar Container */
+    .sidebar-container {
+      width: 200px;
+      flex-shrink: 0;
+      overflow: hidden;
+      transition: width 0.3s ease;
+    }
+
+    .sidebar-container.collapsed {
+      width: 0;
+    }
+
     /* Primary Sidebar */
     .primary-sidebar {
       width: 200px;
@@ -182,7 +353,7 @@
       border-right: 2px solid var(--window-border);
       display: flex;
       flex-direction: column;
-      flex-shrink: 0;
+      height: 100%;
     }
 
     .sidebar-section {
@@ -369,17 +540,31 @@
     .main-layout {
       display: flex;
       position: fixed;
-      top: 20px;
+      top: 28px;
       left: 0;
       right: 0;
       bottom: 0;
     }
 
+    /* Desktop Area (viewport + prompt) */
+    .desktop-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
     /* Desktop */
     .desktop {
       flex: 1;
+      min-height: 0;
       position: relative;
       overflow: hidden;
+    }
+
+    /* Prompt Container */
+    .prompt-container {
+      flex-shrink: 0;
     }
 
     /* Desktop Icons */
@@ -1022,58 +1207,6 @@
       color: var(--text-color);
     }
 
-    /* Settings Window */
-    .settings-content {
-      padding: 12px;
-      background: var(--window-bg);
-      max-height: 350px;
-      overflow-y: auto;
-    }
-
-    .settings-section {
-      margin-bottom: 16px;
-    }
-
-    .settings-section:last-child {
-      margin-bottom: 0;
-    }
-
-    .settings-section-title {
-      font-weight: bold;
-      font-size: 11px;
-      margin-bottom: 8px;
-      padding-bottom: 4px;
-      border-bottom: 1px solid var(--hover-bg);
-    }
-
-    .settings-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 6px 0;
-      font-size: 11px;
-    }
-
-    .settings-label {
-      flex: 1;
-    }
-
-    .settings-select {
-      padding: 3px 6px;
-      font-family: inherit;
-      font-size: 10px;
-      border: 1px solid var(--window-border);
-      background: var(--input-bg);
-      color: var(--text-color);
-      min-width: 100px;
-    }
-
-    .settings-checkbox {
-      width: 14px;
-      height: 14px;
-      cursor: pointer;
-    }
-
     /* Wallpaper Picker */
     .wallpaper-content {
       padding: 12px;
@@ -1462,10 +1595,13 @@
   <!-- Menu Bar -->
   <div class="menu-bar">
     <div class="menu-bar-left">
-      <div class="menu-item-container">
-        <span class="menu-item menu-item-bold" id="active-window-menu"></span>
-        <div class="menu-dropdown" id="active-window-dropdown"></div>
+      <div class="sidebar-toggle-container" id="sidebar-toggle-container">
+        <span class="sidebar-toggle" id="sidebar-toggle" title="Toggle Sidebar">&lt;&lt;&lt;</span>
       </div>
+      <div class="workspace-tabs-container" id="workspace-tabs-container">
+        <!-- Workspace tabs rendered dynamically -->
+      </div>
+      <div class="workspace-add-btn" id="workspace-add-btn" title="Add Workspace">+</div>
     </div>
     <div class="menu-bar-right">
       <div class="menu-item-container">
@@ -1481,8 +1617,9 @@
   <!-- Main Layout -->
   <div class="main-layout">
     <!-- Primary Sidebar -->
+    <div class="sidebar-container" id="sidebar-container">
     <div class="primary-sidebar" id="primary-sidebar">
-      <div class="sidebar-section">
+      <!-- <div class="sidebar-section">
         <div class="sidebar-section-header">Workspace</div>
         <div class="sidebar-item active">
           <span class="sidebar-item-icon">&#9642;</span>
@@ -1496,7 +1633,7 @@
           <span class="sidebar-item-icon">&#9642;</span>
           Source Control
         </div>
-      </div>
+      </div> -->
       <div class="sidebar-section" id="pinned-section">
         <div class="sidebar-section-header">Pinned</div>
         <div id="pinned-files">
@@ -1513,10 +1650,16 @@
         Marketbuffer v1.0
       </div>
     </div>
+    </div>
 
-    <!-- Desktop -->
-    <div class="desktop" id="desktop">
-      <!-- Windows are rendered dynamically -->
+    <!-- Desktop Area (viewport + prompt) -->
+    <div class="desktop-area">
+      <div class="desktop" id="desktop">
+        <!-- Windows are rendered dynamically -->
+      </div>
+      <div class="prompt-container" id="prompt-container">
+        <!-- Terminal prompt rendered by JavaScript -->
+      </div>
     </div>
   </div>
 
@@ -1595,17 +1738,14 @@
       });
     }
 
-    // Initialize pinned files from OS module
-    OS.loadPinnedFiles();
-
     // Register FileTree callbacks (systemState available after loadSystemState)
     FileTree.registerCallbacks({
       getSystemState: () => systemState,
       saveSystemState: saveSystemState,
     });
 
-    // Initial windows configuration (loaded from cards/*.js)
-    const initialWindows = [
+    // Register windows with OS
+    OS.registerWindows([
       editorCard,
       finderCard,
       aboutCard,
@@ -1617,22 +1757,14 @@
       neogotchiCard,
       trinaleCard,
       stocksCard,
-    ];
+    ]);
 
-    // Open windows list (copy from initial on load)
-    let openWindows = [];
-
-    // Active window ID
-    let activeWindowId = null;
-
-    // Dragging state
-    let activeWindow = null;
-    let offsetX = 0;
-    let offsetY = 0;
+    // Alias for backward compatibility within this file
+    const initialWindows = OS.initialWindows;
 
     // Save windows state to systemState
     function saveState() {
-      const state = openWindows.map(win => ({
+      const state = OS.openWindows.map(win => ({
         id: win.id,
         zIndex: win.zIndex,
         top: win.top,
@@ -1655,8 +1787,8 @@
       if (systemState.windows !== null && systemState.windows !== undefined) {
         try {
           // Merge saved state with initial windows (to get non-serialized properties)
-          openWindows = systemState.windows.map(savedWin => {
-            const initialWin = initialWindows.find(w => w.id === savedWin.id);
+          OS.openWindows = systemState.windows.map(savedWin => {
+            const initialWin = OS.getCard(savedWin.id);
             if (initialWin) {
               const merged = { ...initialWin, ...savedWin };
               // Restore pane content for tabbed windows
@@ -1683,6 +1815,13 @@
       // Load system state first (fetches version from default-state.json)
       await loadSystemState();
 
+      // Initialize pinned files (after state is loaded so defaults are available)
+      OS.loadPinnedFiles();
+
+      // Initialize workspaces
+      OS.initWorkspaces();
+      renderWorkspaceTabs();
+
       // Apply theme, font size, and wallpaper after state is loaded
       loadTheme();
       loadFontSize();
@@ -1696,25 +1835,28 @@
       if (!loadState()) {
         // Open only default windows, not all
         const defaultWindowIds = systemState.defaultWindows || ['editor', 'about'];
-        openWindows = initialWindows
+        OS.openWindows = initialWindows
           .filter(win => defaultWindowIds.includes(win.id))
           .map(win => ({ ...win }));
       }
       renderWindows();
 
-      // Inject styles from all cards
+      // Inject styles from all cards and call boot() if defined
       initialWindows.forEach(card => {
         if (card.styles) {
           const styleEl = document.createElement('style');
           styleEl.textContent = card.styles;
           document.head.appendChild(styleEl);
         }
+        if (typeof card.boot === 'function') {
+          card.boot();
+        }
       });
 
       // Set initial active window to the one with highest zIndex
-      if (openWindows.length > 0) {
-        const topWindow = openWindows.reduce((a, b) => a.zIndex > b.zIndex ? a : b);
-        activeWindowId = topWindow.id;
+      if (OS.openWindows.length > 0) {
+        const topWindow = OS.getTopWindow();
+        OS.activeWindowId = topWindow.id;
         updateActiveWindowMenu();
       }
 
@@ -1748,7 +1890,7 @@
       terminalEl.className = 'terminal-prompt-box';
       terminalEl.id = 'terminal-prompt-box';
       terminalEl.innerHTML = terminalCard.render();
-      document.body.appendChild(terminalEl);
+      document.getElementById('prompt-container').appendChild(terminalEl);
 
       // Initialize terminal state
       terminalCard.init(system);
@@ -1785,7 +1927,7 @@
       const desktop = document.getElementById('desktop');
       desktop.innerHTML = '';
 
-      openWindows.forEach((win, index) => {
+      OS.openWindows.forEach((win, index) => {
         const windowEl = document.createElement('div');
 
         if (win.tabbed) {
@@ -1793,11 +1935,7 @@
           windowEl.className = 'tabbed-window';
           windowEl.id = 'tabbed-window';
           windowEl.dataset.windowId = win.id;
-          windowEl.style.zIndex = win.zIndex;
-          windowEl.style.top = win.top + 'px';
-          windowEl.style.left = win.left + 'px';
-          windowEl.style.right = win.right + 'px';
-          windowEl.style.bottom = win.bottom + 'px';
+          OS.applyTabbedWindowStyles(windowEl, win);
 
           // Find the card and use its render method
           const card = initialWindows.find(c => c.id === win.id);
@@ -1808,23 +1946,11 @@
           // Regular window - positioned relative to desktop container
           windowEl.className = `window ${win.draggable ? 'window-draggable' : ''}`;
           windowEl.dataset.windowId = win.id;
-          windowEl.style.top = win.top + 'px';
-          windowEl.style.right = win.right + 'px';
-          windowEl.style.width = win.width + 'px';
-          windowEl.style.zIndex = win.zIndex;
+          OS.applyWindowStyles(windowEl, win);
 
-          const closeBoxHtml = win.closeable
-            ? `<div class="close-box" data-window-id="${win.id}"></div>`
-            : '';
-
+          const closeBoxHtml = OS.getCloseBoxHTML(win);
           const contentHtml = typeof win.content === 'function' ? win.content() : win.content;
-          windowEl.innerHTML = `
-            <div class="window-title-bar">
-              ${closeBoxHtml}
-              <span class="window-title">${win.title}</span>
-            </div>
-            ${contentHtml}
-          `;
+          windowEl.innerHTML = OS.createWindowHTML(win, closeBoxHtml, contentHtml);
         }
 
         desktop.appendChild(windowEl);
@@ -1866,13 +1992,13 @@
         titleBar.addEventListener('mousedown', (e) => {
           if (e.target.closest('.close-box')) return;
 
-          activeWindow = titleBar.closest('.window');
-          const rect = activeWindow.getBoundingClientRect();
-          offsetX = e.clientX - rect.left;
-          offsetY = e.clientY - rect.top;
+          OS.activeWindow = titleBar.closest('.window');
+          const rect = OS.activeWindow.getBoundingClientRect();
+          OS.dragOffsetX = e.clientX - rect.left;
+          OS.dragOffsetY = e.clientY - rect.top;
 
           // Bring window to front
-          bringToFront(activeWindow);
+          bringToFront(OS.activeWindow);
         });
       });
 
@@ -1897,8 +2023,8 @@
     // Close a window (only if closeable)
     function closeWindow(windowId) {
       // Check if window exists and is closeable
-      const win = openWindows.find(w => w.id === windowId);
-      const initialWin = initialWindows.find(w => w.id === windowId);
+      const win = OS.getOpenWindow(windowId);
+      const initialWin = OS.getCard(windowId);
       const isCloseable = win ? win.closeable : (initialWin ? initialWin.closeable : true);
 
       if (!isCloseable) return; // Can't close non-closeable windows
@@ -1910,19 +2036,22 @@
       }
 
       // Remove from openWindows if present
-      const wasInArray = openWindows.some(w => w.id === windowId);
-      openWindows = openWindows.filter(w => w.id !== windowId);
+      const wasInArray = OS.isWindowOpen(windowId);
+      OS.removeOpenWindow(windowId);
 
       // Update active window
-      if (activeWindowId === windowId || !wasInArray) {
-        if (openWindows.length > 0) {
-          const topWindow = openWindows.reduce((a, b) => a.zIndex > b.zIndex ? a : b);
-          activeWindowId = topWindow.id;
+      if (OS.activeWindowId === windowId || !wasInArray) {
+        const topWindow = OS.getTopWindow();
+        if (topWindow) {
+          OS.activeWindowId = topWindow.id;
         } else {
-          activeWindowId = null;
+          OS.activeWindowId = null;
         }
         updateActiveWindowMenu();
       }
+
+      // Update workspace apps
+      OS.updateWorkspaceApps();
 
       saveState();
     }
@@ -1930,72 +2059,30 @@
     // Bring window to front
     function bringToFront(windowEl) {
       const windowId = windowEl.dataset.windowId;
-
-      // Check if window is actually in our managed list
-      const win = openWindows.find(w => w.id === windowId);
-      if (!win) return; // Don't bring to front if not in openWindows
-
-      // Update zIndex in openWindows array
-      openWindows.forEach(w => {
-        if (w.tabbed) {
-          w.zIndex = 50;
-        } else {
-          w.zIndex = 100;
-        }
-      });
-      win.zIndex = 200;
-
-      // Update DOM
-      document.querySelectorAll('.window').forEach(w => w.style.zIndex = 100);
-      const tabbedWin = document.getElementById('tabbed-window');
-      if (tabbedWin) tabbedWin.style.zIndex = 50;
-      windowEl.style.zIndex = 200;
-
-      // Set active window
-      activeWindowId = windowId;
+      OS.bringToFront(windowId);
       updateActiveWindowMenu();
-
       saveState();
     }
 
     // Bring tabbed window to front
     function bringTabbedToFront() {
-      // Update zIndex in openWindows array
-      const tabbedWindow = openWindows.find(w => w.tabbed);
-      openWindows.forEach(w => {
-        if (w.tabbed) {
-          w.zIndex = 200;
-        } else {
-          w.zIndex = 100;
-        }
-      });
-
-      // Update DOM
-      document.querySelectorAll('.window').forEach(w => w.style.zIndex = 100);
-      const tabbedWin = document.getElementById('tabbed-window');
-      if (tabbedWin) tabbedWin.style.zIndex = 200;
-
-      // Set active window
-      if (tabbedWindow) {
-        activeWindowId = tabbedWindow.id;
-        updateActiveWindowMenu();
-      }
-
+      OS.bringTabbedToFront();
+      updateActiveWindowMenu();
       saveState();
     }
 
     // Mouse move handler for dragging
     document.addEventListener('mousemove', (e) => {
-      if (!activeWindow) return;
+      if (!OS.activeWindow) return;
 
       const desktop = document.getElementById('desktop');
       const desktopRect = desktop.getBoundingClientRect();
-      const windowWidth = activeWindow.offsetWidth;
-      const windowHeight = activeWindow.offsetHeight;
+      const windowWidth = OS.activeWindow.offsetWidth;
+      const windowHeight = OS.activeWindow.offsetHeight;
 
       // Calculate position relative to desktop
-      let top = e.clientY - desktopRect.top - offsetY;
-      let right = desktopRect.right - e.clientX - (windowWidth - offsetX);
+      let top = e.clientY - desktopRect.top - OS.dragOffsetY;
+      let right = desktopRect.right - e.clientX - (windowWidth - OS.dragOffsetX);
 
       // Constrain to desktop bounds (all four edges)
       const maxTop = desktopRect.height - windowHeight;
@@ -2004,12 +2091,28 @@
       top = Math.max(0, Math.min(top, maxTop));
       right = Math.max(0, Math.min(right, maxRight));
 
-      activeWindow.style.top = top + 'px';
-      activeWindow.style.right = right + 'px';
+      // Snap to grid if enabled
+      if (systemState && systemState.snapToGrid) {
+        const gridSize = systemState.gridSize || 50;
+        // Show grid overlay while dragging
+        OS.showDragGridOverlay(gridSize, OS.activeWindow);
+        // Convert right to left for snapping, then back
+        const left = desktopRect.width - right - windowWidth;
+        const snappedTop = OS.snapToGrid(top, gridSize);
+        const snappedLeft = OS.snapToGrid(left, gridSize);
+        top = snappedTop;
+        right = desktopRect.width - snappedLeft - windowWidth;
+        // Re-constrain after snapping
+        top = Math.max(0, Math.min(top, maxTop));
+        right = Math.max(0, Math.min(right, maxRight));
+      }
+
+      OS.activeWindow.style.top = top + 'px';
+      OS.activeWindow.style.right = right + 'px';
 
       // Update position in openWindows array
-      const windowId = activeWindow.dataset.windowId;
-      const win = openWindows.find(w => w.id === windowId);
+      const windowId = OS.activeWindow.dataset.windowId;
+      const win = OS.getOpenWindow(windowId);
       if (win) {
         win.top = top;
         win.right = right;
@@ -2017,10 +2120,13 @@
     });
 
     document.addEventListener('mouseup', () => {
-      if (activeWindow) {
+      if (OS.activeWindow) {
+        // Hide grid overlay and restore z-index
+        OS.hideDragGridOverlay();
+        OS.activeWindow.style.zIndex = 200;
         saveState();
       }
-      activeWindow = null;
+      OS.activeWindow = null;
     });
 
     // Initialize
@@ -2109,6 +2215,18 @@
       }
     });
 
+    // Delegate input events to cards (for real-time slider updates)
+    document.addEventListener('input', (e) => {
+      const windowEl = e.target.closest('[data-window-id]');
+      if (windowEl) {
+        const windowId = windowEl.dataset.windowId;
+        const card = initialWindows.find(c => c.id === windowId);
+        if (card && typeof card.handleInput === 'function') {
+          card.handleInput(e);
+        }
+      }
+    });
+
     // Delegate click events to cards
     document.addEventListener('click', (e) => {
       const windowEl = e.target.closest('[data-window-id]');
@@ -2151,6 +2269,17 @@
         const card = initialWindows.find(c => c.id === windowId);
         if (card && typeof card.handleMouseOut === 'function') {
           card.handleMouseOut(e);
+        }
+      }
+    });
+
+    document.addEventListener('mouseup', (e) => {
+      const windowEl = e.target.closest('[data-window-id]');
+      if (windowEl) {
+        const windowId = windowEl.dataset.windowId;
+        const card = initialWindows.find(c => c.id === windowId);
+        if (card && typeof card.handleMouseUp === 'function') {
+          card.handleMouseUp(e);
         }
       }
     });
@@ -2231,14 +2360,116 @@
       });
     }
 
-    // Active window menu
+    // Active window menu (legacy - kept for compatibility)
     function updateActiveWindowMenu() {
-      const menuItem = document.getElementById('active-window-menu');
-      const win = openWindows.find(w => w.id === activeWindowId);
-      if (win) {
-        menuItem.textContent = win.title;
+      // Now handled by workspace tabs
+    }
+
+    // Workspace tabs
+    function renderWorkspaceTabs() {
+      const container = document.getElementById('workspace-tabs-container');
+      container.innerHTML = '';
+
+      OS.workspaces.forEach((workspace, index) => {
+        // Add separator before tabs (except first)
+        if (index > 0) {
+          const prevWorkspace = OS.workspaces[index - 1];
+          const separator = document.createElement('span');
+          separator.className = 'workspace-tab-separator';
+          separator.textContent = '|';
+          // Hide separator if either adjacent tab is active
+          if (workspace.id === OS.activeWorkspaceId || prevWorkspace.id === OS.activeWorkspaceId) {
+            separator.style.visibility = 'hidden';
+          }
+          container.appendChild(separator);
+        }
+
+        const tab = document.createElement('div');
+        tab.className = 'workspace-tab' + (workspace.id === OS.activeWorkspaceId ? ' active' : '');
+        tab.dataset.workspaceId = workspace.id;
+
+        // Only show close button if there's more than one workspace
+        const closeBtn = OS.workspaces.length > 1
+          ? `<span class="workspace-tab-close" data-workspace-id="${workspace.id}">&times;</span>`
+          : '';
+        tab.innerHTML = `<span class="workspace-tab-name">${workspace.name}</span>${closeBtn}`;
+
+        tab.addEventListener('click', (e) => {
+          // Don't switch if clicking the close button
+          if (e.target.classList.contains('workspace-tab-close')) {
+            e.stopPropagation();
+            OS.deleteWorkspace(workspace.id);
+            return;
+          }
+          OS.switchToWorkspace(workspace.id);
+        });
+
+        container.appendChild(tab);
+      });
+
+      // Add trailing separator before the + button
+      const lastWorkspace = OS.workspaces[OS.workspaces.length - 1];
+      if (OS.workspaces.length < 4) {
+        const separator = document.createElement('span');
+        separator.className = 'workspace-tab-separator';
+        separator.textContent = '|';
+        // Hide if last tab is active
+        if (lastWorkspace && lastWorkspace.id === OS.activeWorkspaceId) {
+          separator.style.visibility = 'hidden';
+        }
+        container.appendChild(separator);
+      }
+
+      // Hide/show the + button based on workspace count
+      const addBtn = document.getElementById('workspace-add-btn');
+      if (addBtn) {
+        addBtn.style.display = OS.workspaces.length >= 4 ? 'none' : 'flex';
+      }
+    }
+
+    function switchWorkspace(workspace) {
+      // Close all current windows (remove from DOM)
+      document.querySelectorAll('.window').forEach(w => w.remove());
+      const tabbedWindow = document.getElementById('tabbed-window');
+      if (tabbedWindow) tabbedWindow.remove();
+
+      // Clear open windows
+      OS.openWindows = [];
+
+      // Restore windows with saved state (positions, tabs, etc.)
+      if (workspace.windowState && workspace.windowState.length > 0) {
+        workspace.windowState.forEach(savedWin => {
+          const card = OS.getCard(savedWin.id);
+          if (card) {
+            // Merge card defaults with saved state
+            const restoredWin = { ...card, ...savedWin };
+            // Restore pane content for tabbed windows
+            if (restoredWin.tabs && editorCard) {
+              restoredWin.tabs = restoredWin.tabs.map(tab => ({
+                ...tab,
+                panes: tab.panes ? editorCard.restorePaneContent(tab.panes) : null,
+              }));
+            }
+            OS.addOpenWindow(restoredWin);
+            renderSingleWindow(restoredWin);
+          }
+        });
+      } else if (workspace.openApps && workspace.openApps.length > 0) {
+        // Fallback for old workspaces that only have app IDs
+        workspace.openApps.forEach(appId => {
+          const card = OS.getCard(appId);
+          if (card) {
+            openApplication(appId);
+          }
+        });
+      }
+
+      // Update active window
+      if (OS.openWindows.length > 0) {
+        const topWindow = OS.getTopWindow();
+        OS.activeWindowId = topWindow.id;
       } else {
-        menuItem.textContent = '';
+        OS.activeWindowId = null;
       }
     }
 
@@ -2246,7 +2477,7 @@
       const dropdown = document.getElementById('active-window-dropdown');
       dropdown.innerHTML = '';
 
-      const win = openWindows.find(w => w.id === activeWindowId);
+      const win = OS.getOpenWindow(OS.activeWindowId);
       if (!win || !win.contextMenu) return;
 
       win.contextMenu.forEach(item => {
@@ -2304,7 +2535,9 @@
 
     function closeActiveWindowMenu() {
       const dropdown = document.getElementById('active-window-dropdown');
-      dropdown.classList.remove('open');
+      if (dropdown) {
+        dropdown.classList.remove('open');
+      }
       highlightParentSplit(false);
     }
 
@@ -2314,7 +2547,7 @@
       dropdown.innerHTML = '';
 
       initialWindows.forEach(win => {
-        const isOpen = openWindows.some(w => w.id === win.id);
+        const isOpen = OS.isWindowOpen(win.id);
         const item = document.createElement('div');
         item.className = `menu-dropdown-item ${isOpen ? 'checked' : ''}`;
         item.textContent = win.title;
@@ -2335,29 +2568,28 @@
       closeAllItem.className = 'menu-dropdown-item';
       closeAllItem.textContent = 'Close All Windows';
       closeAllItem.addEventListener('click', () => {
-        openWindows.slice().forEach(w => OS.close(w.id));
+        OS.openWindows.slice().forEach(w => OS.close(w.id));
         closeApplicationsMenu();
       });
       dropdown.appendChild(closeAllItem);
     }
 
     function openApplication(windowId) {
-      const isOpen = openWindows.some(w => w.id === windowId);
-      if (isOpen) {
+      if (OS.isWindowOpen(windowId)) {
         // Window already open - bring to front
         const windowEl = document.querySelector(`[data-window-id="${windowId}"]`);
         if (windowEl) {
           bringToFront(windowEl);
         }
       } else {
-        const win = initialWindows.find(w => w.id === windowId);
+        const win = OS.getCard(windowId);
         if (win) {
           // Clean up any stale DOM element with the same ID
           const existingEl = document.querySelector(`[data-window-id="${windowId}"]`);
           if (existingEl) existingEl.remove();
 
           // Reset all z-indexes in data and DOM
-          openWindows.forEach(w => {
+          OS.openWindows.forEach(w => {
             w.zIndex = w.tabbed ? 50 : 100;
             const el = document.querySelector(`[data-window-id="${w.id}"]`);
             if (el) el.style.zIndex = w.zIndex;
@@ -2368,15 +2600,17 @@
           // Ensure tabbed windows have at least one tab
           if (newWin.tabbed && (!newWin.tabs || newWin.tabs.length === 0)) {
             // Find the card and let it initialize its default state
-            const card = initialWindows.find(c => c.id === newWin.id);
+            const card = OS.getCard(newWin.id);
             if (card && typeof card.initDefaultTab === 'function') {
               card.initDefaultTab(newWin);
             }
           }
 
-          openWindows.push(newWin);
+          OS.addOpenWindow(newWin);
           // Set as active window
-          activeWindowId = windowId;
+          OS.activeWindowId = windowId;
+          // Update workspace apps
+          OS.updateWorkspaceApps();
           saveState();
           // Render just the new window (DOM manipulation)
           renderSingleWindow(newWin);
@@ -2385,13 +2619,34 @@
       }
     }
 
+    // Get serialized window state for workspace saving
+    function getWindowState() {
+      return OS.openWindows.map(win => ({
+        id: win.id,
+        zIndex: win.zIndex,
+        top: win.top,
+        left: win.left,
+        right: win.right,
+        bottom: win.bottom,
+        width: win.width,
+        height: win.height,
+        activeTab: win.activeTab,
+        tabs: win.tabs ? win.tabs.map(tab => ({
+          ...tab,
+          panes: tab.panes && editorCard ? editorCard.stripPaneContent(tab.panes) : null,
+        })) : undefined,
+      }));
+    }
+
     // Register OS callbacks now that functions are defined
     OS.registerCallbacks({
       closeWindow: closeWindow,
       openApplication: openApplication,
-      getCard: (appId) => initialWindows.find(c => c.id === appId),
       renderPinnedFiles: renderPinnedFiles,
       renderFileTree: () => FileTree.render(),
+      renderWorkspaceTabs: renderWorkspaceTabs,
+      switchWorkspace: switchWorkspace,
+      getWindowState: getWindowState,
     });
 
     function renderSingleWindow(win) {
@@ -2403,11 +2658,7 @@
         windowEl.className = 'tabbed-window';
         windowEl.id = 'tabbed-window';
         windowEl.dataset.windowId = win.id;
-        windowEl.style.zIndex = win.zIndex;
-        windowEl.style.top = win.top + 'px';
-        windowEl.style.left = win.left + 'px';
-        windowEl.style.right = win.right + 'px';
-        windowEl.style.bottom = win.bottom + 'px';
+        OS.applyTabbedWindowStyles(windowEl, win);
 
         // Find the card and use its render method
         const card = initialWindows.find(c => c.id === win.id);
@@ -2426,14 +2677,9 @@
         // Regular window
         windowEl.className = `window ${win.draggable ? 'window-draggable' : ''}`;
         windowEl.dataset.windowId = win.id;
-        windowEl.style.top = win.top + 'px';
-        windowEl.style.right = win.right + 'px';
-        windowEl.style.width = win.width + 'px';
-        windowEl.style.zIndex = win.zIndex;
+        OS.applyWindowStyles(windowEl, win);
 
-        const closeBoxHtml = win.closeable
-          ? `<div class="close-box" data-window-id="${win.id}"></div>`
-          : '';
+        const closeBoxHtml = OS.getCloseBoxHTML(win);
 
         // Call init() on win before rendering content so it can set up state
         if (typeof win.init === 'function') {
@@ -2441,13 +2687,7 @@
         }
 
         const contentHtml = typeof win.content === 'function' ? win.content() : win.content;
-        windowEl.innerHTML = `
-          <div class="window-title-bar">
-            ${closeBoxHtml}
-            <span class="window-title">${win.title}</span>
-          </div>
-          ${contentHtml}
-        `;
+        windowEl.innerHTML = OS.createWindowHTML(win, closeBoxHtml, contentHtml);
 
         desktop.appendChild(windowEl);
         attachWindowEventListeners(windowEl, win);
@@ -2477,10 +2717,10 @@
         if (titleBar) {
           titleBar.addEventListener('mousedown', (e) => {
             if (e.target.closest('.close-box')) return;
-            activeWindow = windowEl;
+            OS.activeWindow = windowEl;
             const rect = windowEl.getBoundingClientRect();
-            offsetX = e.clientX - rect.left;
-            offsetY = e.clientY - rect.top;
+            OS.dragOffsetX = e.clientX - rect.left;
+            OS.dragOffsetY = e.clientY - rect.top;
             bringToFront(windowEl);
           });
         }
@@ -2494,7 +2734,7 @@
 
       // Delegate clicks to card's handleClick
       windowEl.addEventListener('click', (e) => {
-        const card = initialWindows.find(c => c.id === win.id);
+        const card = OS.getCard(win.id);
         if (card && typeof card.handleClick === 'function') {
           card.handleClick(e);
         }
@@ -2544,11 +2784,22 @@
       dropdown.classList.remove('open');
     }
 
-    // Active window menu event listeners
-    document.getElementById('active-window-menu').addEventListener('click', (e) => {
+    // Sidebar toggle
+    document.getElementById('sidebar-toggle').addEventListener('click', (e) => {
       e.stopPropagation();
-      closeApplicationsMenu();
-      toggleActiveWindowMenu();
+      const sidebarContainer = document.getElementById('sidebar-container');
+      const toggleContainer = document.getElementById('sidebar-toggle-container');
+      const toggle = document.getElementById('sidebar-toggle');
+      sidebarContainer.classList.toggle('collapsed');
+      toggleContainer.classList.toggle('collapsed');
+      toggle.classList.toggle('collapsed');
+    });
+
+    // Add workspace button
+    document.getElementById('workspace-add-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const workspace = OS.createWorkspace();
+      OS.switchToWorkspace(workspace.id);
     });
 
     // Applications menu event listeners

@@ -1,9 +1,13 @@
 {
-  "version": "0.3.0-alpha.3",
+  "version": "0.4.0-alpha.2",
   "theme": "light",
   "fontSize": "medium",
   "wallpaper": "hokusai",
+  "snapToGrid": true,
+  "gridSize": 50,
+  "tabInsertSpaces": true,
   "fileTree": {},
-  "defaultWindows": ["editor", "about"],
+  "defaultWindows": ["stocks", "about"],
+  "defaultPinnedFiles": ["demo/README.md", "GME.stock"],
   "windows": null
 }
