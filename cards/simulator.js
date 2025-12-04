@@ -198,15 +198,15 @@ const simulatorCard = {
             </div>
             <div class="sim-portfolio-row">
               <span class="sim-label">Ticker:</span>
-              <span>${state.ticker || 'none'}</span>
+              <span>${state.ticker || '-'}</span>
             </div>
             <div class="sim-portfolio-row">
               <span class="sim-label">Shares:</span>
-              <span>${state.shares.toFixed(1)}</span>
+              <span>${hasPosition ? state.shares.toFixed(1) : '-'}</span>
             </div>
             <div class="sim-portfolio-row">
               <span class="sim-label">Equity Value:</span>
-              <span>$${equityValue.toFixed(2)}</span>
+              <span>${hasPosition ? '$' + equityValue.toFixed(2) : '-'}</span>
             </div>
             <div class="sim-portfolio-row sim-total">
               <span class="sim-label">Total Value:</span>
@@ -219,26 +219,20 @@ const simulatorCard = {
 
         <div class="sim-inquiry">
           <div class="sim-inquiry-header">
-            <label class="sim-label">Ticker:</label>
+            <label class="sim-label">Quote:</label>
             <select class="sim-select" id="sim-ticker-select">
               <option value="">Select...</option>
               ${state.tickers.map(t => `<option value="${t}" ${state.selectedTicker === t ? 'selected' : ''}>${t}</option>`).join('')}
             </select>
           </div>
 
-          ${state.loading ? `
-            <div class="sim-loading">Loading...</div>
-          ` : state.tickerData ? `
-            <div class="sim-ohlc">
-              <div class="sim-ohlc-row"><span>Open:</span> <span>$${state.tickerData.open.toFixed(2)}</span></div>
-              <div class="sim-ohlc-row"><span>High:</span> <span>$${state.tickerData.high.toFixed(2)}</span></div>
-              <div class="sim-ohlc-row"><span>Low:</span> <span>$${state.tickerData.low.toFixed(2)}</span></div>
-              <div class="sim-ohlc-row"><span>Close:</span> <span>$${state.tickerData.close.toFixed(2)}</span></div>
-              <div class="sim-ohlc-row sim-midpoint"><span>Midpoint:</span> <span>$${this.getMidpoint(state.tickerData).toFixed(2)}</span></div>
-            </div>
-          ` : state.selectedTicker ? `
-            <div class="sim-no-data">No data for this date</div>
-          ` : ''}
+          <div class="sim-ohlc">
+            <div class="sim-ohlc-row"><span>Open:</span> <span>${state.tickerData ? '$' + state.tickerData.open.toFixed(2) : '-'}</span></div>
+            <div class="sim-ohlc-row"><span>High:</span> <span>${state.tickerData ? '$' + state.tickerData.high.toFixed(2) : '-'}</span></div>
+            <div class="sim-ohlc-row"><span>Low:</span> <span>${state.tickerData ? '$' + state.tickerData.low.toFixed(2) : '-'}</span></div>
+            <div class="sim-ohlc-row"><span>Close:</span> <span>${state.tickerData ? '$' + state.tickerData.close.toFixed(2) : '-'}</span></div>
+            <div class="sim-ohlc-row sim-midpoint"><span>Midpoint:</span> <span>${state.tickerData ? '$' + this.getMidpoint(state.tickerData).toFixed(2) : '-'}</span></div>
+          </div>
         </div>
 
         ${isEndOfData ? `
@@ -340,9 +334,7 @@ const simulatorCard = {
     }
 
     .sim-ohlc {
-      background: var(--input-bg);
-      padding: 8px;
-      border: 1px solid var(--window-border);
+      padding: 8px 0;
     }
 
     .sim-ohlc-row {
