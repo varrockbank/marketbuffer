@@ -22,6 +22,7 @@ const simulatorCard = {
   selectedTicker: '',  // Ticker selected for inquiry
   tickerData: null,    // OHLC data for selected ticker on current date
   loading: false,
+  showFastForward: false, // Show fast forward date picker
 
   // Calculate midpoint price
   getMidpoint(data) {
@@ -46,6 +47,38 @@ const simulatorCard = {
       return this.dates[currentIndex + 1];
     }
     return null;
+  },
+
+  // Get next N trading dates
+  getNextDates(n) {
+    const currentIndex = this.dates.indexOf(this.currentDate);
+    const endIndex = Math.min(currentIndex + n + 1, this.dates.length);
+    return this.dates.slice(currentIndex + 1, endIndex);
+  },
+
+  // Format date short (for fast forward list)
+  formatDateShort(dateKey) {
+    const str = String(dateKey);
+    const month = parseInt(str.slice(4, 6), 10);
+    const day = parseInt(str.slice(6, 8), 10);
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${monthNames[month - 1]} ${day}`;
+  },
+
+  // Jump to specific date
+  jumpToDate(dateKey) {
+    this.currentDate = dateKey;
+    this.showFastForward = false;
+    if (this.ticker) {
+      this.selectedTicker = this.ticker;
+    }
+    if (this.selectedTicker) {
+      this.fetchTickerData(this.selectedTicker);
+    } else {
+      this.tickerData = null;
+      this.rerender();
+    }
   },
 
   // Load all trading dates from WASM
@@ -208,19 +241,27 @@ const simulatorCard = {
           ` : ''}
         </div>
 
-        <hr class="sim-divider">
+        ${isEndOfData ? `
+          <div class="sim-end">End of simulation data</div>
+        ` : `
+          <div class="sim-action-buttons">
+            ${hasPosition ? `
+              <button class="sim-btn sim-btn-sell" id="sim-close-btn" ${!state.tickerData ? 'disabled' : ''}>Sell</button>
+            ` : `
+              <button class="sim-btn sim-btn-buy" id="sim-buy-btn" ${!state.tickerData ? 'disabled' : ''}>Buy</button>
+            `}
+            <button class="sim-btn sim-btn-secondary" id="sim-next-btn">Next Day</button>
+          </div>
 
-        <div class="sim-actions">
-          ${isEndOfData ? `
-            <div class="sim-end">End of simulation data</div>
-          ` : hasPosition ? `
-            <button class="sim-btn sim-btn-sell" id="sim-close-btn" ${!state.tickerData ? 'disabled' : ''}>Sell</button>
-            <button class="sim-btn sim-btn-secondary" id="sim-skip-btn">Skip Day</button>
-          ` : `
-            <button class="sim-btn sim-btn-buy" id="sim-buy-btn" ${!state.tickerData ? 'disabled' : ''}>Buy</button>
-            <button class="sim-btn sim-btn-secondary" id="sim-skip-btn">Skip Day</button>
-          `}
-        </div>
+          <div class="sim-fastforward">
+            <div class="sim-fastforward-header">Skip to next 30 trading days:</div>
+            <div class="sim-fastforward-list">
+              ${this.getNextDates(30).map(d => `
+                <button class="sim-ff-date" data-date="${d}">${this.formatDateShort(d)}</button>
+              `).join('')}
+            </div>
+          </div>
+        `}
       </div>
     `;
   },
@@ -377,6 +418,43 @@ const simulatorCard = {
       color: #666;
       padding: 8px;
     }
+
+    .sim-action-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .sim-fastforward {
+      width: 100%;
+      margin-top: 12px;
+    }
+
+    .sim-fastforward-header {
+      margin-bottom: 6px;
+      font-weight: bold;
+      font-size: 10px;
+      color: #666;
+    }
+
+    .sim-fastforward-list {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 4px;
+    }
+
+    .sim-ff-date {
+      font-family: inherit;
+      font-size: 10px;
+      padding: 4px 2px;
+      border: 1px solid var(--window-border);
+      background: var(--input-bg);
+      color: var(--text-color);
+      cursor: pointer;
+    }
+
+    .sim-ff-date:hover {
+      background: var(--hover-bg);
+    }
   `,
 
   rerender() {
@@ -396,6 +474,7 @@ const simulatorCard = {
     simulatorCard.selectedTicker = '';
     simulatorCard.tickerData = null;
     simulatorCard.loading = false;
+    simulatorCard.showFastForward = false;
     simulatorCard.dates = [];
     simulatorCard.tickers = [];
 
@@ -441,9 +520,15 @@ const simulatorCard = {
       this.close();
       return;
     }
-    if (e.target.id === 'sim-skip-btn') {
+    if (e.target.id === 'sim-next-btn') {
       e.preventDefault();
-      this.skip();
+      this.advanceDate();
+      return;
+    }
+    if (e.target.classList.contains('sim-ff-date')) {
+      e.preventDefault();
+      const dateKey = parseInt(e.target.dataset.date, 10);
+      this.jumpToDate(dateKey);
       return;
     }
   },
