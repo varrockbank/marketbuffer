@@ -200,10 +200,10 @@ const simulatorCard = {
           ${isEndOfData ? `
             <div class="sim-end">End of simulation data</div>
           ` : hasPosition ? `
-            <button class="sim-btn" id="sim-close-btn" ${!state.tickerData ? 'disabled' : ''}>Close Position</button>
+            <button class="sim-btn sim-btn-sell" id="sim-close-btn" ${!state.tickerData ? 'disabled' : ''}>Sell</button>
             <button class="sim-btn sim-btn-secondary" id="sim-skip-btn">Skip Day</button>
           ` : `
-            <button class="sim-btn" id="sim-buy-btn" ${!state.tickerData ? 'disabled' : ''}>Buy</button>
+            <button class="sim-btn sim-btn-buy" id="sim-buy-btn" ${!state.tickerData ? 'disabled' : ''}>Buy</button>
             <button class="sim-btn sim-btn-secondary" id="sim-skip-btn">Skip Day</button>
           `}
         </div>
@@ -311,6 +311,26 @@ const simulatorCard = {
 
     .sim-btn-secondary {
       background: var(--input-bg);
+    }
+
+    .sim-btn-buy {
+      background: #00c853;
+      color: white;
+      border-color: #00a844;
+    }
+
+    .sim-btn-buy:hover:not(:disabled) {
+      background: #00b848;
+    }
+
+    .sim-btn-sell {
+      background: #ff1744;
+      color: white;
+      border-color: #e0153c;
+    }
+
+    .sim-btn-sell:hover:not(:disabled) {
+      background: #e6143d;
     }
 
     .sim-end {
