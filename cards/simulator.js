@@ -312,6 +312,11 @@ const simulatorCard = {
     this.rerender();
   },
 
+  // Show share modal
+  showShareModal() {
+    alert('Please login');
+  },
+
   // Advance to next trading date
   async advanceDate() {
     const nextDate = this.getNextDate();
@@ -519,7 +524,10 @@ const simulatorCard = {
             })()}
           </div>
           <div class="sim-details-bottom">
-            <div class="sim-ledger-header">Position History</div>
+            <div class="sim-ledger-header-row">
+              <span class="sim-ledger-header">Position History</span>
+              <button class="sim-share-btn" id="sim-share-btn">↗ Share</button>
+            </div>
             <div class="sim-ledger-scroll">
               <div class="sim-ledger">
                 ${state.trades.length === 0 ? `
@@ -780,10 +788,30 @@ const simulatorCard = {
       overflow-y: auto;
     }
 
+    .sim-ledger-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
     .sim-ledger-header {
       font-weight: bold;
       font-size: 11px;
-      margin-bottom: 4px;
+    }
+
+    .sim-share-btn {
+      font-family: inherit;
+      font-size: 11px;
+      padding: 6px 12px;
+      border: 2px solid #0066d6;
+      background: #007aff;
+      color: white;
+      cursor: pointer;
+    }
+
+    .sim-share-btn:hover {
+      background: #0066d6;
     }
 
     .sim-ledger-empty {
@@ -1220,6 +1248,11 @@ const simulatorCard = {
     if (e.target.id === 'sim-details-btn') {
       e.preventDefault();
       this.toggleDetails();
+      return;
+    }
+    if (e.target.id === 'sim-share-btn') {
+      e.preventDefault();
+      this.showShareModal();
       return;
     }
     if (e.target.classList.contains('sim-ff-date')) {
