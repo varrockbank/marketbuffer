@@ -149,25 +149,37 @@ const simulatorCard = {
     const hasPosition = state.ticker !== null;
     const isEndOfData = state.dates.length > 0 && state.currentDate === state.dates[state.dates.length - 1];
 
-    // Portfolio value
-    let portfolioValue = state.cash;
-    if (hasPosition && state.tickerData) {
-      portfolioValue += state.shares * this.getMidpoint(state.tickerData);
-    }
+    // Calculate values
+    const equityValue = hasPosition && state.tickerData ? state.shares * this.getMidpoint(state.tickerData) : 0;
+    const totalValue = state.cash + equityValue;
 
     return `
       <div class="sim-content">
         <div class="sim-status">
           <div class="sim-date">${state.currentDate ? this.formatDate(state.currentDate) : 'Loading...'}</div>
-          <div class="sim-portfolio">
-            <span class="sim-label">Cash:</span> $${state.cash.toFixed(2)}
-            ${hasPosition ? `<span class="sim-label">Value:</span> $${portfolioValue.toFixed(2)}` : ''}
-          </div>
-          ${hasPosition ? `
-            <div class="sim-position">
-              <span class="sim-label">Position:</span> ${state.shares.toFixed(1)} ${state.ticker}
+          <div class="sim-portfolio-label">Your position:</div>
+          <div class="sim-portfolio-grid">
+            <div class="sim-portfolio-row">
+              <span class="sim-label">Cash:</span>
+              <span>$${state.cash.toFixed(2)}</span>
             </div>
-          ` : ''}
+            <div class="sim-portfolio-row">
+              <span class="sim-label">Ticker:</span>
+              <span>${state.ticker || 'none'}</span>
+            </div>
+            <div class="sim-portfolio-row">
+              <span class="sim-label">Shares:</span>
+              <span>${state.shares.toFixed(1)}</span>
+            </div>
+            <div class="sim-portfolio-row">
+              <span class="sim-label">Equity Value:</span>
+              <span>$${equityValue.toFixed(2)}</span>
+            </div>
+            <div class="sim-portfolio-row sim-total">
+              <span class="sim-label">Total Value:</span>
+              <span>$${totalValue.toFixed(2)}</span>
+            </div>
+          </div>
         </div>
 
         <hr class="sim-divider">
@@ -229,8 +241,33 @@ const simulatorCard = {
       margin-bottom: 4px;
     }
 
-    .sim-portfolio, .sim-position {
-      margin-bottom: 2px;
+    .sim-portfolio-label {
+      margin-top: 8px;
+      margin-bottom: 4px;
+      font-weight: bold;
+    }
+
+    .sim-portfolio-grid {
+      display: grid;
+      grid-template-columns: auto auto;
+      gap: 2px 12px;
+    }
+
+    .sim-portfolio-row {
+      display: contents;
+    }
+
+    .sim-portfolio-row span:last-child {
+      text-align: right;
+    }
+
+    .sim-total {
+      border-top: 1px solid var(--window-border);
+      font-weight: bold;
+    }
+
+    .sim-total span {
+      padding-top: 4px;
     }
 
     .sim-label {
