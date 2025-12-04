@@ -2535,7 +2535,9 @@
 
     function closeActiveWindowMenu() {
       const dropdown = document.getElementById('active-window-dropdown');
-      dropdown.classList.remove('open');
+      if (dropdown) {
+        dropdown.classList.remove('open');
+      }
       highlightParentSplit(false);
     }
 

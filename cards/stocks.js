@@ -28,6 +28,8 @@ const stocksCard = {
   scrollPosition: 0, // Track scroll position for dynamic scaling
   candleSize: '1m', // '1m', '5m', '15m', '30m', '60m' for candle aggregation
   zoomLevel: 1, // Zoom multiplier for viewport (0.5 = zoomed out, 2 = zoomed in)
+  drilldownMonth: null, // When set, show daily data for this month (1-12)
+  dailyData: null, // Daily data for the drilldown month
 
   // Helper to get stock "path" for pinning (e.g., "AAPL.stock")
   getStockPath(ticker) {
@@ -278,6 +280,58 @@ const stocksCard = {
     `;
   },
 
+  renderDailyTable(data, ticker, year, month) {
+    const monthNames = ['', 'January', 'February', 'March', 'April', 'May', 'June',
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+
+    const rows = data.map(d => {
+      const change = d.close - d.open;
+      const changePercent = ((change / d.open) * 100).toFixed(2);
+      const changeColor = change >= 0 ? '#00c853' : '#ff1744';
+      const changeSign = change >= 0 ? '+' : '';
+      const date = d.date.split('-')[2]; // Just the day
+
+      return `
+        <tr>
+          <td>${date}</td>
+          <td>$${d.open.toFixed(2)}</td>
+          <td>$${d.high.toFixed(2)}</td>
+          <td>$${d.low.toFixed(2)}</td>
+          <td>$${d.close.toFixed(2)}</td>
+          <td style="color: ${changeColor}">${changeSign}${changePercent}%</td>
+          <td>${(d.volume / 1000).toFixed(0)}K</td>
+        </tr>
+      `;
+    }).join('');
+
+    return `
+      <div class="stock-daily-view">
+        <div class="stock-daily-header">
+          <button class="stock-back-btn" id="stock-back-btn">← Back</button>
+          <span class="stock-daily-title">${monthNames[month]}</span>
+        </div>
+        <div class="stock-daily-table-container">
+          <table class="stock-daily-table">
+            <thead>
+              <tr>
+                <th>Day</th>
+                <th>Open</th>
+                <th>High</th>
+                <th>Low</th>
+                <th>Close</th>
+                <th>Change</th>
+                <th>Volume</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  },
+
   content() {
     const state = stocksCard;
 
@@ -308,6 +362,11 @@ const stocksCard = {
           <div>Loading...</div>
         </div>
       `;
+    } else if (state.drilldownMonth && state.dailyData && state.dailyData.data && state.dailyData.data.length > 0) {
+      // Show daily table when drilled down into a month
+      historicalContent = this.renderDailyTable(state.dailyData.data, state.selectedTicker, state.selectedYear, state.drilldownMonth);
+    } else if (state.drilldownMonth) {
+      historicalContent = `<div class="stock-placeholder">No daily data available</div>`;
     } else if (state.ohlcData && state.ohlcData.data && state.ohlcData.data.length > 0) {
       historicalContent = this.renderChart(state.ohlcData.data, state.selectedTicker, false);
     } else if (state.selectedTicker) {
@@ -378,9 +437,11 @@ const stocksCard = {
             <div class="stock-control-group">
               <label class="stock-label">Year</label>
               <select class="stock-select" id="stock-year-select">
-                <option value="2024" selected>2024</option>
-                <option value="2023" disabled>2023</option>
-                <option value="2022" disabled>2022</option>
+                <option value="2024" ${state.selectedYear === 2024 ? 'selected' : ''}>2024</option>
+                <option value="2023" ${state.selectedYear === 2023 ? 'selected' : ''}>2023</option>
+                <option value="2022" ${state.selectedYear === 2022 ? 'selected' : ''}>2022</option>
+                <option value="2021" ${state.selectedYear === 2021 ? 'selected' : ''}>2021</option>
+                <option value="2020" ${state.selectedYear === 2020 ? 'selected' : ''}>2020</option>
               </select>
             </div>
             <div class="stock-control-group">
@@ -987,6 +1048,71 @@ const stocksCard = {
     .stock-api-modal-hint a {
       color: inherit;
     }
+
+    /* Daily table view styles */
+    .stock-daily-view {
+      padding: 8px;
+    }
+
+    .stock-daily-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .stock-back-btn {
+      font-family: inherit;
+      font-size: 11px;
+      padding: 4px 8px;
+      border: 1px solid var(--window-border);
+      background: var(--input-bg);
+      color: var(--text-color);
+      cursor: pointer;
+    }
+
+    .stock-back-btn:hover {
+      background: var(--hover-bg);
+    }
+
+    .stock-daily-title {
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .stock-daily-table-container {
+      max-height: 250px;
+      overflow-y: auto;
+    }
+
+    .stock-daily-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10px;
+    }
+
+    .stock-daily-table th,
+    .stock-daily-table td {
+      padding: 4px 6px;
+      text-align: right;
+      border-bottom: 1px solid var(--window-border);
+    }
+
+    .stock-daily-table th {
+      background: var(--input-bg);
+      font-weight: normal;
+      position: sticky;
+      top: 0;
+    }
+
+    .stock-daily-table th:first-child,
+    .stock-daily-table td:first-child {
+      text-align: left;
+    }
+
+    .stock-daily-table tbody tr:hover {
+      background: var(--hover-bg);
+    }
   `,
 
   async fetchTickers() {
@@ -1053,6 +1179,35 @@ const stocksCard = {
     this.rerender();
   },
 
+  async fetchDailyData(month) {
+    if (!this.selectedTicker) return;
+
+    this.loading = true;
+    this.drilldownMonth = month;
+    this.rerender();
+
+    try {
+      this.dailyData = await ServerService.getDaily(
+        this.selectedTicker,
+        this.selectedYear,
+        month,
+      );
+      this.error = null;
+    } catch (e) {
+      console.log('[Stock] fetchDailyData error:', e);
+      this.error = 'Failed to fetch daily data';
+      this.dailyData = null;
+    }
+    this.loading = false;
+    this.rerender();
+  },
+
+  exitDrilldown() {
+    this.drilldownMonth = null;
+    this.dailyData = null;
+    this.rerender();
+  },
+
   // Fetch data based on current view mode
   async fetchData() {
     if (this.viewMode === 'today') {
@@ -1093,6 +1248,8 @@ const stocksCard = {
     stocksCard.zoomLevel = 1;
     stocksCard.tickers = [];
     stocksCard.loadingTickers = false;
+    stocksCard.drilldownMonth = null;
+    stocksCard.dailyData = null;
 
     // Fetch available tickers for historical data
     stocksCard.fetchTickers().then(() => {
@@ -1110,11 +1267,21 @@ const stocksCard = {
     if (e.target.id === 'stock-ticker-select') {
       this.selectedTicker = e.target.value;
       this.scrollPosition = 0;
+      this.drilldownMonth = null;
+      this.dailyData = null;
       if (this.selectedTicker) {
         await this.fetchOHLC();
       } else {
         this.ohlcData = null;
         this.rerender();
+      }
+    }
+    if (e.target.id === 'stock-year-select') {
+      this.selectedYear = parseInt(e.target.value, 10);
+      this.drilldownMonth = null;
+      this.dailyData = null;
+      if (this.selectedTicker) {
+        await this.fetchOHLC();
       }
     }
     if (e.target.id === 'stock-window-select') {
@@ -1260,6 +1427,28 @@ const stocksCard = {
       const ticker = this.viewMode === 'today' ? this.liveTicker : this.selectedTicker;
       if (ticker) {
         this.toggleWatch(ticker);
+      }
+      return;
+    }
+    // Handle back button from daily view
+    if (e.target.id === 'stock-back-btn') {
+      e.preventDefault();
+      this.exitDrilldown();
+      return;
+    }
+    // Handle candle click for drilldown (only for historical monthly view, not intraday)
+    if (this.viewMode === 'historical' && !this.drilldownMonth) {
+      const candle = e.target.closest('.stock-candle');
+      if (candle) {
+        e.preventDefault();
+        const period = candle.dataset.period;
+        // Convert month name to number
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const monthIndex = monthNames.indexOf(period);
+        if (monthIndex !== -1) {
+          this.fetchDailyData(monthIndex + 1);
+        }
+        return;
       }
     }
   },

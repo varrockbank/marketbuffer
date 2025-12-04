@@ -5,6 +5,7 @@ package main
 import (
 	"embed"
 	"encoding/json"
+	"fmt"
 	"sort"
 	"strings"
 	"syscall/js"
@@ -38,6 +39,22 @@ type OHLCResponse struct {
 	Year   int        `json:"year"`
 	Window string     `json:"window"`
 	Data   []OHLCData `json:"data"`
+}
+
+type DailyData struct {
+	Date   string  `json:"date"`
+	Open   float64 `json:"open"`
+	High   float64 `json:"high"`
+	Low    float64 `json:"low"`
+	Close  float64 `json:"close"`
+	Volume int64   `json:"volume"`
+}
+
+type DailyResponse struct {
+	Ticker string      `json:"ticker"`
+	Year   int         `json:"year"`
+	Month  int         `json:"month"`
+	Data   []DailyData `json:"data"`
 }
 
 var stockData []StockRecord
@@ -187,6 +204,62 @@ func getOHLCJS(this js.Value, args []js.Value) interface{} {
 	return string(jsonBytes)
 }
 
+func getDailyData(ticker string, year int, month int) DailyResponse {
+	var dailyRecords []DailyData
+	ticker = strings.ToUpper(ticker)
+
+	for _, record := range stockData {
+		if record.Ticker != ticker {
+			continue
+		}
+
+		recordYear := int(record.DateKey) / 10000
+		recordMonth := (int(record.DateKey) % 10000) / 100
+
+		if recordYear != year || recordMonth != month {
+			continue
+		}
+
+		day := int(record.DateKey) % 100
+		dateStr := fmt.Sprintf("%d-%02d-%02d", recordYear, recordMonth, day)
+
+		dailyRecords = append(dailyRecords, DailyData{
+			Date:   dateStr,
+			Open:   record.StockOpen,
+			High:   record.StockHigh,
+			Low:    record.StockLow,
+			Close:  record.StockClose,
+			Volume: record.Volume,
+		})
+	}
+
+	// Sort by date
+	sort.Slice(dailyRecords, func(i, j int) bool {
+		return dailyRecords[i].Date < dailyRecords[j].Date
+	})
+
+	return DailyResponse{
+		Ticker: ticker,
+		Year:   year,
+		Month:  month,
+		Data:   dailyRecords,
+	}
+}
+
+func getDailyJS(this js.Value, args []js.Value) interface{} {
+	if len(args) < 3 {
+		return `{"error": "ticker, year, and month parameters are required"}`
+	}
+
+	ticker := args[0].String()
+	year := args[1].Int()
+	month := args[2].Int()
+
+	response := getDailyData(ticker, year, month)
+	jsonBytes, _ := json.Marshal(response)
+	return string(jsonBytes)
+}
+
 func main() {
 	if err := loadData(); err != nil {
 		println("Failed to load data:", err.Error())
@@ -196,6 +269,7 @@ func main() {
 	// Export functions to JavaScript
 	js.Global().Set("getTickers", js.FuncOf(getTickersJS))
 	js.Global().Set("getOHLC", js.FuncOf(getOHLCJS))
+	js.Global().Set("getDaily", js.FuncOf(getDailyJS))
 
 	println("WASM module initialized with", len(stockData), "records")
 

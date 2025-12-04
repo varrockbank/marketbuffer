@@ -43,6 +43,22 @@ type OHLCResponse struct {
 	Data   []OHLCData `json:"data"`
 }
 
+type DailyData struct {
+	Date   string  `json:"date"`
+	Open   float64 `json:"open"`
+	High   float64 `json:"high"`
+	Low    float64 `json:"low"`
+	Close  float64 `json:"close"`
+	Volume int64   `json:"volume"`
+}
+
+type DailyResponse struct {
+	Ticker string      `json:"ticker"`
+	Year   int         `json:"year"`
+	Month  int         `json:"month"`
+	Data   []DailyData `json:"data"`
+}
+
 var stockData []StockRecord
 
 func loadParquetData(dataDir string) error {
@@ -192,6 +208,78 @@ func calculateOHLC(ticker string, year int, window string) OHLCResponse {
 	return response
 }
 
+func getDailyData(ticker string, year int, month int) DailyResponse {
+	var dailyRecords []DailyData
+
+	for _, record := range stockData {
+		if record.Ticker != ticker {
+			continue
+		}
+
+		recordYear := int(record.DateKey) / 10000
+		recordMonth := (int(record.DateKey) % 10000) / 100
+
+		if recordYear != year || recordMonth != month {
+			continue
+		}
+
+		day := int(record.DateKey) % 100
+		dateStr := fmt.Sprintf("%d-%02d-%02d", recordYear, recordMonth, day)
+
+		dailyRecords = append(dailyRecords, DailyData{
+			Date:   dateStr,
+			Open:   record.StockOpen,
+			High:   record.StockHigh,
+			Low:    record.StockLow,
+			Close:  record.StockClose,
+			Volume: record.Volume,
+		})
+	}
+
+	// Sort by date
+	sort.Slice(dailyRecords, func(i, j int) bool {
+		return dailyRecords[i].Date < dailyRecords[j].Date
+	})
+
+	return DailyResponse{
+		Ticker: ticker,
+		Year:   year,
+		Month:  month,
+		Data:   dailyRecords,
+	}
+}
+
+func dailyHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	ticker := r.URL.Query().Get("ticker")
+	yearStr := r.URL.Query().Get("year")
+	monthStr := r.URL.Query().Get("month")
+
+	if ticker == "" || yearStr == "" || monthStr == "" {
+		http.Error(w, `{"error": "ticker, year, and month parameters are required"}`, http.StatusBadRequest)
+		return
+	}
+
+	year, err := strconv.Atoi(yearStr)
+	if err != nil {
+		http.Error(w, `{"error": "invalid year parameter"}`, http.StatusBadRequest)
+		return
+	}
+
+	month, err := strconv.Atoi(monthStr)
+	if err != nil || month < 1 || month > 12 {
+		http.Error(w, `{"error": "invalid month parameter"}`, http.StatusBadRequest)
+		return
+	}
+
+	ticker = strings.ToUpper(ticker)
+	response := getDailyData(ticker, year, month)
+
+	json.NewEncoder(w).Encode(response)
+}
+
 func tickersHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -275,6 +363,7 @@ func main() {
 	// API endpoints
 	http.HandleFunc("/api/tickers", tickersHandler)
 	http.HandleFunc("/api/ohlc", ohlcHandler)
+	http.HandleFunc("/api/daily", dailyHandler)
 
 	// Static files (serve index.html for root, and other static assets)
 	fs := http.FileServer(http.Dir(staticDir))
