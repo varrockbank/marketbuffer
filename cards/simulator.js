@@ -291,6 +291,7 @@ const simulatorCard = {
         this.showDetails = false;
         this.detailsAnimated = false;
         this.detailsClosing = false;
+        localStorage.setItem('sim-details-expanded', 'false');
         this.rerender();
       }, 1000);
     } else {
@@ -301,6 +302,7 @@ const simulatorCard = {
       setTimeout(() => {
         this.detailsOpening = false;
         this.detailsAnimated = true;
+        localStorage.setItem('sim-details-expanded', 'true');
         this.rerender();
       }, 1000);
     }
@@ -1135,17 +1137,14 @@ const simulatorCard = {
     if (windowEl) {
       const wrapperEl = windowEl.querySelector('.sim-wrapper');
       if (wrapperEl) {
-        // Capture content height before rerender
-        const contentEl = wrapperEl.querySelector('.sim-content');
-        const contentHeight = contentEl ? contentEl.offsetHeight : null;
-
         wrapperEl.outerHTML = simulatorCard.content();
 
         // Set CSS variable for details height to match content
-        if (contentHeight && this.showDetails) {
+        if (this.showDetails) {
           const newWrapper = windowEl.querySelector('.sim-wrapper');
-          if (newWrapper) {
-            newWrapper.style.setProperty('--sim-content-height', contentHeight + 'px');
+          const newContentEl = newWrapper ? newWrapper.querySelector('.sim-content') : null;
+          if (newWrapper && newContentEl) {
+            newWrapper.style.setProperty('--sim-content-height', newContentEl.offsetHeight + 'px');
           }
         }
 
@@ -1168,8 +1167,8 @@ const simulatorCard = {
     simulatorCard.previousDate = null;
     simulatorCard.loading = false;
     simulatorCard.showFastForward = false;
-    simulatorCard.showDetails = false;
-    simulatorCard.detailsAnimated = false;
+    simulatorCard.showDetails = localStorage.getItem('sim-details-expanded') === 'true';
+    simulatorCard.detailsAnimated = simulatorCard.showDetails;
     simulatorCard.detailsClosing = false;
     simulatorCard.detailsOpening = false;
     simulatorCard.trades = [];
