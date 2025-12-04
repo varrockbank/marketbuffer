@@ -590,6 +590,7 @@ const simulatorCard = {
   styles: `
     .sim-wrapper {
       display: flex;
+      align-items: flex-start;
     }
 
     .sim-content {
@@ -610,6 +611,7 @@ const simulatorCard = {
       width: 0;
       overflow: hidden;
       animation: sim-slide-out 1s ease forwards;
+      height: var(--sim-content-height, auto);
     }
 
     @keyframes sim-slide-out {
@@ -761,9 +763,9 @@ const simulatorCard = {
 
     .sim-details-bottom {
       flex: 1;
+      min-height: 0;
       padding: 8px;
       overflow-y: auto;
-      max-height: 250px;
       background: #fff;
       width: 300px;
       min-width: 300px;
@@ -1096,7 +1098,20 @@ const simulatorCard = {
     if (windowEl) {
       const wrapperEl = windowEl.querySelector('.sim-wrapper');
       if (wrapperEl) {
+        // Capture content height before rerender
+        const contentEl = wrapperEl.querySelector('.sim-content');
+        const contentHeight = contentEl ? contentEl.offsetHeight : null;
+
         wrapperEl.outerHTML = simulatorCard.content();
+
+        // Set CSS variable for details height to match content
+        if (contentHeight && this.showDetails) {
+          const newWrapper = windowEl.querySelector('.sim-wrapper');
+          if (newWrapper) {
+            newWrapper.style.setProperty('--sim-content-height', contentHeight + 'px');
+          }
+        }
+
         // Scroll timeline to the end (show today)
         const timeline = windowEl.querySelector('.sim-timeline');
         if (timeline) {
