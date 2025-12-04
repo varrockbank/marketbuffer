@@ -32,9 +32,11 @@ const simulatorCard = {
   formatDate(dateKey) {
     const str = String(dateKey);
     const year = str.slice(0, 4);
-    const month = str.slice(4, 6);
-    const day = str.slice(6, 8);
-    return `${year}-${month}-${day}`;
+    const month = parseInt(str.slice(4, 6), 10);
+    const day = parseInt(str.slice(6, 8), 10);
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+    return `The day is ${year} ${monthNames[month - 1]} ${day}`;
   },
 
   // Get next trading date
