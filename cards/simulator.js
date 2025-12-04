@@ -520,11 +520,12 @@ const simulatorCard = {
           </div>
           <div class="sim-details-bottom">
             <div class="sim-ledger-header">Position History</div>
-            <div class="sim-ledger">
-              ${state.trades.length === 0 ? `
-                <div class="sim-ledger-empty">No trades yet</div>
-              ` : `
-                ${[...state.trades].reverse().map((trade, reverseIdx) => {
+            <div class="sim-ledger-scroll">
+              <div class="sim-ledger">
+                ${state.trades.length === 0 ? `
+                  <div class="sim-ledger-empty">No trades yet</div>
+                ` : `
+                  ${[...state.trades].reverse().map((trade, reverseIdx) => {
                   const idx = state.trades.length - 1 - reverseIdx;
                   const isExpanded = state.expandedTrades[idx];
                   const isClosed = !!trade.closeDate;
@@ -577,8 +578,9 @@ const simulatorCard = {
                       ` : ''}
                     </div>
                   `;
-                }).join('')}
-              `}
+                  }).join('')}
+                `}
+              </div>
             </div>
           </div>
         </div>
@@ -765,10 +767,17 @@ const simulatorCard = {
       flex: 1;
       min-height: 0;
       padding: 8px;
-      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
       background: #fff;
       width: 300px;
       min-width: 300px;
+    }
+
+    .sim-ledger-scroll {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
     }
 
     .sim-ledger-header {
