@@ -197,6 +197,21 @@ const simulatorCard = {
     this.advanceDate();
   },
 
+  // Replay - reset simulation to beginning
+  replay() {
+    this.ticker = null;
+    this.shares = 0;
+    this.cash = 1000;
+    this.selectedTicker = '';
+    this.tickerData = null;
+    this.previousTickerData = null;
+    this.previousDate = null;
+    if (this.dates.length > 0) {
+      this.currentDate = this.dates[0];
+    }
+    this.rerender();
+  },
+
   // Advance to next trading date
   async advanceDate() {
     const nextDate = this.getNextDate();
@@ -244,7 +259,7 @@ const simulatorCard = {
     return `
       <div class="sim-content">
         <div class="sim-status">
-          <div class="sim-date-row">
+          <div class="sim-header-row">
             <span class="sim-date">${state.currentDate ? this.formatDate(state.currentDate) : 'Loading...'}</span>
             <span class="${deltaPercent !== null ? (deltaPercent >= 0 ? 'sim-delta-up' : 'sim-delta-down') : 'sim-delta-none'}">${deltaPercent !== null ? (deltaPercent >= 0 ? '+' : '') + deltaPercent.toFixed(2) + '%' : ''}</span>
           </div>
@@ -314,6 +329,11 @@ const simulatorCard = {
             </div>
           </div>
         `}
+
+        <div class="sim-footer">
+          <button class="sim-btn-link" id="sim-replay-btn">↻ Replay</button>
+          <button class="sim-btn-link" id="sim-details-btn">Details >></button>
+        </div>
       </div>
     `;
   },
@@ -328,7 +348,7 @@ const simulatorCard = {
       margin-bottom: 8px;
     }
 
-    .sim-date-row {
+    .sim-header-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -338,6 +358,29 @@ const simulatorCard = {
     .sim-date {
       font-size: 14px;
       font-weight: bold;
+    }
+
+    .sim-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 12px;
+      padding-top: 8px;
+      border-top: 1px solid var(--window-border);
+    }
+
+    .sim-btn-link {
+      font-family: inherit;
+      font-size: 10px;
+      padding: 2px 6px;
+      border: none;
+      background: transparent;
+      color: var(--text-color);
+      cursor: pointer;
+    }
+
+    .sim-btn-link:hover {
+      background: var(--hover-bg);
     }
 
     .sim-portfolio-label {
@@ -609,6 +652,11 @@ const simulatorCard = {
     if (e.target.id === 'sim-next-btn') {
       e.preventDefault();
       this.advanceDate();
+      return;
+    }
+    if (e.target.id === 'sim-replay-btn') {
+      e.preventDefault();
+      this.replay();
       return;
     }
     if (e.target.classList.contains('sim-ff-date')) {
