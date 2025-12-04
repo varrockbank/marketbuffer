@@ -26,6 +26,9 @@ const simulatorCard = {
   loading: false,
   showFastForward: false, // Show fast forward date picker
   showDetails: false,  // Show details panel
+  detailsAnimated: false, // Track if details pane has been animated
+  detailsClosing: false, // Track if details pane is closing
+  detailsOpening: false, // Track if details pane is opening
   trades: [],          // Array of {ticker, shares, openDate, openPrice, closeDate?, closePrice?, pnl?}
   expandedTrades: {},  // Track which trades are expanded by index
 
@@ -230,6 +233,9 @@ const simulatorCard = {
     this.trades = [];
     this.expandedTrades = {};
     this.showDetails = false;
+    this.detailsAnimated = false;
+    this.detailsClosing = false;
+    this.detailsOpening = false;
     if (this.dates.length > 0) {
       this.currentDate = this.dates[0];
     }
@@ -238,8 +244,27 @@ const simulatorCard = {
 
   // Toggle details panel
   toggleDetails() {
-    this.showDetails = !this.showDetails;
-    this.rerender();
+    if (this.showDetails) {
+      // Animate closing
+      this.detailsClosing = true;
+      this.rerender();
+      setTimeout(() => {
+        this.showDetails = false;
+        this.detailsAnimated = false;
+        this.detailsClosing = false;
+        this.rerender();
+      }, 1000);
+    } else {
+      // Animate opening
+      this.showDetails = true;
+      this.detailsOpening = true;
+      this.rerender();
+      setTimeout(() => {
+        this.detailsOpening = false;
+        this.detailsAnimated = true;
+        this.rerender();
+      }, 1000);
+    }
   },
 
   // Toggle trade expansion
@@ -378,11 +403,11 @@ const simulatorCard = {
 
         <div class="sim-footer">
           <button class="sim-btn-link" id="sim-replay-btn">↻ Start Over</button>
-          <button class="sim-btn-link" id="sim-details-btn">${state.showDetails ? '<< Hide' : 'Details >>'}</button>
+          <button class="sim-btn-link" id="sim-details-btn">${state.showDetails && !state.detailsOpening ? '<< Hide' : 'Details >>'}</button>
         </div>
       </div>
       ${state.showDetails ? `
-        <div class="sim-details">
+        <div class="sim-details ${state.detailsClosing ? 'sim-details-closing' : (state.detailsAnimated ? 'sim-details-no-anim' : '')}">
           <div class="sim-details-top">
           </div>
           <div class="sim-details-bottom">
@@ -473,8 +498,37 @@ const simulatorCard = {
       border-top: 1px solid var(--window-border);
       border-right: 1px solid var(--window-border);
       border-bottom: 1px solid var(--window-border);
-      width: 300px;
       flex-shrink: 0;
+      width: 0;
+      overflow: hidden;
+      animation: sim-slide-out 1s ease forwards;
+    }
+
+    @keyframes sim-slide-out {
+      from {
+        width: 0;
+      }
+      to {
+        width: 300px;
+      }
+    }
+
+    .sim-details-no-anim {
+      animation: none;
+      width: 300px;
+    }
+
+    .sim-details-closing {
+      animation: sim-slide-in 1s ease forwards;
+    }
+
+    @keyframes sim-slide-in {
+      from {
+        width: 300px;
+      }
+      to {
+        width: 0;
+      }
     }
 
     .sim-details-top {
@@ -482,6 +536,8 @@ const simulatorCard = {
       border-bottom: 1px solid var(--window-border);
       min-height: 100px;
       background: #fff;
+      width: 300px;
+      min-width: 300px;
     }
 
     .sim-details-bottom {
@@ -490,6 +546,8 @@ const simulatorCard = {
       overflow-y: auto;
       max-height: 250px;
       background: #fff;
+      width: 300px;
+      min-width: 300px;
     }
 
     .sim-ledger-header {
@@ -835,6 +893,9 @@ const simulatorCard = {
     simulatorCard.loading = false;
     simulatorCard.showFastForward = false;
     simulatorCard.showDetails = false;
+    simulatorCard.detailsAnimated = false;
+    simulatorCard.detailsClosing = false;
+    simulatorCard.detailsOpening = false;
     simulatorCard.trades = [];
     simulatorCard.expandedTrades = {};
     simulatorCard.dates = [];
