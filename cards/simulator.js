@@ -31,6 +31,7 @@ const simulatorCard = {
   detailsOpening: false, // Track if details pane is opening
   trades: [],          // Array of {ticker, shares, openDate, openPrice, closeDate?, closePrice?, pnl?}
   expandedTrades: {},  // Track which trades are expanded by index
+  dailyTotalValues: [], // Track daily total values: [{date, value}]
 
   // Calculate midpoint price
   getMidpoint(data) {
@@ -112,6 +113,25 @@ const simulatorCard = {
 
   // Jump to specific date
   async jumpToDate(dateKey) {
+    const oldDate = this.currentDate;
+    const oldIdx = this.dates.indexOf(oldDate);
+    const newIdx = this.dates.indexOf(dateKey);
+
+    // Record values for all days in between if we have a position
+    if (this.ticker && oldIdx >= 0 && newIdx > oldIdx) {
+      await ServerService.initWasm();
+      for (let i = oldIdx + 1; i <= newIdx; i++) {
+        const date = this.dates[i];
+        const result = JSON.parse(window.getTickerForDate(this.ticker, date));
+        if (!result.error) {
+          const midpoint = (result.high + result.low) / 2;
+          const equityValue = this.shares * midpoint;
+          const totalValue = this.cash + equityValue;
+          this.dailyTotalValues.push({ date, value: totalValue, ticker: this.ticker });
+        }
+      }
+    }
+
     this.currentDate = dateKey;
     this.previousDate = this.getPreviousDate();
     this.showFastForward = false;
@@ -163,8 +183,26 @@ const simulatorCard = {
       this.tickerData = null;
     }
 
+    // Record daily total value
+    this.recordDailyValue();
+
     this.loading = false;
     this.rerender();
+  },
+
+  // Record current total value for the day
+  recordDailyValue() {
+    const equityValue = this.ticker && this.tickerData ? this.shares * this.getMidpoint(this.tickerData) : 0;
+    const totalValue = this.cash + equityValue;
+
+    // Only record if we don't already have an entry for this date
+    const existingIdx = this.dailyTotalValues.findIndex(d => d.date === this.currentDate);
+    if (existingIdx === -1) {
+      this.dailyTotalValues.push({ date: this.currentDate, value: totalValue, ticker: this.ticker || '' });
+    } else {
+      this.dailyTotalValues[existingIdx].value = totalValue;
+      this.dailyTotalValues[existingIdx].ticker = this.ticker || '';
+    }
   },
 
   // Buy shares
@@ -232,6 +270,7 @@ const simulatorCard = {
     this.previousDate = null;
     this.trades = [];
     this.expandedTrades = {};
+    this.dailyTotalValues = [];
     this.showDetails = false;
     this.detailsAnimated = false;
     this.detailsClosing = false;
@@ -409,6 +448,75 @@ const simulatorCard = {
       ${state.showDetails ? `
         <div class="sim-details ${state.detailsClosing ? 'sim-details-closing' : (state.detailsAnimated ? 'sim-details-no-anim' : '')}">
           <div class="sim-details-top">
+            <div class="sim-timeline-header">P&L History</div>
+            <div class="sim-timeline">
+              ${(() => {
+                // Build segments from daily total values
+                const segments = [];
+                const values = state.dailyTotalValues;
+
+                for (let i = 0; i < values.length; i++) {
+                  const entry = values[i];
+                  const isToday = entry.date === state.currentDate;
+                  let color = 'neutral';
+
+                  if (i > 0) {
+                    const prevValue = values[i - 1].value;
+                    const currValue = entry.value;
+                    if (currValue > prevValue) {
+                      color = 'up';
+                    } else if (currValue < prevValue) {
+                      color = 'down';
+                    }
+                  }
+
+                  segments.push({ date: entry.date, isToday, color });
+                }
+
+                return segments.length > 0 ? `
+                  <div class="sim-timeline-segments" onmouseover="simulatorCard.handleMouseOver(event)" onmouseout="simulatorCard.handleMouseOut(event)">
+                    ${segments.map((seg, i) => {
+                      const entry = values[i];
+                      const prevValue = i > 0 ? values[i - 1].value : entry.value;
+                      const change = entry.value - prevValue;
+                      const changePercent = prevValue !== 0 ? (change / prevValue) * 100 : 0;
+                      const dateStr = String(entry.date);
+                      const formattedDate = dateStr.slice(0, 4) + '/' + dateStr.slice(4, 6) + '/' + dateStr.slice(6, 8);
+                      const pnlText = (change >= 0 ? '+' : '') + changePercent.toFixed(2) + '%';
+                      const infoClass = change >= 0 ? 'up' : 'down';
+                      const ticker = entry.ticker || '-';
+                      return `
+                        <div class="sim-timeline-segment sim-timeline-${seg.color}" data-info-date="${formattedDate}" data-info-ticker="${ticker}" data-info-pnl="${pnlText}" data-info-class="${infoClass}">
+                          ${seg.isToday ? '<span class="sim-timeline-arrow">▼</span>' : ''}
+                        </div>
+                      `;
+                    }).join('')}
+                  </div>
+                ` : '<div class="sim-timeline-empty">Start trading to see history</div>';
+              })()}
+            </div>
+            ${(() => {
+              const values = state.dailyTotalValues;
+              if (values.length === 0) return '<div class="sim-timeline-info" id="sim-timeline-info"></div>';
+              const todayIdx = values.findIndex(v => v.date === state.currentDate);
+              if (todayIdx === -1) return '<div class="sim-timeline-info" id="sim-timeline-info"></div>';
+              const entry = values[todayIdx];
+              const prevValue = todayIdx > 0 ? values[todayIdx - 1].value : entry.value;
+              const change = entry.value - prevValue;
+              const changePercent = prevValue !== 0 ? (change / prevValue) * 100 : 0;
+              const dateStr = String(entry.date);
+              const formattedDate = dateStr.slice(0, 4) + '/' + dateStr.slice(4, 6) + '/' + dateStr.slice(6, 8);
+              const pnlText = (change >= 0 ? '+' : '') + changePercent.toFixed(2) + '%';
+              const infoClass = change >= 0 ? 'up' : 'down';
+              const ticker = entry.ticker || '-';
+              return `
+                <div class="sim-timeline-info" id="sim-timeline-info">
+                  <span class="sim-timeline-info-date">${formattedDate}</span>
+                  <span class="sim-timeline-info-ticker">${ticker}</span>
+                  <span class="sim-timeline-info-pnl ${infoClass}">${pnlText}</span>
+                </div>
+              `;
+            })()}
           </div>
           <div class="sim-details-bottom">
             <div class="sim-ledger-header">Position History</div>
@@ -532,12 +640,123 @@ const simulatorCard = {
     }
 
     .sim-details-top {
-      flex: 1;
+      flex: 0 0 auto;
       border-bottom: 1px solid var(--window-border);
-      min-height: 100px;
+      height: 240px;
       background: #fff;
       width: 300px;
       min-width: 300px;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+    }
+
+    .sim-timeline-header {
+      font-weight: bold;
+      font-size: 11px;
+      margin-bottom: 4px;
+      flex-shrink: 0;
+    }
+
+    .sim-timeline-info {
+      height: 20px;
+      font-size: 10px;
+      padding: 4px 0;
+      white-space: nowrap;
+      flex-shrink: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .sim-timeline-info-date {
+      color: var(--text-color);
+      flex: 1;
+      text-align: left;
+    }
+
+    .sim-timeline-info-ticker {
+      color: var(--text-color);
+      font-weight: bold;
+      flex: 1;
+      text-align: center;
+    }
+
+    .sim-timeline-info-pnl {
+      flex: 1;
+      text-align: right;
+    }
+
+    .sim-timeline-info-pnl.up {
+      color: #00c853;
+    }
+
+    .sim-timeline-info-pnl.down {
+      color: #ff1744;
+    }
+
+    .sim-timeline {
+      flex: 1;
+      overflow-x: auto;
+      display: flex;
+      align-items: flex-end;
+      padding-top: 20px;
+    }
+
+    .sim-timeline-segments {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 100%;
+    }
+
+    .sim-timeline-segment {
+      width: 10px;
+      height: 160px;
+      position: relative;
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: height 0.1s ease;
+    }
+
+    .sim-timeline-segment:hover {
+      height: 180px;
+    }
+
+    .sim-timeline-hover-arrow {
+      display: none;
+    }
+
+    .sim-timeline-up {
+      background: #00c853;
+    }
+
+    .sim-timeline-down {
+      background: #ff1744;
+    }
+
+    .sim-timeline-neutral {
+      background: #999;
+    }
+
+    .sim-timeline-arrow {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      margin-bottom: 4px;
+      font-size: 12px;
+      color: var(--text-color);
+    }
+
+    .sim-timeline-empty {
+      color: #666;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
     }
 
     .sim-details-bottom {
@@ -878,6 +1097,11 @@ const simulatorCard = {
       const wrapperEl = windowEl.querySelector('.sim-wrapper');
       if (wrapperEl) {
         wrapperEl.outerHTML = simulatorCard.content();
+        // Scroll timeline to the end (show today)
+        const timeline = windowEl.querySelector('.sim-timeline');
+        if (timeline) {
+          timeline.scrollLeft = timeline.scrollWidth;
+        }
       }
     }
   },
@@ -898,6 +1122,7 @@ const simulatorCard = {
     simulatorCard.detailsOpening = false;
     simulatorCard.trades = [];
     simulatorCard.expandedTrades = {};
+    simulatorCard.dailyTotalValues = [];
     simulatorCard.dates = [];
     simulatorCard.tickers = [];
 
@@ -986,6 +1211,30 @@ const simulatorCard = {
       const idx = parseInt(tradeHeader.dataset.tradeIdx, 10);
       this.toggleTrade(idx);
       return;
+    }
+  },
+
+  handleMouseOver(e) {
+    const segment = e.target.closest('.sim-timeline-segment');
+    if (segment) {
+      const date = segment.dataset.infoDate;
+      const ticker = segment.dataset.infoTicker;
+      const pnl = segment.dataset.infoPnl;
+      const infoClass = segment.dataset.infoClass;
+      const infoEl = document.getElementById('sim-timeline-info');
+      if (infoEl && date) {
+        infoEl.innerHTML = '<span class="sim-timeline-info-date">' + date + '</span> <span class="sim-timeline-info-ticker">' + ticker + '</span> <span class="sim-timeline-info-pnl ' + infoClass + '">' + pnl + '</span>';
+      }
+    }
+  },
+
+  handleMouseOut(e) {
+    const segment = e.target.closest('.sim-timeline-segment');
+    if (segment) {
+      const infoEl = document.getElementById('sim-timeline-info');
+      if (infoEl) {
+        infoEl.innerHTML = '';
+      }
     }
   },
 
