@@ -244,7 +244,7 @@ const simulatorCard = {
             ` : `
               <button class="sim-btn sim-btn-buy" id="sim-buy-btn" ${!state.tickerData ? 'disabled' : ''}>Buy</button>
             `}
-            <button class="sim-btn sim-btn-secondary" id="sim-next-btn">Next Day</button>
+            <button class="sim-btn sim-btn-secondary" id="sim-next-btn">Next Day [→]</button>
           </div>
 
           <div class="sim-fastforward">
@@ -447,6 +447,11 @@ const simulatorCard = {
     .sim-ff-date:hover {
       background: var(--hover-bg);
     }
+
+    .sim-btn-blink {
+      background: var(--text-color) !important;
+      color: var(--window-bg) !important;
+    }
   `,
 
   rerender() {
@@ -484,10 +489,25 @@ const simulatorCard = {
       simulatorCard.currentDate = simulatorCard.dates[0];
     }
 
+    // Add keyboard listener
+    simulatorCard._keyHandler = (e) => {
+      // Only handle if simulator window is open
+      const windowEl = document.querySelector(`[data-window-id="simulator"]`);
+      if (windowEl) {
+        simulatorCard.handleKeyDown(e);
+      }
+    };
+    document.addEventListener('keydown', simulatorCard._keyHandler);
+
     simulatorCard.rerender();
   },
 
-  destroy() {},
+  destroy() {
+    if (simulatorCard._keyHandler) {
+      document.removeEventListener('keydown', simulatorCard._keyHandler);
+      simulatorCard._keyHandler = null;
+    }
+  },
 
   async handleChange(e) {
     if (e.target.id === 'sim-ticker-select') {
@@ -522,6 +542,22 @@ const simulatorCard = {
       const dateKey = parseInt(e.target.dataset.date, 10);
       this.jumpToDate(dateKey);
       return;
+    }
+  },
+
+  handleKeyDown(e) {
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      // Blink the button then advance
+      const btn = document.getElementById('sim-next-btn');
+      if (btn) {
+        btn.classList.add('sim-btn-blink');
+        setTimeout(() => {
+          this.advanceDate();
+        }, 100);
+      } else {
+        this.advanceDate();
+      }
     }
   },
 
