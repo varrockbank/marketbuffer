@@ -893,7 +893,7 @@ const simulatorCard = {
       flex: 0 0 auto;
       border-bottom: 1px solid var(--window-border);
       height: 170px;
-      background: #fff;
+      background: var(--window-bg);
       width: 300px;
       min-width: 300px;
       display: flex;
@@ -1015,7 +1015,7 @@ const simulatorCard = {
       padding: 8px;
       display: flex;
       flex-direction: column;
-      background: #fff;
+      background: var(--window-bg);
       width: 300px;
       min-width: 300px;
     }
