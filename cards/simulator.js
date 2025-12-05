@@ -30,7 +30,6 @@ const simulatorCard = {
   detailsClosing: false, // Track if details pane is closing
   detailsOpening: false, // Track if details pane is opening
   trades: [],          // Array of {ticker, shares, openDate, openPrice, closeDate?, closePrice?, pnl?}
-  expandedTrades: {},  // Track which trades are expanded by index
   dailyTotalValues: [], // Track daily total values: [{date, value}]
 
   // Calculate midpoint price
@@ -143,7 +142,7 @@ const simulatorCard = {
       this.fetchTickerData(this.selectedTicker);
     } else {
       this.tickerData = null;
-      this.rerender();
+      this.rerender(true); // Scroll to end after jumping
     }
   },
 
@@ -187,7 +186,7 @@ const simulatorCard = {
     this.recordDailyValue();
 
     this.loading = false;
-    this.rerender();
+    this.rerender(true); // Scroll to end when new data is added
   },
 
   // Record current total value for the day
@@ -219,13 +218,15 @@ const simulatorCard = {
     this.previousTickerData = null; // Reset - will be set on next advanceDate
 
     // Record trade
-    this.trades.push({
+    const trade = {
       ticker: this.ticker,
       shares: maxShares,
       openDate: this.currentDate,
       openPrice: price,
       openValue: cost,
-    });
+    };
+    this.trades.push(trade);
+    this.appendTrade(trade, this.trades.length - 1);
 
     this.advanceDate();
   },
@@ -238,12 +239,14 @@ const simulatorCard = {
     const proceeds = this.shares * price;
 
     // Find the open trade and update it
-    const openTrade = [...this.trades].reverse().find(t => t.ticker === this.ticker && !t.closeDate);
-    if (openTrade) {
+    const tradeIdx = this.trades.findIndex(t => t.ticker === this.ticker && !t.closeDate);
+    if (tradeIdx !== -1) {
+      const openTrade = this.trades[tradeIdx];
       openTrade.closeDate = this.currentDate;
       openTrade.closePrice = price;
       openTrade.closeValue = proceeds;
       openTrade.pnl = proceeds - openTrade.openValue;
+      this.updateTrade(openTrade, tradeIdx);
     }
 
     this.cash = this.cash + proceeds;
@@ -269,7 +272,6 @@ const simulatorCard = {
     this.previousTickerData = null;
     this.previousDate = null;
     this.trades = [];
-    this.expandedTrades = {};
     this.dailyTotalValues = [];
     this.showDetails = false;
     this.detailsAnimated = false;
@@ -308,10 +310,96 @@ const simulatorCard = {
     }
   },
 
-  // Toggle trade expansion
-  toggleTrade(index) {
-    this.expandedTrades[index] = !this.expandedTrades[index];
-    this.rerender();
+  // Generate HTML for a single trade row
+  renderTradeRow(trade, idx) {
+    const formatMoney = (n) => '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    const formatLedgerDate = (dateKey) => {
+      const str = String(dateKey);
+      return `${str.slice(0, 4)}-${str.slice(4, 6)}-${str.slice(6, 8)}`;
+    };
+
+    const isClosed = !!trade.closeDate;
+    const currentPrice = !isClosed && this.ticker === trade.ticker && this.tickerData ? this.getMidpoint(this.tickerData) : null;
+    const currentValue = currentPrice !== null ? trade.shares * currentPrice : null;
+    const unrealizedPnl = currentValue !== null ? currentValue - trade.openValue : null;
+    const pnlPercent = isClosed ? ((trade.pnl / trade.openValue) * 100) : (unrealizedPnl !== null ? ((unrealizedPnl / trade.openValue) * 100) : null);
+
+    return `
+      <details class="sim-trade-row" data-trade-idx="${idx}">
+        <summary class="sim-trade-header">
+          <span class="sim-trade-date">${formatLedgerDate(trade.openDate)}${isClosed ? ' to ' + formatLedgerDate(trade.closeDate) : ''}</span>
+          <span class="sim-trade-ticker">${trade.ticker}</span>
+          <span class="sim-trade-status ${isClosed ? '' : 'sim-trade-open'}">${isClosed ? 'Closed' : 'Open'}</span>
+        </summary>
+        <div class="sim-trade-details">
+          <div class="sim-trade-detail-row">
+            <span>Shares:</span>
+            <span>${trade.shares.toFixed(1)}</span>
+          </div>
+          <div class="sim-trade-detail-row">
+            <span>Open Price:</span>
+            <span>${formatMoney(trade.openPrice)}</span>
+          </div>
+          <div class="sim-trade-detail-row">
+            <span>${isClosed ? 'Close Price:' : 'Current Price:'}</span>
+            <span>${isClosed ? formatMoney(trade.closePrice) : (currentPrice !== null ? formatMoney(currentPrice) : '-')}</span>
+          </div>
+          <div class="sim-trade-detail-row">
+            <span>Open Value:</span>
+            <span>${formatMoney(trade.openValue)}</span>
+          </div>
+          <div class="sim-trade-detail-row">
+            <span>${isClosed ? 'Close Value:' : 'Current Value:'}</span>
+            <span>${isClosed ? formatMoney(trade.closeValue) : (currentValue !== null ? formatMoney(currentValue) : '-')}</span>
+          </div>
+          <div class="sim-trade-detail-row sim-trade-pnl">
+            <span>P&L:</span>
+            <span class="${(isClosed ? trade.pnl : unrealizedPnl) !== null ? ((isClosed ? trade.pnl : unrealizedPnl) >= 0 ? 'sim-delta-up' : 'sim-delta-down') : ''}">${
+              isClosed
+                ? (trade.pnl >= 0 ? '+' : '') + formatMoney(trade.pnl) + ' (' + (pnlPercent >= 0 ? '+' : '') + pnlPercent.toFixed(2) + '%)'
+                : (unrealizedPnl !== null
+                    ? (unrealizedPnl >= 0 ? '+' : '') + formatMoney(unrealizedPnl) + ' (' + (pnlPercent >= 0 ? '+' : '') + pnlPercent.toFixed(2) + '%)'
+                    : '-')
+            }</span>
+          </div>
+        </div>
+      </details>
+    `;
+  },
+
+  // Append a new trade to the ledger (prepend since we show newest first)
+  appendTrade(trade, idx) {
+    const windowEl = document.querySelector(`[data-window-id="${this.id}"]`);
+    if (!windowEl) return;
+
+    const ledgerEl = windowEl.querySelector('.sim-ledger');
+    if (!ledgerEl) return;
+
+    // Remove empty state if present
+    const emptyEl = ledgerEl.querySelector('.sim-ledger-empty');
+    if (emptyEl) emptyEl.remove();
+
+    // Prepend new trade (newest first)
+    ledgerEl.insertAdjacentHTML('afterbegin', this.renderTradeRow(trade, idx));
+  },
+
+  // Update an existing trade in the ledger (e.g., when closing)
+  updateTrade(trade, idx) {
+    const windowEl = document.querySelector(`[data-window-id="${this.id}"]`);
+    if (!windowEl) return;
+
+    const tradeEl = windowEl.querySelector(`.sim-trade-row[data-trade-idx="${idx}"]`);
+    if (!tradeEl) return;
+
+    // Preserve open state
+    const wasOpen = tradeEl.open;
+    tradeEl.outerHTML = this.renderTradeRow(trade, idx);
+
+    // Restore open state
+    if (wasOpen) {
+      const newTradeEl = windowEl.querySelector(`.sim-trade-row[data-trade-idx="${idx}"]`);
+      if (newTradeEl) newTradeEl.open = true;
+    }
   },
 
   // Show share modal
@@ -335,11 +423,11 @@ const simulatorCard = {
         this.fetchTickerData(this.selectedTicker);
       } else {
         this.tickerData = null;
-        this.rerender();
+        this.rerender(true); // Scroll to end after advancing
       }
     } else {
       // End of simulation
-      this.rerender();
+      this.rerender(true);
     }
   },
 
@@ -362,15 +450,6 @@ const simulatorCard = {
 
     // Format number with commas
     const formatMoney = (n) => '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-
-    // Format ledger date
-    const formatLedgerDate = (dateKey) => {
-      const str = String(dateKey);
-      const year = str.slice(0, 4);
-      const month = str.slice(4, 6);
-      const day = str.slice(6, 8);
-      return `${year}-${month}-${day}`;
-    };
 
     return `
       <div class="sim-wrapper ${state.showDetails ? 'sim-expanded' : ''}">
@@ -537,58 +616,8 @@ const simulatorCard = {
                 ` : `
                   ${[...state.trades].reverse().map((trade, reverseIdx) => {
                   const idx = state.trades.length - 1 - reverseIdx;
-                  const isExpanded = state.expandedTrades[idx];
-                  const isClosed = !!trade.closeDate;
-                  const currentPrice = !isClosed && state.ticker === trade.ticker && state.tickerData ? this.getMidpoint(state.tickerData) : null;
-                  const currentValue = currentPrice ? trade.shares * currentPrice : null;
-                  const unrealizedPnl = currentValue ? currentValue - trade.openValue : null;
-                  const pnlPercent = isClosed ? ((trade.pnl / trade.openValue) * 100) : (unrealizedPnl ? ((unrealizedPnl / trade.openValue) * 100) : null);
-
-                  return `
-                    <div class="sim-trade-row">
-                      <div class="sim-trade-header" data-trade-idx="${idx}">
-                        <span class="sim-trade-toggle">${isExpanded ? '▼' : '▶'}</span>
-                        <span class="sim-trade-date">${formatLedgerDate(trade.openDate)}${isClosed ? ' to ' + formatLedgerDate(trade.closeDate) : ''}</span>
-                        <span class="sim-trade-ticker">${trade.ticker}</span>
-                        <span class="sim-trade-status ${isClosed ? '' : 'sim-trade-open'}">${isClosed ? 'Closed' : 'Open'}</span>
-                      </div>
-                      ${isExpanded ? `
-                        <div class="sim-trade-details">
-                          <div class="sim-trade-detail-row">
-                            <span>Shares:</span>
-                            <span>${trade.shares.toFixed(1)}</span>
-                          </div>
-                          <div class="sim-trade-detail-row">
-                            <span>Open Price:</span>
-                            <span>${formatMoney(trade.openPrice)}</span>
-                          </div>
-                          <div class="sim-trade-detail-row">
-                            <span>${isClosed ? 'Close Price:' : 'Current Price:'}</span>
-                            <span>${isClosed ? formatMoney(trade.closePrice) : (currentPrice ? formatMoney(currentPrice) : '-')}</span>
-                          </div>
-                          <div class="sim-trade-detail-row">
-                            <span>Open Value:</span>
-                            <span>${formatMoney(trade.openValue)}</span>
-                          </div>
-                          <div class="sim-trade-detail-row">
-                            <span>${isClosed ? 'Close Value:' : 'Current Value:'}</span>
-                            <span>${isClosed ? formatMoney(trade.closeValue) : (currentValue ? formatMoney(currentValue) : '-')}</span>
-                          </div>
-                          <div class="sim-trade-detail-row sim-trade-pnl">
-                            <span>P&L:</span>
-                            <span class="${(isClosed ? trade.pnl : unrealizedPnl) !== null ? ((isClosed ? trade.pnl : unrealizedPnl) >= 0 ? 'sim-delta-up' : 'sim-delta-down') : ''}">${
-                              isClosed
-                                ? (trade.pnl >= 0 ? '+' : '') + formatMoney(trade.pnl) + ' (' + (pnlPercent >= 0 ? '+' : '') + pnlPercent.toFixed(2) + '%)'
-                                : (unrealizedPnl !== null
-                                    ? (unrealizedPnl >= 0 ? '+' : '') + formatMoney(unrealizedPnl) + ' (' + (pnlPercent >= 0 ? '+' : '') + pnlPercent.toFixed(2) + '%)'
-                                    : '-')
-                            }</span>
-                          </div>
-                        </div>
-                      ` : ''}
-                    </div>
-                  `;
-                  }).join('')}
+                  return this.renderTradeRow(trade, idx);
+                }).join('')}
                 `}
               </div>
             </div>
@@ -856,15 +885,26 @@ const simulatorCard = {
       padding: 6px 4px;
       cursor: pointer;
       font-size: 10px;
+      list-style: none;
+    }
+
+    .sim-trade-header::-webkit-details-marker {
+      display: none;
+    }
+
+    .sim-trade-header::before {
+      content: '▶';
+      font-size: 8px;
+      width: 10px;
+      flex-shrink: 0;
+    }
+
+    .sim-trade-row[open] .sim-trade-header::before {
+      content: '▼';
     }
 
     .sim-trade-header:hover {
       background: var(--hover-bg);
-    }
-
-    .sim-trade-toggle {
-      font-size: 8px;
-      width: 10px;
     }
 
     .sim-trade-date {
@@ -1137,11 +1177,15 @@ const simulatorCard = {
     }
   `,
 
-  rerender() {
+  rerender(scrollToEnd = false) {
     const windowEl = document.querySelector(`[data-window-id="${this.id}"]`);
     if (windowEl) {
       const wrapperEl = windowEl.querySelector('.sim-wrapper');
       if (wrapperEl) {
+        // Preserve timeline scroll position
+        const oldTimeline = windowEl.querySelector('.sim-timeline');
+        const oldScrollLeft = oldTimeline ? oldTimeline.scrollLeft : null;
+
         wrapperEl.outerHTML = simulatorCard.content();
 
         // Set CSS variable for details height to match content
@@ -1153,10 +1197,14 @@ const simulatorCard = {
           }
         }
 
-        // Scroll timeline to the end (show today)
+        // Restore or scroll timeline
         const timeline = windowEl.querySelector('.sim-timeline');
         if (timeline) {
-          timeline.scrollLeft = timeline.scrollWidth;
+          if (scrollToEnd) {
+            timeline.scrollLeft = timeline.scrollWidth;
+          } else if (oldScrollLeft !== null) {
+            timeline.scrollLeft = oldScrollLeft;
+          }
         }
       }
     }
@@ -1177,7 +1225,6 @@ const simulatorCard = {
     simulatorCard.detailsClosing = false;
     simulatorCard.detailsOpening = false;
     simulatorCard.trades = [];
-    simulatorCard.expandedTrades = {};
     simulatorCard.dailyTotalValues = [];
     simulatorCard.dates = [];
     simulatorCard.tickers = [];
@@ -1269,14 +1316,6 @@ const simulatorCard = {
       e.preventDefault();
       const dateKey = parseInt(e.target.dataset.date, 10);
       this.jumpToDate(dateKey);
-      return;
-    }
-    // Handle trade row expansion
-    const tradeHeader = e.target.closest('.sim-trade-header');
-    if (tradeHeader) {
-      e.preventDefault();
-      const idx = parseInt(tradeHeader.dataset.tradeIdx, 10);
-      this.toggleTrade(idx);
       return;
     }
   },
