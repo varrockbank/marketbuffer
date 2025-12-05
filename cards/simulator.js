@@ -37,6 +37,7 @@ const simulatorCard = {
   iterationsRemaining: 0, // Iterations left in auto-run
   editor: null,        // WarrenBuf editor instance
   algoFileName: null,  // Current algo file name
+  allTickerPrices: {}, // Prices for all tickers on current date: {ticker: {open, previousClose}}
 
   // Calculate midpoint price
   getMidpoint(data) {
@@ -159,6 +160,37 @@ const simulatorCard = {
     this.dates = result.dates || [];
   },
 
+  // Fetch prices for all tickers on current date
+  async fetchAllTickerPrices() {
+    if (!this.currentDate || this.tickers.length === 0) {
+      this.allTickerPrices = {};
+      return;
+    }
+
+    await ServerService.initWasm();
+    const previousDate = this.getPreviousDate();
+    const prices = {};
+
+    for (const ticker of this.tickers) {
+      const result = JSON.parse(window.getTickerForDate(ticker, this.currentDate));
+      if (!result.error) {
+        let previousClose = null;
+        if (previousDate) {
+          const prevResult = JSON.parse(window.getTickerForDate(ticker, previousDate));
+          if (!prevResult.error) {
+            previousClose = prevResult.close;
+          }
+        }
+        prices[ticker] = {
+          open: result.open,
+          previousClose: previousClose,
+        };
+      }
+    }
+
+    this.allTickerPrices = prices;
+  },
+
   // Fetch ticker data for current date
   async fetchTickerData(ticker) {
     if (!ticker || !this.currentDate) {
@@ -190,6 +222,9 @@ const simulatorCard = {
 
     // Record daily total value
     this.recordDailyValue();
+
+    // Fetch all ticker prices for algo
+    await this.fetchAllTickerPrices();
 
     this.loading = false;
     this.rerender(true); // Scroll to end when new data is added
@@ -571,12 +606,15 @@ const simulatorCard = {
             </div>
           </blockquote>
           <div class="sim-code-output">
-            <div class="sim-code-inline"><strong>Input:</strong> position = ${JSON.stringify({ open: hasPosition })}</div>
+            <div class="sim-code-inline"><strong>Input:</strong></div>
+            <textarea class="sim-input-textarea" readonly>position = ${JSON.stringify({ open: hasPosition }, null, 2)}
+
+prices = ${JSON.stringify(state.allTickerPrices, null, 2)}</textarea>
             <div class="sim-code-inline"><strong>Output:</strong> ${(() => {
               try {
                 const code = simulatorCard.getEditorCode();
                 const fn = new Function('return ' + code)();
-                const result = fn({ open: hasPosition });
+                const result = fn({ open: hasPosition }, state.allTickerPrices);
                 // Cache the result for Execute button
                 simulatorCard.algoResult = result;
                 // Show what action will actually be taken
@@ -840,6 +878,20 @@ const simulatorCard = {
       font-family: monospace;
       font-size: 11px;
       margin-bottom: 4px;
+    }
+
+    .sim-input-textarea {
+      width: 100%;
+      height: 120px;
+      font-family: monospace;
+      font-size: 10px;
+      border: 1px solid var(--window-border);
+      background: var(--input-bg);
+      color: var(--text-color);
+      resize: none;
+      margin-bottom: 8px;
+      padding: 4px;
+      box-sizing: border-box;
     }
 
     .sim-action-buy {
@@ -1528,7 +1580,7 @@ const simulatorCard = {
 
     // Load code source
     try {
-      const response = await fetch('demo/random-walk.algo');
+      const response = await fetch('demo/algos/random-walk.algo');
       simulatorCard.codeSource = await response.text();
     } catch (e) {
       simulatorCard.codeSource = '// Failed to load code';

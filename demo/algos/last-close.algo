@@ -1,0 +1,19 @@
+function trade(position, prices) {
+    if (position.open) {
+        if(prices["AAPL"].previousClose &&
+                prices["AAPL"].open <
+                prices["AAPL"].previousClose) {
+            return -1; // close
+        } else {
+            return 0;
+        }
+    } else {
+        if(prices["AAPL"].previousClose &&
+                prices["AAPL"].open >
+                prices["AAPL"].previousClose) {
+            return 1; // open
+        } else {
+            return 0;
+        }
+    }
+}

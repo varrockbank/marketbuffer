@@ -54,10 +54,18 @@ const FileTree = {
           { name: 'variables.css', type: 'file', path: 'demo/styles/variables.css' },
         ],
       },
+      {
+        name: 'algos',
+        type: 'folder',
+        expanded: true,
+        children: [
+          { name: 'random-walk.algo', type: 'file', path: 'demo/algos/random-walk.algo' },
+          { name: 'last-close.algo', type: 'file', path: 'demo/algos/last-close.algo' },
+        ],
+      },
       { name: 'package.json', type: 'file', path: 'demo/package.json' },
       { name: 'README.md', type: 'file', path: 'demo/README.md' },
       { name: '.gitignore', type: 'file', path: 'demo/.gitignore' },
-      { name: 'random-walk.algo', type: 'file', path: 'demo/random-walk.algo' },
     ],
   },
 
