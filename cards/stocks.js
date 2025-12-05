@@ -308,7 +308,6 @@ const stocksCard = {
       <div class="stock-daily-view">
         <div class="stock-daily-header">
           <button class="stock-back-btn" id="stock-back-btn">← Back</button>
-          <span class="stock-daily-title">${monthNames[month]}</span>
         </div>
         <div class="stock-daily-table-container">
           <table class="stock-daily-table">
@@ -445,11 +444,21 @@ const stocksCard = {
               </select>
             </div>
             <div class="stock-control-group">
-              <label class="stock-label">Period</label>
-              <select class="stock-select" id="stock-window-select">
-                <option value="monthly" ${state.selectedWindow === 'monthly' ? 'selected' : ''}>Monthly</option>
-                <option value="weekly" disabled>Weekly</option>
-                <option value="daily" disabled>Daily</option>
+              <label class="stock-label">Month</label>
+              <select class="stock-select" id="stock-month-select">
+                <option value="" ${!state.drilldownMonth ? 'selected' : ''}>All</option>
+                <option value="1" ${state.drilldownMonth === 1 ? 'selected' : ''}>January</option>
+                <option value="2" ${state.drilldownMonth === 2 ? 'selected' : ''}>February</option>
+                <option value="3" ${state.drilldownMonth === 3 ? 'selected' : ''}>March</option>
+                <option value="4" ${state.drilldownMonth === 4 ? 'selected' : ''}>April</option>
+                <option value="5" ${state.drilldownMonth === 5 ? 'selected' : ''}>May</option>
+                <option value="6" ${state.drilldownMonth === 6 ? 'selected' : ''}>June</option>
+                <option value="7" ${state.drilldownMonth === 7 ? 'selected' : ''}>July</option>
+                <option value="8" ${state.drilldownMonth === 8 ? 'selected' : ''}>August</option>
+                <option value="9" ${state.drilldownMonth === 9 ? 'selected' : ''}>September</option>
+                <option value="10" ${state.drilldownMonth === 10 ? 'selected' : ''}>October</option>
+                <option value="11" ${state.drilldownMonth === 11 ? 'selected' : ''}>November</option>
+                <option value="12" ${state.drilldownMonth === 12 ? 'selected' : ''}>December</option>
               </select>
             </div>
             ${state.selectedTicker ? `
@@ -1075,11 +1084,6 @@ const stocksCard = {
       background: var(--hover-bg);
     }
 
-    .stock-daily-title {
-      font-size: 12px;
-      font-weight: bold;
-    }
-
     .stock-daily-table-container {
       max-height: 250px;
       overflow-y: auto;
@@ -1267,12 +1271,16 @@ const stocksCard = {
     if (e.target.id === 'stock-ticker-select') {
       this.selectedTicker = e.target.value;
       this.scrollPosition = 0;
-      this.drilldownMonth = null;
-      this.dailyData = null;
       if (this.selectedTicker) {
+        // Always fetch OHLC for yearly view
         await this.fetchOHLC();
+        if (this.drilldownMonth) {
+          // Also fetch daily data if in drilldown mode
+          await this.fetchDailyData(this.drilldownMonth);
+        }
       } else {
         this.ohlcData = null;
+        this.dailyData = null;
         this.rerender();
       }
     }
@@ -1284,10 +1292,17 @@ const stocksCard = {
         await this.fetchOHLC();
       }
     }
-    if (e.target.id === 'stock-window-select') {
-      this.selectedWindow = e.target.value;
-      if (this.selectedTicker) {
-        await this.fetchOHLC();
+    if (e.target.id === 'stock-month-select') {
+      const value = e.target.value;
+      if (value === '') {
+        // "Entire year" selected - exit drilldown
+        this.exitDrilldown();
+      } else {
+        // Specific month selected - drill down
+        const month = parseInt(value, 10);
+        if (this.selectedTicker) {
+          await this.fetchDailyData(month);
+        }
       }
     }
   },
