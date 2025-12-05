@@ -199,7 +199,7 @@ const editorCard = {
 
     .pane-content .playground.wb {
       flex: none;
-      height: auto;
+      height: fit-content;
       border: none;
     }
 
