@@ -31,6 +31,7 @@ const simulatorCard = {
   detailsOpening: false, // Track if details pane is opening
   trades: [],          // Array of {ticker, shares, openDate, openPrice, closeDate?, closePrice?, pnl?}
   dailyTotalValues: [], // Track daily total values: [{date, value}]
+  codeSource: '',      // Source code for the trade function
 
   // Calculate midpoint price
   getMidpoint(data) {
@@ -453,6 +454,12 @@ const simulatorCard = {
 
     return `
       <div class="sim-wrapper ${state.showDetails ? 'sim-expanded' : ''}">
+      <div class="sim-left-pane">
+        <div class="sim-left-header">Automated Trading</div>
+        <div class="sim-left-content">
+          <textarea class="sim-code-editor" id="sim-code-editor">${state.codeSource || ''}</textarea>
+        </div>
+      </div>
       <div class="sim-content">
         <div class="sim-status">
           <div class="sim-header-row">
@@ -634,6 +641,45 @@ const simulatorCard = {
       align-items: flex-start;
     }
 
+    .sim-left-pane {
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--window-border);
+      border-right: 1px solid black;
+      width: 600px;
+      flex-shrink: 0;
+      height: var(--sim-content-height, auto);
+      background: var(--window-bg);
+      margin-left: -600px;
+    }
+
+    .sim-left-header {
+      font-weight: bold;
+      font-size: 11px;
+      padding: 10px;
+      border-bottom: 1px solid var(--window-border);
+      flex-shrink: 0;
+    }
+
+    .sim-left-content {
+      flex: 1;
+      min-height: 0;
+      padding: 10px;
+      overflow: auto;
+    }
+
+    .sim-code-editor {
+      width: 100%;
+      height: 50%;
+      font-family: monospace;
+      font-size: 12px;
+      border: 1px solid var(--window-border);
+      padding: 8px;
+      resize: none;
+      background: var(--input-bg);
+      color: var(--text-color);
+    }
+
     .sim-content {
       padding: 12px;
       font-size: 11px;
@@ -644,10 +690,8 @@ const simulatorCard = {
     .sim-details {
       display: flex;
       flex-direction: column;
-      border-left: 1px solid var(--window-border);
-      border-top: 1px solid var(--window-border);
-      border-right: 1px solid var(--window-border);
-      border-bottom: 1px solid var(--window-border);
+      border: 1px solid var(--window-border);
+      border-left: 1px solid black;
       flex-shrink: 0;
       width: 0;
       overflow: hidden;
@@ -1188,13 +1232,11 @@ const simulatorCard = {
 
         wrapperEl.outerHTML = simulatorCard.content();
 
-        // Set CSS variable for details height to match content
-        if (this.showDetails) {
-          const newWrapper = windowEl.querySelector('.sim-wrapper');
-          const newContentEl = newWrapper ? newWrapper.querySelector('.sim-content') : null;
-          if (newWrapper && newContentEl) {
-            newWrapper.style.setProperty('--sim-content-height', newContentEl.offsetHeight + 'px');
-          }
+        // Set CSS variable for pane heights to match content
+        const newWrapper = windowEl.querySelector('.sim-wrapper');
+        const newContentEl = newWrapper ? newWrapper.querySelector('.sim-content') : null;
+        if (newWrapper && newContentEl) {
+          newWrapper.style.setProperty('--sim-content-height', newContentEl.offsetHeight + 'px');
         }
 
         // Restore or scroll timeline
@@ -1228,6 +1270,15 @@ const simulatorCard = {
     simulatorCard.dailyTotalValues = [];
     simulatorCard.dates = [];
     simulatorCard.tickers = [];
+    simulatorCard.codeSource = '';
+
+    // Load code source
+    try {
+      const response = await fetch('assets/random-walk.js');
+      simulatorCard.codeSource = await response.text();
+    } catch (e) {
+      simulatorCard.codeSource = '// Failed to load code';
+    }
 
     // Load tickers
     try {
