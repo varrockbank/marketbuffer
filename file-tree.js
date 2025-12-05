@@ -61,6 +61,9 @@ const FileTree = {
         children: [
           { name: 'random-walk.algo', type: 'file', path: 'demo/algos/random-walk.algo' },
           { name: 'last-close.algo', type: 'file', path: 'demo/algos/last-close.algo' },
+          { name: 'momentum.algo', type: 'file', path: 'demo/algos/momentum.algo' },
+          { name: 'momentum-10d.algo', type: 'file', path: 'demo/algos/momentum-10d.algo' },
+          { name: 'momentum-10d-no-tsla.algo', type: 'file', path: 'demo/algos/momentum-10d-no-tsla.algo' },
         ],
       },
       { name: 'package.json', type: 'file', path: 'demo/package.json' },

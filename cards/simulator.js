@@ -160,7 +160,7 @@ const simulatorCard = {
     this.dates = result.dates || [];
   },
 
-  // Fetch prices for all tickers on current date
+  // Fetch prices for all tickers on current date with trailing 10 days of history
   async fetchAllTickerPrices() {
     if (!this.currentDate || this.tickers.length === 0) {
       this.allTickerPrices = {};
@@ -168,22 +168,47 @@ const simulatorCard = {
     }
 
     await ServerService.initWasm();
-    const previousDate = this.getPreviousDate();
+
+    // Get trailing 10 dates (including current)
+    const currentIdx = this.dates.indexOf(this.currentDate);
+    const trailingDates = [];
+    for (let i = Math.max(0, currentIdx - 9); i <= currentIdx; i++) {
+      trailingDates.push(this.dates[i]);
+    }
+
     const prices = {};
 
     for (const ticker of this.tickers) {
       const result = JSON.parse(window.getTickerForDate(ticker, this.currentDate));
       if (!result.error) {
+        // Get previous close
         let previousClose = null;
-        if (previousDate) {
-          const prevResult = JSON.parse(window.getTickerForDate(ticker, previousDate));
+        if (currentIdx > 0) {
+          const prevResult = JSON.parse(window.getTickerForDate(ticker, this.dates[currentIdx - 1]));
           if (!prevResult.error) {
             previousClose = prevResult.close;
           }
         }
+
+        // Get trailing 10 days of history
+        const history = [];
+        for (const date of trailingDates) {
+          const histResult = JSON.parse(window.getTickerForDate(ticker, date));
+          if (!histResult.error) {
+            history.push({
+              date: date,
+              open: histResult.open,
+              high: histResult.high,
+              low: histResult.low,
+              close: histResult.close,
+            });
+          }
+        }
+
         prices[ticker] = {
           open: result.open,
           previousClose: previousClose,
+          history: history,
         };
       }
     }
@@ -257,6 +282,49 @@ const simulatorCard = {
     this.shares = maxShares;
     this.cash = this.cash - cost;
     this.previousTickerData = null; // Reset - will be set on next advanceDate
+
+    // Record trade
+    const trade = {
+      ticker: this.ticker,
+      shares: maxShares,
+      openDate: this.currentDate,
+      openPrice: price,
+      openValue: cost,
+    };
+    this.trades.push(trade);
+    this.appendTrade(trade, this.trades.length - 1);
+
+    this.advanceDate();
+  },
+
+  // Buy specific ticker (called by algo when it returns {ticker: 'XYZ'})
+  async buyTicker(ticker) {
+    if (this.ticker) return; // Already have a position
+
+    // Fetch ticker data for the specified ticker
+    await ServerService.initWasm();
+    const result = JSON.parse(window.getTickerForDate(ticker, this.currentDate));
+    if (result.error) return;
+
+    const tickerData = {
+      ticker: result.ticker,
+      open: result.open,
+      high: result.high,
+      low: result.low,
+      close: result.close,
+      volume: result.volume,
+    };
+
+    const price = this.getMidpoint(tickerData);
+    const maxShares = Math.floor((this.cash / price) * 10) / 10; // 1/10 fractional
+    const cost = maxShares * price;
+
+    this.selectedTicker = ticker;
+    this.ticker = ticker;
+    this.tickerData = tickerData;
+    this.shares = maxShares;
+    this.cash = this.cash - cost;
+    this.previousTickerData = null;
 
     // Record trade
     const trade = {
@@ -453,9 +521,14 @@ const simulatorCard = {
     const hasPosition = this.ticker !== null;
     const result = this.algoResult;
 
-    if (result === 1 && !hasPosition) {
-      // Buy
-      this.buy();
+    if ((result === 1 || (result && result.ticker)) && !hasPosition) {
+      // Buy - if result specifies a ticker, use that
+      if (result && result.ticker) {
+        this.selectedTicker = result.ticker;
+        this.buyTicker(result.ticker);
+      } else {
+        this.buy();
+      }
     } else if (result === -1 && hasPosition) {
       // Sell/Close
       this.close();
@@ -552,9 +625,11 @@ const simulatorCard = {
       }
       // Fetch data for selected ticker (position or inquiry)
       if (this.selectedTicker) {
-        this.fetchTickerData(this.selectedTicker);
+        await this.fetchTickerData(this.selectedTicker);
       } else {
         this.tickerData = null;
+        // Still fetch all ticker prices for algo
+        await this.fetchAllTickerPrices();
         this.rerender(true); // Scroll to end after advancing
       }
     } else {
@@ -607,27 +682,28 @@ const simulatorCard = {
           </blockquote>
           <div class="sim-code-output">
             <div class="sim-code-inline"><strong>Input:</strong></div>
-            <textarea class="sim-input-textarea" readonly>position = ${JSON.stringify({ open: hasPosition }, null, 2)}
+            <textarea class="sim-input-textarea" readonly>position = ${JSON.stringify({ open: hasPosition, ticker: state.ticker }, null, 2)}
 
 prices = ${JSON.stringify(state.allTickerPrices, null, 2)}</textarea>
             <div class="sim-code-inline"><strong>Output:</strong> ${(() => {
               try {
                 const code = simulatorCard.getEditorCode();
                 const fn = new Function('return ' + code)();
-                const result = fn({ open: hasPosition }, state.allTickerPrices);
+                const result = fn({ open: hasPosition, ticker: state.ticker }, state.allTickerPrices);
                 // Cache the result for Execute button
                 simulatorCard.algoResult = result;
                 // Show what action will actually be taken
                 let action = 'HOLD';
                 let actionClass = 'sim-action-hold';
-                if (result === 1 && !hasPosition) {
-                  action = 'BUY';
+                if ((result === 1 || (result && result.ticker)) && !hasPosition) {
+                  const tickerToBuy = result.ticker || state.selectedTicker;
+                  action = 'BUY ' + tickerToBuy;
                   actionClass = 'sim-action-buy';
                 } else if (result === -1 && hasPosition) {
                   action = 'SELL';
                   actionClass = 'sim-action-sell';
                 }
-                return `${result} → <span class="${actionClass}">${action}</span>`;
+                return `${JSON.stringify(result)} → <span class="${actionClass}">${action}</span>`;
               } catch (e) {
                 simulatorCard.algoResult = null;
                 return 'Error: ' + e.message;

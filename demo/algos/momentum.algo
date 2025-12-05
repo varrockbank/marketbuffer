@@ -13,20 +13,24 @@ function trade(position, prices) {
 
     if (changes.length === 0) return 0;
 
-    // Sort by percentage change
-    changes.sort((a, b) => a.pctChange - b.pctChange);
+    // Sort by percentage change (highest first)
+    changes.sort((a, b) => b.pctChange - a.pctChange);
 
-    const lowestTicker = changes[0].ticker;
-    const highestTicker = changes[changes.length - 1].ticker;
+    const highestTicker = changes[0].ticker;
 
     if (position.open) {
-        // If our ticker increased the most, hold
+        // If our ticker is still the highest momentum, hold
         if (position.ticker === highestTicker) {
             return 0;
         }
+        // Otherwise close and switch
         return -1;
     } else {
-        // Open the ticker that increased the least
-        return { ticker: lowestTicker };
+        // Buy the ticker with highest momentum (biggest gain from previous close)
+        if (changes[0].pctChange > 0) {
+            return { ticker: highestTicker };
+        }
+        // If no positive momentum, hold cash
+        return 0;
     }
 }

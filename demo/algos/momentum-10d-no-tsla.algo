@@ -1,0 +1,39 @@
+function trade(position, prices) {
+    const tickers = Object.keys(prices).filter(t => t !== 'TSLA' && t !== 'GME');
+
+    // Calculate 10-day momentum for each ticker
+    const changes = [];
+    for (let i = 0; i < tickers.length; i++) {
+        const ticker = tickers[i];
+        const history = prices[ticker].history;
+        if (history && history.length >= 2) {
+            const oldest = history[0].close;
+            const current = prices[ticker].open;
+            const pctChange = (current - oldest) / oldest;
+            changes.push({ ticker, pctChange });
+        }
+    }
+
+    if (changes.length === 0) return 0;
+
+    // Sort by percentage change (highest first)
+    changes.sort((a, b) => b.pctChange - a.pctChange);
+
+    const highestTicker = changes[0].ticker;
+
+    if (position.open) {
+        // If our ticker is still the highest momentum, hold
+        if (position.ticker === highestTicker) {
+            return 0;
+        }
+        // Otherwise close and switch
+        return -1;
+    } else {
+        // Buy the ticker with highest 10-day momentum
+        if (changes[0].pctChange > 0) {
+            return { ticker: highestTicker };
+        }
+        // If no positive momentum, hold cash
+        return 0;
+    }
+}
