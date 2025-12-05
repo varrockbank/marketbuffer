@@ -284,12 +284,18 @@ const stocksCard = {
     const monthNames = ['', 'January', 'February', 'March', 'April', 'May', 'June',
                         'July', 'August', 'September', 'October', 'November', 'December'];
 
-    const rows = data.map(d => {
-      const change = d.close - d.open;
-      const changePercent = ((change / d.open) * 100).toFixed(2);
-      const changeColor = change >= 0 ? '#00c853' : '#ff1744';
-      const changeSign = change >= 0 ? '+' : '';
+    const rows = data.map((d, i) => {
       const date = d.date.split('-')[2]; // Just the day
+      let changeCell = 'n/a';
+
+      if (i > 0) {
+        const prevClose = data[i - 1].close;
+        const change = d.open - prevClose;
+        const changePercent = ((change / prevClose) * 100).toFixed(2);
+        const changeColor = change >= 0 ? '#00c853' : '#ff1744';
+        const changeSign = change >= 0 ? '+' : '';
+        changeCell = `<span style="color: ${changeColor}">${changeSign}${changePercent}%</span>`;
+      }
 
       return `
         <tr>
@@ -298,7 +304,7 @@ const stocksCard = {
           <td>$${d.high.toFixed(2)}</td>
           <td>$${d.low.toFixed(2)}</td>
           <td>$${d.close.toFixed(2)}</td>
-          <td style="color: ${changeColor}">${changeSign}${changePercent}%</td>
+          <td>${changeCell}</td>
           <td>${(d.volume / 1000).toFixed(0)}K</td>
         </tr>
       `;
