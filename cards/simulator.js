@@ -1629,6 +1629,12 @@ const simulatorCard = {
   },
 
   handleKeyDown(e) {
+    // Don't handle keys if WarrenBuffer editor is focused
+    const activeEl = document.activeElement;
+    if (activeEl && activeEl.closest('.wb')) {
+      return;
+    }
+
     if (e.key === 'ArrowRight') {
       e.preventDefault();
       // Blink the button then advance
