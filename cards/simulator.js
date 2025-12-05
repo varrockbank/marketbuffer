@@ -458,6 +458,25 @@ const simulatorCard = {
         <div class="sim-left-header">Automated Trading</div>
         <div class="sim-left-content">
           <textarea class="sim-code-editor" id="sim-code-editor">${state.codeSource || ''}</textarea>
+          <div class="sim-code-output">
+            <div class="sim-code-section">
+              <div class="sim-code-label">Input:</div>
+              <pre class="sim-code-json">${JSON.stringify({ open: hasPosition }, null, 2)}</pre>
+            </div>
+            <div class="sim-code-section">
+              <div class="sim-code-label">Output:</div>
+              <pre class="sim-code-result" id="sim-code-result">${(() => {
+                try {
+                  const fn = new Function('return ' + state.codeSource)();
+                  const result = fn({ open: hasPosition });
+                  const action = result === 1 ? 'BUY' : result === -1 ? 'SELL' : 'HOLD';
+                  return `${result} (${action})`;
+                } catch (e) {
+                  return 'Error: ' + e.message;
+                }
+              })()}</pre>
+            </div>
+          </div>
         </div>
       </div>
       <div class="sim-content">
@@ -678,6 +697,37 @@ const simulatorCard = {
       resize: none;
       background: var(--input-bg);
       color: var(--text-color);
+      box-sizing: border-box;
+    }
+
+    .sim-code-output {
+      height: 50%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-top: 10px;
+    }
+
+    .sim-code-section {
+      flex: 1;
+      min-height: 0;
+    }
+
+    .sim-code-label {
+      font-weight: bold;
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .sim-code-json,
+    .sim-code-result {
+      font-family: monospace;
+      font-size: 11px;
+      background: var(--input-bg);
+      border: 1px solid var(--window-border);
+      padding: 8px;
+      margin: 0;
+      overflow: auto;
     }
 
     .sim-content {
