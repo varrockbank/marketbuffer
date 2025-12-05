@@ -47,6 +47,7 @@ const OS = {
     'xml': 'editor',
     'svg': 'editor',
     'stock': 'stocks',
+    'algo': 'simulator',
   },
 
   // Pinned files state

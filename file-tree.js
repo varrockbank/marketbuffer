@@ -57,6 +57,7 @@ const FileTree = {
       { name: 'package.json', type: 'file', path: 'demo/package.json' },
       { name: 'README.md', type: 'file', path: 'demo/README.md' },
       { name: '.gitignore', type: 'file', path: 'demo/.gitignore' },
+      { name: 'random-walk.algo', type: 'file', path: 'demo/random-walk.algo' },
     ],
   },
 

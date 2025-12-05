@@ -36,6 +36,7 @@ const simulatorCard = {
   autoRunning: false,  // Whether auto-run is in progress
   iterationsRemaining: 0, // Iterations left in auto-run
   editor: null,        // WarrenBuf editor instance
+  algoFileName: null,  // Current algo file name
 
   // Calculate midpoint price
   getMidpoint(data) {
@@ -465,6 +466,44 @@ const simulatorCard = {
     }, this.autoRunDelay);
   },
 
+  // Open an algo file
+  async openFile(path) {
+    const fileName = path.split('/').pop();
+
+    // Ensure the simulator window is open
+    if (!document.querySelector(`[data-window-id="${this.id}"]`)) {
+      OS.openWindow(this.id);
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    // Fetch file content
+    try {
+      const response = await fetch(path);
+      if (response.ok) {
+        const content = await response.text();
+        this.codeSource = content;
+        this.algoFileName = fileName;
+
+        // Wait for editor to be ready and set content
+        await new Promise(resolve => {
+          const checkEditor = () => {
+            if (this.editor && this.editor.Model) {
+              this.editor.Model.text = content;
+              resolve();
+            } else {
+              setTimeout(checkEditor, 20);
+            }
+          };
+          checkEditor();
+        });
+
+        this.rerender();
+      }
+    } catch (e) {
+      console.error('Failed to load algo file:', e);
+    }
+  },
+
   // Advance to next trading date
   async advanceDate() {
     const nextDate = this.getNextDate();
@@ -512,7 +551,7 @@ const simulatorCard = {
     return `
       <div class="sim-wrapper ${state.showDetails ? 'sim-expanded' : ''}">
       <div class="sim-left-pane">
-        <div class="sim-left-header">Automated Trading</div>
+        <div class="sim-left-header">Algo Trading${state.algoFileName ? ' - ' + state.algoFileName : ''}</div>
         <div class="sim-left-content">
           <blockquote cite="" class="💪 🍜 🥷 🌕 🪜 wb no-select sim-code-editor" tabindex="0" id="sim-code-editor">
             <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
@@ -1485,10 +1524,11 @@ const simulatorCard = {
     simulatorCard.tickers = [];
     simulatorCard.codeSource = '';
     simulatorCard.editor = null;
+    simulatorCard.algoFileName = 'random-walk.algo';
 
     // Load code source
     try {
-      const response = await fetch('assets/random-walk.js');
+      const response = await fetch('demo/random-walk.algo');
       simulatorCard.codeSource = await response.text();
     } catch (e) {
       simulatorCard.codeSource = '// Failed to load code';
