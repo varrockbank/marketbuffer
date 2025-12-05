@@ -548,7 +548,7 @@ const simulatorCard = {
                     <div class="sim-trade-row">
                       <div class="sim-trade-header" data-trade-idx="${idx}">
                         <span class="sim-trade-toggle">${isExpanded ? '▼' : '▶'}</span>
-                        <span class="sim-trade-date">${formatLedgerDate(trade.openDate)}</span>
+                        <span class="sim-trade-date">${formatLedgerDate(trade.openDate)}${isClosed ? ' to ' + formatLedgerDate(trade.closeDate) : ''}</span>
                         <span class="sim-trade-ticker">${trade.ticker}</span>
                         <span class="sim-trade-status ${isClosed ? '' : 'sim-trade-open'}">${isClosed ? 'Closed' : 'Open'}</span>
                       </div>
