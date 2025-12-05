@@ -1562,24 +1562,26 @@ const stocksCard = {
     }
 
     // Check if ticker is available in historical data
+    const alpacaAvailable = typeof AlpacaProvider !== 'undefined' && AlpacaProvider.isConfigured();
+
     if (stocksCard.tickers.includes(ticker)) {
       // Use historical tab
       stocksCard.viewMode = 'historical';
       stocksCard.selectedTicker = ticker;
       stocksCard.scrollPosition = 0;
       await stocksCard.fetchOHLC();
-    } else {
-      // Use live tab - set the ticker even if Alpaca isn't configured
-      // The UI will show the API setup form within the live tab
+    } else if (alpacaAvailable) {
+      // Use live tab only if API is configured
       stocksCard.viewMode = 'today';
       stocksCard.liveTicker = ticker;
       stocksCard.scrollPosition = 0;
-      const alpacaAvailable = typeof AlpacaProvider !== 'undefined' && AlpacaProvider.isConfigured();
-      if (alpacaAvailable) {
-        await stocksCard.fetchIntraday();
-      } else {
-        stocksCard.rerender();
-      }
+      await stocksCard.fetchIntraday();
+    } else {
+      // No API key and ticker not in historical - stay on historical tab
+      stocksCard.viewMode = 'historical';
+      stocksCard.selectedTicker = ticker;
+      stocksCard.scrollPosition = 0;
+      stocksCard.rerender();
     }
   },
 
