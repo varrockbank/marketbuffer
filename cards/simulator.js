@@ -35,6 +35,7 @@ const simulatorCard = {
   algoResult: null,    // Cached result from algo evaluation
   autoRunning: false,  // Whether auto-run is in progress
   iterationsRemaining: 0, // Iterations left in auto-run
+  editor: null,        // WarrenBuf editor instance
 
   // Calculate midpoint price
   getMidpoint(data) {
@@ -513,12 +514,29 @@ const simulatorCard = {
       <div class="sim-left-pane">
         <div class="sim-left-header">Automated Trading</div>
         <div class="sim-left-content">
-          <textarea class="sim-code-editor" id="sim-code-editor">${state.codeSource || ''}</textarea>
+          <blockquote cite="" class="💪 🍜 🥷 🌕 🪜 wb no-select sim-code-editor" tabindex="0" id="sim-code-editor">
+            <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
+            <div class="💪">
+              <div class="wb-gutter"></div>
+              <div class="wb-lines 🌳 🥷"></div>
+            </div>
+            <div class="💪 wb-status 🦠">
+              <div class="wb-status-left 💪">
+                <span class="wb-linecount"></span>
+              </div>
+              <div class="wb-status-right 💪">
+                <span class="wb-coordinate"></span>
+                <span>|</span>
+                <span class="wb-indentation"></span>
+              </div>
+            </div>
+          </blockquote>
           <div class="sim-code-output">
             <div class="sim-code-inline"><strong>Input:</strong> position = ${JSON.stringify({ open: hasPosition })}</div>
             <div class="sim-code-inline"><strong>Output:</strong> ${(() => {
               try {
-                const fn = new Function('return ' + state.codeSource)();
+                const code = simulatorCard.getEditorCode();
+                const fn = new Function('return ' + code)();
                 const result = fn({ open: hasPosition });
                 // Cache the result for Execute button
                 simulatorCard.algoResult = result;
@@ -733,11 +751,11 @@ const simulatorCard = {
       flex-direction: column;
       border: 1px solid var(--window-border);
       border-right: 1px solid black;
-      width: 600px;
+      width: 500px;
       flex-shrink: 0;
       height: var(--sim-content-height, auto);
       background: var(--window-bg);
-      margin-left: -600px;
+      margin-left: -500px;
     }
 
     .sim-left-header {
@@ -759,15 +777,16 @@ const simulatorCard = {
 
     .sim-code-editor {
       width: 100%;
-      height: 50%;
+      height: auto;
       font-family: monospace;
       font-size: 12px;
-      border: 1px solid var(--window-border);
-      padding: 8px;
-      resize: none;
       background: var(--input-bg);
       color: var(--text-color);
       box-sizing: border-box;
+      overflow: hidden;
+      position: relative;
+      flex: none;
+      border: none;
     }
 
     .sim-code-output {
@@ -1374,7 +1393,20 @@ const simulatorCard = {
         const oldTimeline = windowEl.querySelector('.sim-timeline');
         const oldScrollLeft = oldTimeline ? oldTimeline.scrollLeft : null;
 
+        // Preserve editor element if it exists
+        const editorEl = windowEl.querySelector('#sim-code-editor');
+        const editorParent = editorEl ? editorEl.parentElement : null;
+
         wrapperEl.outerHTML = simulatorCard.content();
+
+        // Restore editor element if we had one
+        if (editorEl && this.editor) {
+          const newEditorParent = windowEl.querySelector('.sim-left-content');
+          const newEditorPlaceholder = windowEl.querySelector('#sim-code-editor');
+          if (newEditorParent && newEditorPlaceholder) {
+            newEditorPlaceholder.replaceWith(editorEl);
+          }
+        }
 
         // Set CSS variable for pane heights to match content
         const newWrapper = windowEl.querySelector('.sim-wrapper');
@@ -1392,8 +1424,45 @@ const simulatorCard = {
             timeline.scrollLeft = oldScrollLeft;
           }
         }
+
+        // Initialize WarrenBuf editor if not already done
+        this.initEditor();
       }
     }
+  },
+
+  initEditor() {
+    const editorEl = document.getElementById('sim-code-editor');
+    if (!editorEl || this.editor) return;
+
+    // Defer initialization to ensure DOM is fully laid out
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        // Double-check in case things changed
+        if (this.editor) return;
+        const el = document.getElementById('sim-code-editor');
+        if (!el) return;
+
+        this.editor = new WarrenBuf(el, {
+          initialViewportSize: 15,
+          lineHeight: 16,
+          editorPaddingPX: 4,
+          showGutter: true,
+          showStatusLine: true,
+        });
+
+        if (this.codeSource) {
+          this.editor.Model.text = this.codeSource;
+        }
+      }, 0);
+    });
+  },
+
+  getEditorCode() {
+    if (this.editor) {
+      return this.editor.Model.lines.join('\n');
+    }
+    return this.codeSource;
   },
 
   async init(system) {
@@ -1415,6 +1484,7 @@ const simulatorCard = {
     simulatorCard.dates = [];
     simulatorCard.tickers = [];
     simulatorCard.codeSource = '';
+    simulatorCard.editor = null;
 
     // Load code source
     try {
@@ -1461,6 +1531,10 @@ const simulatorCard = {
     if (simulatorCard._keyHandler) {
       document.removeEventListener('keydown', simulatorCard._keyHandler);
       simulatorCard._keyHandler = null;
+    }
+    // Clean up editor instance
+    if (simulatorCard.editor) {
+      simulatorCard.editor = null;
     }
   },
 

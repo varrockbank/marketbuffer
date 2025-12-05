@@ -375,22 +375,27 @@ const editorCard = {
 
   initializeEditors() {
     const self = this;
-    document.querySelectorAll('[id^="editor-pane-"]').forEach(editorEl => {
-      if (editorEl.dataset.wbInitialized) return;
+    // Defer initialization to ensure DOM is fully laid out
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        document.querySelectorAll('[id^="editor-pane-"]').forEach(editorEl => {
+          if (editorEl.dataset.wbInitialized) return;
 
-      const paneId = editorEl.id.replace('editor-', '');
-      if (typeof WarrenBuf !== 'undefined') {
-        editorEl.dataset.wbInitialized = 'true';
-        self.paneRegistry[paneId] = {
-          id: paneId,
-          editorId: editorEl.id,
-          editor: new WarrenBuf(editorEl, {})
-        };
-        // Apply current theme to new editor
-        if (self.theme === 'dark') {
-          editorEl.classList.add('wb-dark');
-        }
-      }
+          const paneId = editorEl.id.replace('editor-', '');
+          if (typeof WarrenBuf !== 'undefined') {
+            editorEl.dataset.wbInitialized = 'true';
+            self.paneRegistry[paneId] = {
+              id: paneId,
+              editorId: editorEl.id,
+              editor: new WarrenBuf(editorEl, {})
+            };
+            // Apply current theme to new editor
+            if (self.theme === 'dark') {
+              editorEl.classList.add('wb-dark');
+            }
+          }
+        });
+      }, 0);
     });
   },
 
