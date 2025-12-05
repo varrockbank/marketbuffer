@@ -33,6 +33,8 @@ const simulatorCard = {
   dailyTotalValues: [], // Track daily total values: [{date, value}]
   codeSource: '',      // Source code for the trade function
   algoResult: null,    // Cached result from algo evaluation
+  autoRunning: false,  // Whether auto-run is in progress
+  iterationsRemaining: 0, // Iterations left in auto-run
 
   // Calculate midpoint price
   getMidpoint(data) {
@@ -426,6 +428,32 @@ const simulatorCard = {
     }
   },
 
+  // Run algorithm to completion (30 iterations)
+  runToCompletion() {
+    this.autoRunning = true;
+    this.iterationsRemaining = 30;
+    this.rerender();
+    this.runIteration();
+  },
+
+  // Run a single iteration of auto-run
+  runIteration() {
+    if (this.iterationsRemaining <= 0) {
+      this.autoRunning = false;
+      this.rerender();
+      return;
+    }
+
+    // Execute the current algo result
+    this.executeAlgo();
+    this.iterationsRemaining--;
+
+    // Schedule next iteration
+    setTimeout(() => {
+      this.runIteration();
+    }, 100);
+  },
+
   // Advance to next trading date
   async advanceDate() {
     const nextDate = this.getNextDate();
@@ -503,7 +531,11 @@ const simulatorCard = {
                 }
               })()}</pre>
             </div>
-            <button class="sim-btn sim-btn-execute" id="sim-execute-btn">Execute</button>
+            <div class="sim-code-buttons">
+              <button class="sim-btn sim-btn-execute" id="sim-execute-btn" ${state.autoRunning ? 'disabled' : ''}>Accept</button>
+              <button class="sim-btn sim-btn-autorun" id="sim-autorun-btn" ${state.autoRunning ? 'disabled' : ''}>Run 30 Iterations</button>
+            </div>
+            ${state.autoRunning ? `<div class="sim-iterations">Iterations remaining: ${state.iterationsRemaining}</div>` : ''}
           </div>
         </div>
       </div>
@@ -758,9 +790,22 @@ const simulatorCard = {
       overflow: auto;
     }
 
-    .sim-btn-execute {
+    .sim-code-buttons {
+      display: flex;
+      gap: 8px;
       margin-top: 10px;
-      width: 100%;
+    }
+
+    .sim-btn-execute,
+    .sim-btn-autorun {
+      flex: 1;
+    }
+
+    .sim-iterations {
+      margin-top: 8px;
+      font-size: 11px;
+      color: #666;
+      text-align: center;
     }
 
     .sim-content {
@@ -1455,6 +1500,11 @@ const simulatorCard = {
     if (e.target.id === 'sim-execute-btn') {
       e.preventDefault();
       this.executeAlgo();
+      return;
+    }
+    if (e.target.id === 'sim-autorun-btn') {
+      e.preventDefault();
+      this.runToCompletion();
       return;
     }
   },
