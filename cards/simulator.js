@@ -372,7 +372,7 @@ const simulatorCard = {
   },
 
   // Replay - reset simulation to beginning
-  replay() {
+  async replay() {
     this.ticker = null;
     this.shares = 0;
     this.cash = 1000;
@@ -386,9 +386,14 @@ const simulatorCard = {
     this.detailsAnimated = false;
     this.detailsClosing = false;
     this.detailsOpening = false;
+    this.autoRunning = false;
+    this.iterationsRemaining = 0;
+    this.algoResult = null;
     if (this.dates.length > 0) {
       this.currentDate = this.dates[0];
     }
+    // Fetch prices for the first date
+    await this.fetchAllTickerPrices();
     this.rerender();
   },
 
@@ -517,7 +522,7 @@ const simulatorCard = {
   },
 
   // Execute the trading algorithm using cached result
-  executeAlgo() {
+  async executeAlgo() {
     const hasPosition = this.ticker !== null;
     const result = this.algoResult;
 
@@ -525,16 +530,20 @@ const simulatorCard = {
       // Buy - if result specifies a ticker, use that
       if (result && result.ticker) {
         this.selectedTicker = result.ticker;
-        this.buyTicker(result.ticker);
-      } else {
+        await this.buyTicker(result.ticker);
+      } else if (this.selectedTicker) {
+        // Buy currently selected ticker
         this.buy();
+      } else {
+        // No ticker specified and none selected - just advance
+        await this.advanceDate();
       }
     } else if (result === -1 && hasPosition) {
       // Sell/Close
       this.close();
     } else {
       // Hold - advance to next day
-      this.advanceDate();
+      await this.advanceDate();
     }
   },
 
@@ -555,7 +564,7 @@ const simulatorCard = {
   },
 
   // Run a single iteration of auto-run
-  runIteration() {
+  async runIteration() {
     if (this.iterationsRemaining <= 0) {
       this.autoRunning = false;
       this.rerender();
@@ -566,7 +575,7 @@ const simulatorCard = {
     this.iterationsRemaining--;
 
     // Execute the current algo result (this triggers rerender)
-    this.executeAlgo();
+    await this.executeAlgo();
 
     // Schedule next iteration
     setTimeout(() => {
