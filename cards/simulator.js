@@ -5,8 +5,8 @@ const simulatorCard = {
   draggable: true,
   closeable: true,
   zIndex: 106,
-  top: 120,
-  left: 150,
+  top: 50,
+  right: 350,
   width: 400,
   contextMenu: [
     { label: 'Close', action: 'close' },

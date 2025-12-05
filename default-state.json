@@ -7,7 +7,7 @@
   "gridSize": 50,
   "tabInsertSpaces": true,
   "fileTree": {},
-  "defaultWindows": ["stocks", "about"],
+  "defaultWindows": ["stocks", "simulator"],
   "defaultPinnedFiles": ["demo/README.md", "GME.stock"],
   "windows": null
 }

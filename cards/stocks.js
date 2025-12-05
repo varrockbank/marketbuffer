@@ -5,8 +5,8 @@ const stocksCard = {
   draggable: true,
   closeable: true,
   zIndex: 105,
-  top: 100,
-  left: 100,
+  bottom: 50,
+  right: 10,
   width: 450,
   contextMenu: [
     { label: 'Close', action: 'close' },
