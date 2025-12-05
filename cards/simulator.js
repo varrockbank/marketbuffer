@@ -32,6 +32,7 @@ const simulatorCard = {
   trades: [],          // Array of {ticker, shares, openDate, openPrice, closeDate?, closePrice?, pnl?}
   dailyTotalValues: [], // Track daily total values: [{date, value}]
   codeSource: '',      // Source code for the trade function
+  algoResult: null,    // Cached result from algo evaluation
 
   // Calculate midpoint price
   getMidpoint(data) {
@@ -408,6 +409,23 @@ const simulatorCard = {
     alert('Please login');
   },
 
+  // Execute the trading algorithm using cached result
+  executeAlgo() {
+    const hasPosition = this.ticker !== null;
+    const result = this.algoResult;
+
+    if (result === 1 && !hasPosition) {
+      // Buy
+      this.buy();
+    } else if (result === -1 && hasPosition) {
+      // Sell/Close
+      this.close();
+    } else {
+      // Hold - advance to next day
+      this.advanceDate();
+    }
+  },
+
   // Advance to next trading date
   async advanceDate() {
     const nextDate = this.getNextDate();
@@ -469,13 +487,23 @@ const simulatorCard = {
                 try {
                   const fn = new Function('return ' + state.codeSource)();
                   const result = fn({ open: hasPosition });
-                  const action = result === 1 ? 'BUY' : result === -1 ? 'SELL' : 'HOLD';
-                  return `${result} (${action})`;
+                  // Cache the result for Execute button
+                  simulatorCard.algoResult = result;
+                  // Show what action will actually be taken
+                  let action = 'HOLD';
+                  if (result === 1 && !hasPosition) {
+                    action = 'BUY';
+                  } else if (result === -1 && hasPosition) {
+                    action = 'SELL';
+                  }
+                  return `${result} → ${action}`;
                 } catch (e) {
+                  simulatorCard.algoResult = null;
                   return 'Error: ' + e.message;
                 }
               })()}</pre>
             </div>
+            <button class="sim-btn sim-btn-execute" id="sim-execute-btn">Execute</button>
           </div>
         </div>
       </div>
@@ -728,6 +756,11 @@ const simulatorCard = {
       padding: 8px;
       margin: 0;
       overflow: auto;
+    }
+
+    .sim-btn-execute {
+      margin-top: 10px;
+      width: 100%;
     }
 
     .sim-content {
@@ -1344,9 +1377,9 @@ const simulatorCard = {
       simulatorCard.currentDate = simulatorCard.dates[0];
     }
 
-    // Default to first ticker if none selected
+    // Default to AAPL if available, otherwise first ticker
     if (!simulatorCard.selectedTicker && simulatorCard.tickers.length > 0) {
-      simulatorCard.selectedTicker = simulatorCard.tickers[0];
+      simulatorCard.selectedTicker = simulatorCard.tickers.includes('AAPL') ? 'AAPL' : simulatorCard.tickers[0];
       simulatorCard.fetchTickerData(simulatorCard.selectedTicker);
     }
 
@@ -1417,6 +1450,11 @@ const simulatorCard = {
       e.preventDefault();
       const dateKey = parseInt(e.target.dataset.date, 10);
       this.jumpToDate(dateKey);
+      return;
+    }
+    if (e.target.id === 'sim-execute-btn') {
+      e.preventDefault();
+      this.executeAlgo();
       return;
     }
   },
