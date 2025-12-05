@@ -428,12 +428,20 @@ const simulatorCard = {
     }
   },
 
-  // Run algorithm to completion (30 iterations)
-  runToCompletion() {
+  // Run algorithm for N iterations
+  runIterations(n, delay = 100) {
     this.autoRunning = true;
-    this.iterationsRemaining = 30;
+    this.iterationsRemaining = n;
+    this.autoRunDelay = delay;
     this.rerender();
     this.runIteration();
+  },
+
+  // Run algorithm to end of dataset
+  runToCompletion() {
+    const currentIndex = this.dates.indexOf(this.currentDate);
+    const remaining = this.dates.length - 1 - currentIndex;
+    this.runIterations(remaining, 30);
   },
 
   // Run a single iteration of auto-run
@@ -444,14 +452,16 @@ const simulatorCard = {
       return;
     }
 
-    // Execute the current algo result
-    this.executeAlgo();
+    // Decrement first so display shows correct count
     this.iterationsRemaining--;
+
+    // Execute the current algo result (this triggers rerender)
+    this.executeAlgo();
 
     // Schedule next iteration
     setTimeout(() => {
       this.runIteration();
-    }, 100);
+    }, this.autoRunDelay);
   },
 
   // Advance to next trading date
@@ -505,37 +515,35 @@ const simulatorCard = {
         <div class="sim-left-content">
           <textarea class="sim-code-editor" id="sim-code-editor">${state.codeSource || ''}</textarea>
           <div class="sim-code-output">
-            <div class="sim-code-section">
-              <div class="sim-code-label">Input:</div>
-              <pre class="sim-code-json">${JSON.stringify({ open: hasPosition }, null, 2)}</pre>
-            </div>
-            <div class="sim-code-section">
-              <div class="sim-code-label">Output:</div>
-              <pre class="sim-code-result" id="sim-code-result">${(() => {
-                try {
-                  const fn = new Function('return ' + state.codeSource)();
-                  const result = fn({ open: hasPosition });
-                  // Cache the result for Execute button
-                  simulatorCard.algoResult = result;
-                  // Show what action will actually be taken
-                  let action = 'HOLD';
-                  if (result === 1 && !hasPosition) {
-                    action = 'BUY';
-                  } else if (result === -1 && hasPosition) {
-                    action = 'SELL';
-                  }
-                  return `${result} → ${action}`;
-                } catch (e) {
-                  simulatorCard.algoResult = null;
-                  return 'Error: ' + e.message;
+            <div class="sim-code-inline"><strong>Input:</strong> position = ${JSON.stringify({ open: hasPosition })}</div>
+            <div class="sim-code-inline"><strong>Output:</strong> ${(() => {
+              try {
+                const fn = new Function('return ' + state.codeSource)();
+                const result = fn({ open: hasPosition });
+                // Cache the result for Execute button
+                simulatorCard.algoResult = result;
+                // Show what action will actually be taken
+                let action = 'HOLD';
+                let actionClass = 'sim-action-hold';
+                if (result === 1 && !hasPosition) {
+                  action = 'BUY';
+                  actionClass = 'sim-action-buy';
+                } else if (result === -1 && hasPosition) {
+                  action = 'SELL';
+                  actionClass = 'sim-action-sell';
                 }
-              })()}</pre>
+                return `${result} → <span class="${actionClass}">${action}</span>`;
+              } catch (e) {
+                simulatorCard.algoResult = null;
+                return 'Error: ' + e.message;
+              }
+            })()}</div>
+            <div class="sim-code-buttons ${isEndOfData ? 'sim-buttons-disabled' : ''}">
+              <button class="sim-btn sim-btn-execute" id="sim-execute-btn" ${state.autoRunning || isEndOfData ? 'disabled' : ''}>Accept</button>
+              <button class="sim-btn sim-btn-autorun" id="sim-autorun-btn" ${state.autoRunning || isEndOfData || (state.dates.length - 1 - state.dates.indexOf(state.currentDate)) < 30 ? 'disabled' : ''}>Run 30 Iterations</button>
+              <button class="sim-btn sim-btn-autorun" id="sim-run-all-btn" ${state.autoRunning || isEndOfData ? 'disabled' : ''}>Run to Completion</button>
             </div>
-            <div class="sim-code-buttons">
-              <button class="sim-btn sim-btn-execute" id="sim-execute-btn" ${state.autoRunning ? 'disabled' : ''}>Accept</button>
-              <button class="sim-btn sim-btn-autorun" id="sim-autorun-btn" ${state.autoRunning ? 'disabled' : ''}>Run 30 Iterations</button>
-            </div>
-            ${state.autoRunning ? `<div class="sim-iterations">Iterations remaining: ${state.iterationsRemaining}</div>` : ''}
+            <div class="sim-iterations">${state.autoRunning ? `Iterations remaining: ${state.iterationsRemaining}` : '&nbsp;'}</div>
           </div>
         </div>
       </div>
@@ -745,6 +753,8 @@ const simulatorCard = {
       min-height: 0;
       padding: 10px;
       overflow: auto;
+      display: flex;
+      flex-direction: column;
     }
 
     .sim-code-editor {
@@ -761,39 +771,45 @@ const simulatorCard = {
     }
 
     .sim-code-output {
-      height: 50%;
+      padding-top: 10px;
+      flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      padding-top: 10px;
+      justify-content: flex-end;
     }
 
-    .sim-code-section {
-      flex: 1;
-      min-height: 0;
-    }
-
-    .sim-code-label {
-      font-weight: bold;
+    .sim-code-inline {
+      font-family: monospace;
       font-size: 11px;
       margin-bottom: 4px;
     }
 
-    .sim-code-json,
-    .sim-code-result {
-      font-family: monospace;
-      font-size: 11px;
-      background: var(--input-bg);
-      border: 1px solid var(--window-border);
-      padding: 8px;
-      margin: 0;
-      overflow: auto;
+    .sim-action-buy {
+      background: #00c853;
+      color: white;
+      padding: 1px 4px;
+    }
+
+    .sim-action-sell {
+      background: #ff1744;
+      color: white;
+      padding: 1px 4px;
+    }
+
+    .sim-action-hold {
+      background: #999;
+      color: white;
+      padding: 1px 4px;
     }
 
     .sim-code-buttons {
       display: flex;
       gap: 8px;
       margin-top: 10px;
+    }
+
+    .sim-buttons-disabled {
+      opacity: 0.5;
     }
 
     .sim-btn-execute,
@@ -1503,6 +1519,11 @@ const simulatorCard = {
       return;
     }
     if (e.target.id === 'sim-autorun-btn') {
+      e.preventDefault();
+      this.runIterations(30);
+      return;
+    }
+    if (e.target.id === 'sim-run-all-btn') {
       e.preventDefault();
       this.runToCompletion();
       return;
