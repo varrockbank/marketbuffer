@@ -1,0 +1,36 @@
+function trade(position, prices) {
+    const tickers = Object.keys(prices);
+
+    // Calculate percentage change for each ticker
+    const changes = [];
+    for (let i = 0; i < tickers.length; i++) {
+        const ticker = tickers[i];
+        if (prices[ticker].previousClose) {
+            const pctChange = (prices[ticker].open - prices[ticker].previousClose) / prices[ticker].previousClose;
+            changes.push({ ticker, pctChange });
+        }
+    }
+
+    if (changes.length === 0) return 0;
+
+    // Sort by percentage change (highest first)
+    changes.sort((a, b) => b.pctChange - a.pctChange);
+
+    const highestTicker = changes[0].ticker;
+
+    if (position.open) {
+        // If our ticker is still the highest momentum, hold
+        if (position.ticker === highestTicker) {
+            return 0;
+        }
+        // Otherwise close and switch
+        return -1;
+    } else {
+        // Buy the ticker with highest momentum (biggest gain from previous close)
+        if (changes[0].pctChange > 0) {
+            return { ticker: highestTicker };
+        }
+        // If no positive momentum, hold cash
+        return 0;
+    }
+}

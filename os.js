@@ -47,6 +47,7 @@ const OS = {
     'xml': 'editor',
     'svg': 'editor',
     'stock': 'stocks',
+    'algo': 'simulator',
   },
 
   // Pinned files state
@@ -99,7 +100,12 @@ const OS = {
 
   // Apply window position and size styles
   applyWindowStyles(windowEl, win) {
-    windowEl.style.top = win.top + 'px';
+    // top takes precedence, otherwise use bottom if specified
+    if (win.top !== undefined) {
+      windowEl.style.top = win.top + 'px';
+    } else if (win.bottom !== undefined) {
+      windowEl.style.bottom = win.bottom + 'px';
+    }
     windowEl.style.right = win.right + 'px';
     if (win.width) windowEl.style.width = win.width + 'px';
     if (win.height) windowEl.style.height = win.height + 'px';

@@ -197,6 +197,12 @@ const editorCard = {
       overflow: hidden;
     }
 
+    .pane-content .playground.wb {
+      flex: none;
+      height: fit-content;
+      border: none;
+    }
+
     .pane-split {
       flex: 1;
       display: flex;
@@ -375,22 +381,27 @@ const editorCard = {
 
   initializeEditors() {
     const self = this;
-    document.querySelectorAll('[id^="editor-pane-"]').forEach(editorEl => {
-      if (editorEl.dataset.wbInitialized) return;
+    // Defer initialization to ensure DOM is fully laid out
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        document.querySelectorAll('[id^="editor-pane-"]').forEach(editorEl => {
+          if (editorEl.dataset.wbInitialized) return;
 
-      const paneId = editorEl.id.replace('editor-', '');
-      if (typeof WarrenBuf !== 'undefined') {
-        editorEl.dataset.wbInitialized = 'true';
-        self.paneRegistry[paneId] = {
-          id: paneId,
-          editorId: editorEl.id,
-          editor: new WarrenBuf(editorEl, {})
-        };
-        // Apply current theme to new editor
-        if (self.theme === 'dark') {
-          editorEl.classList.add('wb-dark');
-        }
-      }
+          const paneId = editorEl.id.replace('editor-', '');
+          if (typeof WarrenBuf !== 'undefined') {
+            editorEl.dataset.wbInitialized = 'true';
+            self.paneRegistry[paneId] = {
+              id: paneId,
+              editorId: editorEl.id,
+              editor: new WarrenBuf(editorEl, {})
+            };
+            // Apply current theme to new editor
+            if (self.theme === 'dark') {
+              editorEl.classList.add('wb-dark');
+            }
+          }
+        });
+      }, 0);
     });
   },
 
@@ -883,11 +894,9 @@ const editorCard = {
     // Ensure the editor window is open
     let win = this.getWindow();
     if (!win) {
-      if (typeof openApplication === 'function') {
-        openApplication(this.id);
-        await new Promise(resolve => setTimeout(resolve, 100));
-        win = this.getWindow();
-      }
+      OS.openWindow(this.id);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      win = this.getWindow();
     }
     if (!win) return;
 
@@ -963,12 +972,20 @@ const editorCard = {
 
       // Initialize the new editor and set content
       this.initializeEditors();
-      await new Promise(resolve => setTimeout(resolve, 50));
 
-      const registry = this.paneRegistry[newPaneId];
-      if (registry && registry.editor && registry.editor.Model) {
-        registry.editor.Model.text = content;
-      }
+      // Wait for editor to be registered (RAF + setTimeout in initializeEditors)
+      await new Promise(resolve => {
+        const checkRegistry = () => {
+          const registry = this.paneRegistry[newPaneId];
+          if (registry && registry.editor && registry.editor.Model) {
+            registry.editor.Model.text = content;
+            resolve();
+          } else {
+            setTimeout(checkRegistry, 20);
+          }
+        };
+        setTimeout(checkRegistry, 20);
+      });
     } else {
       // Use current tab - update its name and file path
       currentTab.name = fileName;
@@ -981,12 +998,24 @@ const editorCard = {
         tabEl.innerHTML = `${fileName}<span class="tab-close" data-tab-index="${win.activeTab || 0}">&times;</span>`;
       }
 
-      // Set editor content
+      // Set editor content - wait for editor to be registered if needed
       const paneId = currentTab.activePane;
-      const registry = this.paneRegistry[paneId];
-      if (registry && registry.editor && registry.editor.Model) {
-        registry.editor.Model.text = content;
-      }
+      await new Promise(resolve => {
+        let attempts = 0;
+        const checkRegistry = () => {
+          attempts++;
+          const registry = this.paneRegistry[paneId];
+          if (registry && registry.editor && registry.editor.Model) {
+            registry.editor.Model.text = content;
+            resolve();
+          } else if (attempts < 50) {
+            setTimeout(checkRegistry, 20);
+          } else {
+            resolve();
+          }
+        };
+        checkRegistry();
+      });
     }
 
     // Highlight file in tree
@@ -1166,8 +1195,8 @@ const editorCard = {
   },
 
   getWindow() {
-    if (typeof openWindows !== 'undefined') {
-      return openWindows.find(w => w.id === this.id);
+    if (typeof OS !== 'undefined' && OS.openWindows) {
+      return OS.openWindows.find(w => w.id === this.id);
     }
     return null;
   },

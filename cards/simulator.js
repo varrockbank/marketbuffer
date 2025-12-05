@@ -5,8 +5,8 @@ const simulatorCard = {
   draggable: true,
   closeable: true,
   zIndex: 106,
-  top: 120,
-  left: 150,
+  top: 50,
+  right: 350,
   width: 400,
   contextMenu: [
     { label: 'Close', action: 'close' },
@@ -30,8 +30,14 @@ const simulatorCard = {
   detailsClosing: false, // Track if details pane is closing
   detailsOpening: false, // Track if details pane is opening
   trades: [],          // Array of {ticker, shares, openDate, openPrice, closeDate?, closePrice?, pnl?}
-  expandedTrades: {},  // Track which trades are expanded by index
   dailyTotalValues: [], // Track daily total values: [{date, value}]
+  codeSource: '',      // Source code for the trade function
+  algoResult: null,    // Cached result from algo evaluation
+  autoRunning: false,  // Whether auto-run is in progress
+  iterationsRemaining: 0, // Iterations left in auto-run
+  editor: null,        // WarrenBuf editor instance
+  algoFileName: null,  // Current algo file name
+  allTickerPrices: {}, // Prices for all tickers on current date: {ticker: {open, previousClose}}
 
   // Calculate midpoint price
   getMidpoint(data) {
@@ -143,7 +149,7 @@ const simulatorCard = {
       this.fetchTickerData(this.selectedTicker);
     } else {
       this.tickerData = null;
-      this.rerender();
+      this.rerender(true); // Scroll to end after jumping
     }
   },
 
@@ -152,6 +158,62 @@ const simulatorCard = {
     await ServerService.initWasm();
     const result = JSON.parse(window.getDates());
     this.dates = result.dates || [];
+  },
+
+  // Fetch prices for all tickers on current date with trailing 10 days of history
+  async fetchAllTickerPrices() {
+    if (!this.currentDate || this.tickers.length === 0) {
+      this.allTickerPrices = {};
+      return;
+    }
+
+    await ServerService.initWasm();
+
+    // Get trailing 10 dates (including current)
+    const currentIdx = this.dates.indexOf(this.currentDate);
+    const trailingDates = [];
+    for (let i = Math.max(0, currentIdx - 9); i <= currentIdx; i++) {
+      trailingDates.push(this.dates[i]);
+    }
+
+    const prices = {};
+
+    for (const ticker of this.tickers) {
+      const result = JSON.parse(window.getTickerForDate(ticker, this.currentDate));
+      if (!result.error) {
+        // Get previous close
+        let previousClose = null;
+        if (currentIdx > 0) {
+          const prevResult = JSON.parse(window.getTickerForDate(ticker, this.dates[currentIdx - 1]));
+          if (!prevResult.error) {
+            previousClose = prevResult.close;
+          }
+        }
+
+        // Get trailing 10 days of history
+        const history = [];
+        for (const date of trailingDates) {
+          const histResult = JSON.parse(window.getTickerForDate(ticker, date));
+          if (!histResult.error) {
+            history.push({
+              date: date,
+              open: histResult.open,
+              high: histResult.high,
+              low: histResult.low,
+              close: histResult.close,
+            });
+          }
+        }
+
+        prices[ticker] = {
+          open: result.open,
+          previousClose: previousClose,
+          history: history,
+        };
+      }
+    }
+
+    this.allTickerPrices = prices;
   },
 
   // Fetch ticker data for current date
@@ -186,8 +248,11 @@ const simulatorCard = {
     // Record daily total value
     this.recordDailyValue();
 
+    // Fetch all ticker prices for algo
+    await this.fetchAllTickerPrices();
+
     this.loading = false;
-    this.rerender();
+    this.rerender(true); // Scroll to end when new data is added
   },
 
   // Record current total value for the day
@@ -219,13 +284,58 @@ const simulatorCard = {
     this.previousTickerData = null; // Reset - will be set on next advanceDate
 
     // Record trade
-    this.trades.push({
+    const trade = {
       ticker: this.ticker,
       shares: maxShares,
       openDate: this.currentDate,
       openPrice: price,
       openValue: cost,
-    });
+    };
+    this.trades.push(trade);
+    this.appendTrade(trade, this.trades.length - 1);
+
+    this.advanceDate();
+  },
+
+  // Buy specific ticker (called by algo when it returns {ticker: 'XYZ'})
+  async buyTicker(ticker) {
+    if (this.ticker) return; // Already have a position
+
+    // Fetch ticker data for the specified ticker
+    await ServerService.initWasm();
+    const result = JSON.parse(window.getTickerForDate(ticker, this.currentDate));
+    if (result.error) return;
+
+    const tickerData = {
+      ticker: result.ticker,
+      open: result.open,
+      high: result.high,
+      low: result.low,
+      close: result.close,
+      volume: result.volume,
+    };
+
+    const price = this.getMidpoint(tickerData);
+    const maxShares = Math.floor((this.cash / price) * 10) / 10; // 1/10 fractional
+    const cost = maxShares * price;
+
+    this.selectedTicker = ticker;
+    this.ticker = ticker;
+    this.tickerData = tickerData;
+    this.shares = maxShares;
+    this.cash = this.cash - cost;
+    this.previousTickerData = null;
+
+    // Record trade
+    const trade = {
+      ticker: this.ticker,
+      shares: maxShares,
+      openDate: this.currentDate,
+      openPrice: price,
+      openValue: cost,
+    };
+    this.trades.push(trade);
+    this.appendTrade(trade, this.trades.length - 1);
 
     this.advanceDate();
   },
@@ -238,12 +348,14 @@ const simulatorCard = {
     const proceeds = this.shares * price;
 
     // Find the open trade and update it
-    const openTrade = [...this.trades].reverse().find(t => t.ticker === this.ticker && !t.closeDate);
-    if (openTrade) {
+    const tradeIdx = this.trades.findIndex(t => t.ticker === this.ticker && !t.closeDate);
+    if (tradeIdx !== -1) {
+      const openTrade = this.trades[tradeIdx];
       openTrade.closeDate = this.currentDate;
       openTrade.closePrice = price;
       openTrade.closeValue = proceeds;
       openTrade.pnl = proceeds - openTrade.openValue;
+      this.updateTrade(openTrade, tradeIdx);
     }
 
     this.cash = this.cash + proceeds;
@@ -260,7 +372,7 @@ const simulatorCard = {
   },
 
   // Replay - reset simulation to beginning
-  replay() {
+  async replay() {
     this.ticker = null;
     this.shares = 0;
     this.cash = 1000;
@@ -269,15 +381,19 @@ const simulatorCard = {
     this.previousTickerData = null;
     this.previousDate = null;
     this.trades = [];
-    this.expandedTrades = {};
     this.dailyTotalValues = [];
     this.showDetails = false;
     this.detailsAnimated = false;
     this.detailsClosing = false;
     this.detailsOpening = false;
+    this.autoRunning = false;
+    this.iterationsRemaining = 0;
+    this.algoResult = null;
     if (this.dates.length > 0) {
       this.currentDate = this.dates[0];
     }
+    // Fetch prices for the first date
+    await this.fetchAllTickerPrices();
     this.rerender();
   },
 
@@ -308,15 +424,201 @@ const simulatorCard = {
     }
   },
 
-  // Toggle trade expansion
-  toggleTrade(index) {
-    this.expandedTrades[index] = !this.expandedTrades[index];
-    this.rerender();
+  // Generate HTML for a single trade row
+  renderTradeRow(trade, idx) {
+    const formatMoney = (n) => '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    const formatLedgerDate = (dateKey) => {
+      const str = String(dateKey);
+      return `${str.slice(0, 4)}-${str.slice(4, 6)}-${str.slice(6, 8)}`;
+    };
+
+    const isClosed = !!trade.closeDate;
+    const currentPrice = !isClosed && this.ticker === trade.ticker && this.tickerData ? this.getMidpoint(this.tickerData) : null;
+    const currentValue = currentPrice !== null ? trade.shares * currentPrice : null;
+    const unrealizedPnl = currentValue !== null ? currentValue - trade.openValue : null;
+    const pnlPercent = isClosed ? ((trade.pnl / trade.openValue) * 100) : (unrealizedPnl !== null ? ((unrealizedPnl / trade.openValue) * 100) : null);
+
+    return `
+      <details class="sim-trade-row" data-trade-idx="${idx}">
+        <summary class="sim-trade-header">
+          <span class="sim-trade-date">${formatLedgerDate(trade.openDate)}${isClosed ? ' to ' + formatLedgerDate(trade.closeDate) : ''}</span>
+          <span class="sim-trade-ticker">${trade.ticker}</span>
+          <span class="sim-trade-status ${isClosed ? '' : 'sim-trade-open'}">${isClosed ? 'Closed' : 'Open'}</span>
+        </summary>
+        <div class="sim-trade-details">
+          <div class="sim-trade-detail-row">
+            <span>Shares:</span>
+            <span>${trade.shares.toFixed(1)}</span>
+          </div>
+          <div class="sim-trade-detail-row">
+            <span>Open Price:</span>
+            <span>${formatMoney(trade.openPrice)}</span>
+          </div>
+          <div class="sim-trade-detail-row">
+            <span>${isClosed ? 'Close Price:' : 'Current Price:'}</span>
+            <span>${isClosed ? formatMoney(trade.closePrice) : (currentPrice !== null ? formatMoney(currentPrice) : '-')}</span>
+          </div>
+          <div class="sim-trade-detail-row">
+            <span>Open Value:</span>
+            <span>${formatMoney(trade.openValue)}</span>
+          </div>
+          <div class="sim-trade-detail-row">
+            <span>${isClosed ? 'Close Value:' : 'Current Value:'}</span>
+            <span>${isClosed ? formatMoney(trade.closeValue) : (currentValue !== null ? formatMoney(currentValue) : '-')}</span>
+          </div>
+          <div class="sim-trade-detail-row sim-trade-pnl">
+            <span>P&L:</span>
+            <span class="${(isClosed ? trade.pnl : unrealizedPnl) !== null ? ((isClosed ? trade.pnl : unrealizedPnl) >= 0 ? 'sim-delta-up' : 'sim-delta-down') : ''}">${
+              isClosed
+                ? (trade.pnl >= 0 ? '+' : '') + formatMoney(trade.pnl) + ' (' + (pnlPercent >= 0 ? '+' : '') + pnlPercent.toFixed(2) + '%)'
+                : (unrealizedPnl !== null
+                    ? (unrealizedPnl >= 0 ? '+' : '') + formatMoney(unrealizedPnl) + ' (' + (pnlPercent >= 0 ? '+' : '') + pnlPercent.toFixed(2) + '%)'
+                    : '-')
+            }</span>
+          </div>
+        </div>
+      </details>
+    `;
+  },
+
+  // Append a new trade to the ledger (prepend since we show newest first)
+  appendTrade(trade, idx) {
+    const windowEl = document.querySelector(`[data-window-id="${this.id}"]`);
+    if (!windowEl) return;
+
+    const ledgerEl = windowEl.querySelector('.sim-ledger');
+    if (!ledgerEl) return;
+
+    // Remove empty state if present
+    const emptyEl = ledgerEl.querySelector('.sim-ledger-empty');
+    if (emptyEl) emptyEl.remove();
+
+    // Prepend new trade (newest first)
+    ledgerEl.insertAdjacentHTML('afterbegin', this.renderTradeRow(trade, idx));
+  },
+
+  // Update an existing trade in the ledger (e.g., when closing)
+  updateTrade(trade, idx) {
+    const windowEl = document.querySelector(`[data-window-id="${this.id}"]`);
+    if (!windowEl) return;
+
+    const tradeEl = windowEl.querySelector(`.sim-trade-row[data-trade-idx="${idx}"]`);
+    if (!tradeEl) return;
+
+    // Preserve open state
+    const wasOpen = tradeEl.open;
+    tradeEl.outerHTML = this.renderTradeRow(trade, idx);
+
+    // Restore open state
+    if (wasOpen) {
+      const newTradeEl = windowEl.querySelector(`.sim-trade-row[data-trade-idx="${idx}"]`);
+      if (newTradeEl) newTradeEl.open = true;
+    }
   },
 
   // Show share modal
   showShareModal() {
     alert('Please login');
+  },
+
+  // Execute the trading algorithm using cached result
+  async executeAlgo() {
+    const hasPosition = this.ticker !== null;
+    const result = this.algoResult;
+
+    if ((result === 1 || (result && result.ticker)) && !hasPosition) {
+      // Buy - if result specifies a ticker, use that
+      if (result && result.ticker) {
+        this.selectedTicker = result.ticker;
+        await this.buyTicker(result.ticker);
+      } else if (this.selectedTicker) {
+        // Buy currently selected ticker
+        this.buy();
+      } else {
+        // No ticker specified and none selected - just advance
+        await this.advanceDate();
+      }
+    } else if (result === -1 && hasPosition) {
+      // Sell/Close
+      this.close();
+    } else {
+      // Hold - advance to next day
+      await this.advanceDate();
+    }
+  },
+
+  // Run algorithm for N iterations
+  runIterations(n, delay = 100) {
+    this.autoRunning = true;
+    this.iterationsRemaining = n;
+    this.autoRunDelay = delay;
+    this.rerender();
+    this.runIteration();
+  },
+
+  // Run algorithm to end of dataset
+  runToCompletion() {
+    const currentIndex = this.dates.indexOf(this.currentDate);
+    const remaining = this.dates.length - 1 - currentIndex;
+    this.runIterations(remaining, 30);
+  },
+
+  // Run a single iteration of auto-run
+  async runIteration() {
+    if (this.iterationsRemaining <= 0) {
+      this.autoRunning = false;
+      this.rerender();
+      return;
+    }
+
+    // Decrement first so display shows correct count
+    this.iterationsRemaining--;
+
+    // Execute the current algo result (this triggers rerender)
+    await this.executeAlgo();
+
+    // Schedule next iteration
+    setTimeout(() => {
+      this.runIteration();
+    }, this.autoRunDelay);
+  },
+
+  // Open an algo file
+  async openFile(path) {
+    const fileName = path.split('/').pop();
+
+    // Ensure the simulator window is open
+    if (!document.querySelector(`[data-window-id="${this.id}"]`)) {
+      OS.openWindow(this.id);
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    // Fetch file content
+    try {
+      const response = await fetch(path);
+      if (response.ok) {
+        const content = await response.text();
+        this.codeSource = content;
+        this.algoFileName = fileName;
+
+        // Wait for editor to be ready and set content
+        await new Promise(resolve => {
+          const checkEditor = () => {
+            if (this.editor && this.editor.Model) {
+              this.editor.Model.text = content;
+              resolve();
+            } else {
+              setTimeout(checkEditor, 20);
+            }
+          };
+          checkEditor();
+        });
+
+        this.rerender();
+      }
+    } catch (e) {
+      console.error('Failed to load algo file:', e);
+    }
   },
 
   // Advance to next trading date
@@ -332,14 +634,16 @@ const simulatorCard = {
       }
       // Fetch data for selected ticker (position or inquiry)
       if (this.selectedTicker) {
-        this.fetchTickerData(this.selectedTicker);
+        await this.fetchTickerData(this.selectedTicker);
       } else {
         this.tickerData = null;
-        this.rerender();
+        // Still fetch all ticker prices for algo
+        await this.fetchAllTickerPrices();
+        this.rerender(true); // Scroll to end after advancing
       }
     } else {
       // End of simulation
-      this.rerender();
+      this.rerender(true);
     }
   },
 
@@ -363,17 +667,66 @@ const simulatorCard = {
     // Format number with commas
     const formatMoney = (n) => '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
-    // Format ledger date
-    const formatLedgerDate = (dateKey) => {
-      const str = String(dateKey);
-      const year = str.slice(0, 4);
-      const month = str.slice(4, 6);
-      const day = str.slice(6, 8);
-      return `${year}-${month}-${day}`;
-    };
-
     return `
       <div class="sim-wrapper ${state.showDetails ? 'sim-expanded' : ''}">
+      <div class="sim-left-pane">
+        <div class="sim-left-header">Algo Trading${state.algoFileName ? ' - ' + state.algoFileName : ''}</div>
+        <div class="sim-left-content">
+          <blockquote cite="" class="💪 🍜 🥷 🌕 🪜 wb no-select sim-code-editor" tabindex="0" id="sim-code-editor">
+            <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
+            <div class="💪">
+              <div class="wb-gutter"></div>
+              <div class="wb-lines 🌳 🥷"></div>
+            </div>
+            <div class="💪 wb-status 🦠">
+              <div class="wb-status-left 💪">
+                <span class="wb-linecount"></span>
+              </div>
+              <div class="wb-status-right 💪">
+                <span class="wb-coordinate"></span>
+                <span>|</span>
+                <span class="wb-indentation"></span>
+              </div>
+            </div>
+          </blockquote>
+          <div class="sim-code-output">
+            <div class="sim-code-inline"><strong>Input:</strong></div>
+            <textarea class="sim-input-textarea" readonly>position = ${JSON.stringify({ open: hasPosition, ticker: state.ticker }, null, 2)}
+
+prices = ${JSON.stringify(state.allTickerPrices, null, 2)}</textarea>
+            <div class="sim-code-inline"><strong>Output:</strong> ${(() => {
+              try {
+                const code = simulatorCard.getEditorCode();
+                const fn = new Function('return ' + code)();
+                const result = fn({ open: hasPosition, ticker: state.ticker }, state.allTickerPrices);
+                // Cache the result for Execute button
+                simulatorCard.algoResult = result;
+                // Show what action will actually be taken
+                let action = 'HOLD';
+                let actionClass = 'sim-action-hold';
+                if ((result === 1 || (result && result.ticker)) && !hasPosition) {
+                  const tickerToBuy = result.ticker || state.selectedTicker;
+                  action = 'BUY ' + tickerToBuy;
+                  actionClass = 'sim-action-buy';
+                } else if (result === -1 && hasPosition) {
+                  action = 'SELL';
+                  actionClass = 'sim-action-sell';
+                }
+                return `${JSON.stringify(result)} → <span class="${actionClass}">${action}</span>`;
+              } catch (e) {
+                simulatorCard.algoResult = null;
+                return 'Error: ' + e.message;
+              }
+            })()}</div>
+            <div class="sim-code-buttons ${isEndOfData ? 'sim-buttons-disabled' : ''}">
+              <button class="sim-btn sim-btn-execute" id="sim-execute-btn" ${state.autoRunning || isEndOfData ? 'disabled' : ''}>Accept</button>
+              <button class="sim-btn sim-btn-autorun" id="sim-autorun-btn" ${state.autoRunning || isEndOfData || (state.dates.length - 1 - state.dates.indexOf(state.currentDate)) < 30 ? 'disabled' : ''}>Run 30 Iterations</button>
+              <button class="sim-btn sim-btn-autorun" id="sim-run-all-btn" ${state.autoRunning || isEndOfData ? 'disabled' : ''}>Run to Completion</button>
+            </div>
+            <div class="sim-iterations">${state.autoRunning ? `Iterations remaining: ${state.iterationsRemaining}` : '&nbsp;'}</div>
+          </div>
+        </div>
+      </div>
       <div class="sim-content">
         <div class="sim-status">
           <div class="sim-header-row">
@@ -537,58 +890,8 @@ const simulatorCard = {
                 ` : `
                   ${[...state.trades].reverse().map((trade, reverseIdx) => {
                   const idx = state.trades.length - 1 - reverseIdx;
-                  const isExpanded = state.expandedTrades[idx];
-                  const isClosed = !!trade.closeDate;
-                  const currentPrice = !isClosed && state.ticker === trade.ticker && state.tickerData ? this.getMidpoint(state.tickerData) : null;
-                  const currentValue = currentPrice ? trade.shares * currentPrice : null;
-                  const unrealizedPnl = currentValue ? currentValue - trade.openValue : null;
-                  const pnlPercent = isClosed ? ((trade.pnl / trade.openValue) * 100) : (unrealizedPnl ? ((unrealizedPnl / trade.openValue) * 100) : null);
-
-                  return `
-                    <div class="sim-trade-row">
-                      <div class="sim-trade-header" data-trade-idx="${idx}">
-                        <span class="sim-trade-toggle">${isExpanded ? '▼' : '▶'}</span>
-                        <span class="sim-trade-date">${formatLedgerDate(trade.openDate)}</span>
-                        <span class="sim-trade-ticker">${trade.ticker}</span>
-                        <span class="sim-trade-status ${isClosed ? '' : 'sim-trade-open'}">${isClosed ? 'Closed' : 'Open'}</span>
-                      </div>
-                      ${isExpanded ? `
-                        <div class="sim-trade-details">
-                          <div class="sim-trade-detail-row">
-                            <span>Shares:</span>
-                            <span>${trade.shares.toFixed(1)}</span>
-                          </div>
-                          <div class="sim-trade-detail-row">
-                            <span>Open Price:</span>
-                            <span>${formatMoney(trade.openPrice)}</span>
-                          </div>
-                          <div class="sim-trade-detail-row">
-                            <span>${isClosed ? 'Close Price:' : 'Current Price:'}</span>
-                            <span>${isClosed ? formatMoney(trade.closePrice) : (currentPrice ? formatMoney(currentPrice) : '-')}</span>
-                          </div>
-                          <div class="sim-trade-detail-row">
-                            <span>Open Value:</span>
-                            <span>${formatMoney(trade.openValue)}</span>
-                          </div>
-                          <div class="sim-trade-detail-row">
-                            <span>${isClosed ? 'Close Value:' : 'Current Value:'}</span>
-                            <span>${isClosed ? formatMoney(trade.closeValue) : (currentValue ? formatMoney(currentValue) : '-')}</span>
-                          </div>
-                          <div class="sim-trade-detail-row sim-trade-pnl">
-                            <span>P&L:</span>
-                            <span class="${(isClosed ? trade.pnl : unrealizedPnl) !== null ? ((isClosed ? trade.pnl : unrealizedPnl) >= 0 ? 'sim-delta-up' : 'sim-delta-down') : ''}">${
-                              isClosed
-                                ? (trade.pnl >= 0 ? '+' : '') + formatMoney(trade.pnl) + ' (' + (pnlPercent >= 0 ? '+' : '') + pnlPercent.toFixed(2) + '%)'
-                                : (unrealizedPnl !== null
-                                    ? (unrealizedPnl >= 0 ? '+' : '') + formatMoney(unrealizedPnl) + ' (' + (pnlPercent >= 0 ? '+' : '') + pnlPercent.toFixed(2) + '%)'
-                                    : '-')
-                            }</span>
-                          </div>
-                        </div>
-                      ` : ''}
-                    </div>
-                  `;
-                  }).join('')}
+                  return this.renderTradeRow(trade, idx);
+                }).join('')}
                 `}
               </div>
             </div>
@@ -605,6 +908,117 @@ const simulatorCard = {
       align-items: flex-start;
     }
 
+    .sim-left-pane {
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--window-border);
+      border-right: 1px solid black;
+      width: 500px;
+      flex-shrink: 0;
+      height: var(--sim-content-height, auto);
+      background: var(--window-bg);
+      margin-left: -500px;
+    }
+
+    .sim-left-header {
+      font-weight: bold;
+      font-size: 11px;
+      padding: 10px;
+      border-bottom: 1px solid var(--window-border);
+      flex-shrink: 0;
+    }
+
+    .sim-left-content {
+      flex: 1;
+      min-height: 0;
+      padding: 10px;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sim-code-editor {
+      width: 100%;
+      height: auto;
+      font-family: monospace;
+      font-size: 12px;
+      background: var(--input-bg);
+      color: var(--text-color);
+      box-sizing: border-box;
+      overflow: hidden;
+      position: relative;
+      flex: none;
+      border: none;
+    }
+
+    .sim-code-output {
+      padding-top: 10px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .sim-code-inline {
+      font-family: monospace;
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .sim-input-textarea {
+      width: 100%;
+      height: 120px;
+      font-family: monospace;
+      font-size: 10px;
+      border: 1px solid var(--window-border);
+      background: var(--input-bg);
+      color: var(--text-color);
+      resize: none;
+      margin-bottom: 8px;
+      padding: 4px;
+      box-sizing: border-box;
+    }
+
+    .sim-action-buy {
+      background: #00c853;
+      color: white;
+      padding: 1px 4px;
+    }
+
+    .sim-action-sell {
+      background: #ff1744;
+      color: white;
+      padding: 1px 4px;
+    }
+
+    .sim-action-hold {
+      background: #999;
+      color: white;
+      padding: 1px 4px;
+    }
+
+    .sim-code-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .sim-buttons-disabled {
+      opacity: 0.5;
+    }
+
+    .sim-btn-execute,
+    .sim-btn-autorun {
+      flex: 1;
+    }
+
+    .sim-iterations {
+      margin-top: 8px;
+      font-size: 11px;
+      color: #666;
+      text-align: center;
+    }
+
     .sim-content {
       padding: 12px;
       font-size: 11px;
@@ -615,10 +1029,8 @@ const simulatorCard = {
     .sim-details {
       display: flex;
       flex-direction: column;
-      border-left: 1px solid var(--window-border);
-      border-top: 1px solid var(--window-border);
-      border-right: 1px solid var(--window-border);
-      border-bottom: 1px solid var(--window-border);
+      border: 1px solid var(--window-border);
+      border-left: 1px solid black;
       flex-shrink: 0;
       width: 0;
       overflow: hidden;
@@ -657,7 +1069,7 @@ const simulatorCard = {
       flex: 0 0 auto;
       border-bottom: 1px solid var(--window-border);
       height: 170px;
-      background: #fff;
+      background: var(--window-bg);
       width: 300px;
       min-width: 300px;
       display: flex;
@@ -779,7 +1191,7 @@ const simulatorCard = {
       padding: 8px;
       display: flex;
       flex-direction: column;
-      background: #fff;
+      background: var(--window-bg);
       width: 300px;
       min-width: 300px;
     }
@@ -856,15 +1268,26 @@ const simulatorCard = {
       padding: 6px 4px;
       cursor: pointer;
       font-size: 10px;
+      list-style: none;
+    }
+
+    .sim-trade-header::-webkit-details-marker {
+      display: none;
+    }
+
+    .sim-trade-header::before {
+      content: '▶';
+      font-size: 8px;
+      width: 10px;
+      flex-shrink: 0;
+    }
+
+    .sim-trade-row[open] .sim-trade-header::before {
+      content: '▼';
     }
 
     .sim-trade-header:hover {
       background: var(--hover-bg);
-    }
-
-    .sim-trade-toggle {
-      font-size: 8px;
-      width: 10px;
     }
 
     .sim-trade-date {
@@ -1137,29 +1560,85 @@ const simulatorCard = {
     }
   `,
 
-  rerender() {
+  rerender(scrollToEnd = false) {
     const windowEl = document.querySelector(`[data-window-id="${this.id}"]`);
     if (windowEl) {
       const wrapperEl = windowEl.querySelector('.sim-wrapper');
       if (wrapperEl) {
+        // Preserve timeline scroll position
+        const oldTimeline = windowEl.querySelector('.sim-timeline');
+        const oldScrollLeft = oldTimeline ? oldTimeline.scrollLeft : null;
+
+        // Preserve editor element if it exists
+        const editorEl = windowEl.querySelector('#sim-code-editor');
+        const editorParent = editorEl ? editorEl.parentElement : null;
+
         wrapperEl.outerHTML = simulatorCard.content();
 
-        // Set CSS variable for details height to match content
-        if (this.showDetails) {
-          const newWrapper = windowEl.querySelector('.sim-wrapper');
-          const newContentEl = newWrapper ? newWrapper.querySelector('.sim-content') : null;
-          if (newWrapper && newContentEl) {
-            newWrapper.style.setProperty('--sim-content-height', newContentEl.offsetHeight + 'px');
+        // Restore editor element if we had one
+        if (editorEl && this.editor) {
+          const newEditorParent = windowEl.querySelector('.sim-left-content');
+          const newEditorPlaceholder = windowEl.querySelector('#sim-code-editor');
+          if (newEditorParent && newEditorPlaceholder) {
+            newEditorPlaceholder.replaceWith(editorEl);
           }
         }
 
-        // Scroll timeline to the end (show today)
+        // Set CSS variable for pane heights to match content
+        const newWrapper = windowEl.querySelector('.sim-wrapper');
+        const newContentEl = newWrapper ? newWrapper.querySelector('.sim-content') : null;
+        if (newWrapper && newContentEl) {
+          newWrapper.style.setProperty('--sim-content-height', newContentEl.offsetHeight + 'px');
+        }
+
+        // Restore or scroll timeline
         const timeline = windowEl.querySelector('.sim-timeline');
         if (timeline) {
-          timeline.scrollLeft = timeline.scrollWidth;
+          if (scrollToEnd) {
+            timeline.scrollLeft = timeline.scrollWidth;
+          } else if (oldScrollLeft !== null) {
+            timeline.scrollLeft = oldScrollLeft;
+          }
         }
+
+        // Initialize WarrenBuf editor if not already done
+        this.initEditor();
       }
     }
+  },
+
+  initEditor() {
+    const editorEl = document.getElementById('sim-code-editor');
+    if (!editorEl || this.editor) return;
+
+    // Defer initialization to ensure DOM is fully laid out
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        // Double-check in case things changed
+        if (this.editor) return;
+        const el = document.getElementById('sim-code-editor');
+        if (!el) return;
+
+        this.editor = new WarrenBuf(el, {
+          initialViewportSize: 15,
+          lineHeight: 16,
+          editorPaddingPX: 4,
+          showGutter: true,
+          showStatusLine: true,
+        });
+
+        if (this.codeSource) {
+          this.editor.Model.text = this.codeSource;
+        }
+      }, 0);
+    });
+  },
+
+  getEditorCode() {
+    if (this.editor) {
+      return this.editor.Model.lines.join('\n');
+    }
+    return this.codeSource;
   },
 
   async init(system) {
@@ -1177,10 +1656,20 @@ const simulatorCard = {
     simulatorCard.detailsClosing = false;
     simulatorCard.detailsOpening = false;
     simulatorCard.trades = [];
-    simulatorCard.expandedTrades = {};
     simulatorCard.dailyTotalValues = [];
     simulatorCard.dates = [];
     simulatorCard.tickers = [];
+    simulatorCard.codeSource = '';
+    simulatorCard.editor = null;
+    simulatorCard.algoFileName = 'random-walk.algo';
+
+    // Load code source
+    try {
+      const response = await fetch('demo/algos/random-walk.algo');
+      simulatorCard.codeSource = await response.text();
+    } catch (e) {
+      simulatorCard.codeSource = '// Failed to load code';
+    }
 
     // Load tickers
     try {
@@ -1196,9 +1685,9 @@ const simulatorCard = {
       simulatorCard.currentDate = simulatorCard.dates[0];
     }
 
-    // Default to first ticker if none selected
+    // Default to AAPL if available, otherwise first ticker
     if (!simulatorCard.selectedTicker && simulatorCard.tickers.length > 0) {
-      simulatorCard.selectedTicker = simulatorCard.tickers[0];
+      simulatorCard.selectedTicker = simulatorCard.tickers.includes('AAPL') ? 'AAPL' : simulatorCard.tickers[0];
       simulatorCard.fetchTickerData(simulatorCard.selectedTicker);
     }
 
@@ -1219,6 +1708,10 @@ const simulatorCard = {
     if (simulatorCard._keyHandler) {
       document.removeEventListener('keydown', simulatorCard._keyHandler);
       simulatorCard._keyHandler = null;
+    }
+    // Clean up editor instance
+    if (simulatorCard.editor) {
+      simulatorCard.editor = null;
     }
   },
 
@@ -1271,12 +1764,19 @@ const simulatorCard = {
       this.jumpToDate(dateKey);
       return;
     }
-    // Handle trade row expansion
-    const tradeHeader = e.target.closest('.sim-trade-header');
-    if (tradeHeader) {
+    if (e.target.id === 'sim-execute-btn') {
       e.preventDefault();
-      const idx = parseInt(tradeHeader.dataset.tradeIdx, 10);
-      this.toggleTrade(idx);
+      this.executeAlgo();
+      return;
+    }
+    if (e.target.id === 'sim-autorun-btn') {
+      e.preventDefault();
+      this.runIterations(30);
+      return;
+    }
+    if (e.target.id === 'sim-run-all-btn') {
+      e.preventDefault();
+      this.runToCompletion();
       return;
     }
   },
@@ -1306,6 +1806,12 @@ const simulatorCard = {
   },
 
   handleKeyDown(e) {
+    // Don't handle keys if WarrenBuffer editor is focused
+    const activeEl = document.activeElement;
+    if (activeEl && activeEl.closest('.wb')) {
+      return;
+    }
+
     if (e.key === 'ArrowRight') {
       e.preventDefault();
       // Blink the button then advance

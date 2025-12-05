@@ -7,7 +7,7 @@
   "gridSize": 50,
   "tabInsertSpaces": true,
   "fileTree": {},
-  "defaultWindows": ["stocks", "about"],
-  "defaultPinnedFiles": ["demo/README.md", "GME.stock"],
+  "defaultWindows": ["stocks", "simulator"],
+  "defaultPinnedFiles": ["demo/README.md", "GME.stock", "demo/algos/momentum-10d.algo"],
   "windows": null
 }

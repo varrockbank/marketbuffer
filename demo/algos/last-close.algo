@@ -1,0 +1,32 @@
+function trade(position, prices) {
+    const tickers = Object.keys(prices);
+
+    // Calculate percentage change for each ticker
+    const changes = [];
+    for (let i = 0; i < tickers.length; i++) {
+        const ticker = tickers[i];
+        if (prices[ticker].previousClose) {
+            const pctChange = (prices[ticker].open - prices[ticker].previousClose) / prices[ticker].previousClose;
+            changes.push({ ticker, pctChange });
+        }
+    }
+
+    if (changes.length === 0) return 0;
+
+    // Sort by percentage change
+    changes.sort((a, b) => a.pctChange - b.pctChange);
+
+    const lowestTicker = changes[0].ticker;
+    const highestTicker = changes[changes.length - 1].ticker;
+
+    if (position.open) {
+        // If our ticker increased the most, hold
+        if (position.ticker === highestTicker) {
+            return 0;
+        }
+        return -1;
+    } else {
+        // Open the ticker that increased the least
+        return { ticker: lowestTicker };
+    }
+}
