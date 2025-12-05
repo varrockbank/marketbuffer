@@ -197,6 +197,12 @@ const editorCard = {
       overflow: hidden;
     }
 
+    .pane-content .playground.wb {
+      flex: none;
+      height: auto;
+      border: none;
+    }
+
     .pane-split {
       flex: 1;
       display: flex;
