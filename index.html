@@ -413,10 +413,10 @@
 
     /* Primary Sidebar Container */
     .sidebar-container {
-      width: 300px;
       flex-shrink: 0;
       overflow: visible;
-      transition: width 0.3s ease;
+      width: 300px;
+      transition: width 0.3s ease-in-out;
     }
 
     .sidebar-container.collapsed {
@@ -425,35 +425,39 @@
 
     /* Primary Sidebar */
     .primary-sidebar {
-      width: 300px;
+      width: 100%;
       height: 100%;
       background: var(--window-bg);
       border-right: 2px solid var(--window-border);
       display: flex;
       flex-direction: column;
-      transition: width 0.3s ease;
       overflow: hidden;
-    }
-
-    .sidebar-container.collapsed .primary-sidebar {
-      width: 44px;
     }
 
     /* Sidebar Header with Toggle */
     .sidebar-header {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      gap: 8px;
       height: 44px;
       flex-shrink: 0;
       padding: 0 8px;
       margin-bottom: 8px;
+      position: relative;
     }
 
-    .sidebar-container.collapsed .sidebar-header {
-      justify-content: center;
-      padding: 0;
+    .sidebar-header .sidebar-toggle {
+      position: absolute;
+      right: 8px;
     }
+
+    .sidebar-container.collapsed .sidebar-header .sidebar-toggle {
+      right: auto;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+
 
     /* Project Selector */
     .project-selector {
@@ -478,9 +482,6 @@
       flex-shrink: 0;
     }
 
-    .sidebar-container.collapsed .project-selector {
-      display: none;
-    }
 
     .project-dropdown {
       display: none;
@@ -581,8 +582,10 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 10px 12px;
+      padding: 10px 12px 10px 13px;
       font-size: 13px;
+      height: 36px;
+      box-sizing: border-box;
     }
 
     #search-item .sidebar-item-icon {
@@ -591,14 +594,64 @@
       flex-shrink: 0;
     }
 
-    .sidebar-container.collapsed #search-item {
-      justify-content: center;
-      padding: 10px;
+
+    .search-label,
+    .sidebar-item-label,
+    .user-menu-btn .user-name,
+    .user-menu-btn .user-chevron,
+    .project-selector {
+      transition: opacity 0.1s ease-out 0.2s;
     }
 
-    .sidebar-container.collapsed #search-item .search-label {
-      display: none;
+    .sidebar-container.collapsed .search-label,
+    .sidebar-container.collapsed .sidebar-item-label,
+    .sidebar-container.collapsed .user-menu-btn .user-name,
+    .sidebar-container.collapsed .user-menu-btn .user-chevron,
+    .sidebar-container.collapsed .project-selector {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.1s ease-out;
     }
+
+    #new-chat-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px 10px 13px;
+      font-size: 13px;
+      height: 36px;
+      box-sizing: border-box;
+    }
+
+    #new-chat-item .sidebar-item-icon {
+      background: #7A68AA;
+      color: #fff;
+      border-radius: 4px;
+    }
+
+    #new-chat-item:hover .sidebar-item-icon {
+      background: #6a5a96;
+    }
+
+    #deploy-item,
+    #operate-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px 10px 13px;
+      font-size: 13px;
+      height: 36px;
+      box-sizing: border-box;
+    }
+
+    #new-chat-item .sidebar-item-icon,
+    #deploy-item .sidebar-item-icon,
+    #operate-item .sidebar-item-icon {
+      position: static;
+      transform: none;
+      flex-shrink: 0;
+    }
+
 
     .sidebar-spacer {
       flex: 1;
@@ -903,7 +956,7 @@
 
     .sidebar-footer {
       margin-top: auto;
-      padding: 10px 12px;
+      padding: 10px 12px 10px 11px;
       border-top: 1px solid var(--window-border);
       background: var(--sidebar-bg);
       position: relative;
@@ -918,17 +971,6 @@
       border-radius: 4px;
       color: var(--text-color);
       white-space: nowrap;
-    }
-
-    .sidebar-container.collapsed .sidebar-footer {
-      padding: 10px;
-      display: flex;
-      justify-content: center;
-    }
-
-    .sidebar-container.collapsed .user-menu-btn .user-name,
-    .sidebar-container.collapsed .user-menu-btn .user-chevron {
-      display: none;
     }
 
     .sidebar-footer:hover {
@@ -2166,6 +2208,18 @@
           <div class="sidebar-item" id="search-item">
             <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.34-4.34"/></svg>
             <span class="search-label">Search</span>
+          </div>
+          <div class="sidebar-item" id="new-chat-item">
+            <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+            <span class="sidebar-item-label">New chat</span>
+          </div>
+          <div class="sidebar-item" id="deploy-item">
+            <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+            <span class="sidebar-item-label">Deploy</span>
+          </div>
+          <div class="sidebar-item" id="operate-item">
+            <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+            <span class="sidebar-item-label">Operate</span>
           </div>
         </div>
         <div class="sidebar-section" id="pinned-section">
