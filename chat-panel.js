@@ -1,6 +1,7 @@
 // Chat Panel - Slide-out chat drawer
 const ChatPanel = {
   isExpanded: false,
+  isResizing: false,
   customWidth: null,
 
   // Chat state
@@ -287,6 +288,7 @@ const ChatPanel = {
     const startResize = (e) => {
       e.preventDefault();
       isResizing = true;
+      this.isResizing = true;
       startX = e.clientX;
       startWidth = panelEl.offsetWidth;
       panelEl.classList.add('resizing');
@@ -308,18 +310,23 @@ const ChatPanel = {
       if (!isResizing) return;
       const desktop = document.getElementById('desktop');
       const desktopWidth = desktop.offsetWidth;
+      const minWidth = 200;
+      const maxWidth = desktopWidth - 100;
       const deltaX = startX - e.clientX;
-      const rawWidth = Math.min(Math.max(startWidth + deltaX, 200), desktopWidth - 100);
+      const rawWidth = startWidth + deltaX;
       // Snap the left edge position (from left of desktop), then convert back to width
       const leftEdge = desktopWidth - rawWidth;
       const snappedLeftEdge = SnapGrid.snap(leftEdge);
-      const snappedWidth = desktopWidth - snappedLeftEdge;
+      // Clamp final width to valid bounds
+      const snappedWidth = Math.max(minWidth, Math.min(desktopWidth - snappedLeftEdge, maxWidth));
       panelEl.style.width = snappedWidth + 'px';
     });
 
     document.addEventListener('mouseup', () => {
       if (isResizing) {
         isResizing = false;
+        // Delay clearing isResizing flag to prevent click-outside handler from firing
+        setTimeout(() => { this.isResizing = false; }, 0);
         panelEl.classList.remove('resizing');
         document.body.style.cursor = '';
         document.body.style.userSelect = '';

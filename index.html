@@ -3611,8 +3611,8 @@
       closeApplicationsMenu();
       closeApplicationsDropdown();
       closeActiveWindowMenu();
-      // Close chat panel if clicking outside of it
-      if (typeof ChatPanel !== 'undefined' && ChatPanel.isExpanded) {
+      // Close chat panel if clicking outside of it (but not while resizing)
+      if (typeof ChatPanel !== 'undefined' && ChatPanel.isExpanded && !ChatPanel.isResizing) {
         const chatPanel = document.getElementById('chat-panel');
         const chatBtn = document.getElementById('menu-new-chat');
         if (chatPanel && !chatPanel.contains(e.target) && !chatBtn.contains(e.target)) {
