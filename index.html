@@ -129,7 +129,13 @@
       font-weight: bold;
     }
 
-    .menu-item:hover {
+    .menu-item:hover,
+    .menu-item.active {
+      background: var(--text-color);
+      color: var(--window-bg);
+    }
+
+    #applications-menu:hover ~ #applications-dropdown-btn {
       background: var(--text-color);
       color: var(--window-bg);
     }
@@ -283,11 +289,17 @@
       display: block;
     }
 
+    .menu-dropdown.right-align {
+      left: auto;
+      right: 0;
+    }
+
     .menu-dropdown-item {
       padding: 4px 12px 4px 24px;
       cursor: pointer;
       position: relative;
       white-space: nowrap;
+      color: var(--text-color);
     }
 
     .menu-dropdown-item:hover {
@@ -2320,6 +2332,12 @@
         </div>
         <div class="menu-bar-right">
           <span class="menu-item" id="applications-menu">Applications</span>
+          <span class="menu-item" id="applications-dropdown-btn" style="position: relative;">
+            &#8230;
+            <div class="menu-dropdown right-align" id="applications-dropdown">
+              <!-- App list rendered dynamically -->
+            </div>
+          </span>
         </div>
         <!-- App Launcher Drawer -->
         <div class="app-launcher" id="app-launcher">
@@ -3543,11 +3561,59 @@
     document.getElementById('applications-menu').addEventListener('click', (e) => {
       e.stopPropagation();
       closeActiveWindowMenu();
+      closeApplicationsDropdown();
       toggleApplicationsMenu();
     });
 
+    // Applications dropdown (... button)
+    document.getElementById('applications-dropdown-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeActiveWindowMenu();
+      closeApplicationsMenu();
+      toggleApplicationsDropdown();
+    });
+
+    function toggleApplicationsDropdown() {
+      const dropdown = document.getElementById('applications-dropdown');
+      const btn = document.getElementById('applications-dropdown-btn');
+      if (dropdown.classList.contains('open')) {
+        closeApplicationsDropdown();
+      } else {
+        renderApplicationsDropdown();
+        dropdown.classList.add('open');
+        btn.classList.add('active');
+      }
+    }
+
+    function closeApplicationsDropdown() {
+      const dropdown = document.getElementById('applications-dropdown');
+      const btn = document.getElementById('applications-dropdown-btn');
+      if (dropdown) dropdown.classList.remove('open');
+      if (btn) btn.classList.remove('active');
+    }
+
+    function renderApplicationsDropdown() {
+      const dropdown = document.getElementById('applications-dropdown');
+      dropdown.innerHTML = '';
+      initialWindows.forEach(win => {
+        const item = document.createElement('div');
+        item.className = 'menu-dropdown-item';
+        if (OS.isWindowOpen(win.id)) {
+          item.classList.add('checked');
+        }
+        item.textContent = win.title;
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openApplication(win.id);
+          closeApplicationsDropdown();
+        });
+        dropdown.appendChild(item);
+      });
+    }
+
     document.addEventListener('click', (e) => {
       closeApplicationsMenu();
+      closeApplicationsDropdown();
       closeActiveWindowMenu();
       // Close terminal if clicking outside of it
       if (typeof terminalCard !== 'undefined' && terminalCard.isExpanded) {
