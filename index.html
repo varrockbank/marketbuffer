@@ -544,7 +544,8 @@
       color: var(--window-bg);
     }
 
-    .tree-item-row:has(.tree-item-menu-btn:hover) {
+    .tree-item-row:has(.tree-item-menu-btn:hover),
+    .tree-item-row:has(.tree-item-menu.open) {
       background: transparent;
       color: var(--text-color);
     }
@@ -622,11 +623,14 @@
       color: var(--window-bg);
     }
 
-    .tree-item-row:has(.tree-item-menu-btn:hover) .tree-item-menu-btn {
+    .tree-item-row:has(.tree-item-menu-btn:hover) .tree-item-menu-btn,
+    .tree-item-row:has(.tree-item-menu.open) .tree-item-menu-btn {
+      opacity: 1;
       color: var(--text-color);
     }
 
-    .tree-item-menu-btn:hover {
+    .tree-item-menu-btn:hover,
+    .tree-item-row:has(.tree-item-menu.open) .tree-item-menu-btn {
       background: var(--text-color);
       color: var(--window-bg) !important;
     }
@@ -699,7 +703,8 @@
       color: var(--window-bg);
     }
 
-    .pinned-item:has(.pinned-item-menu-btn:hover) {
+    .pinned-item:has(.pinned-item-menu-btn:hover),
+    .pinned-item:has(.pinned-item-menu.open) {
       background: transparent;
       color: var(--text-color);
     }
@@ -731,11 +736,14 @@
       color: var(--window-bg);
     }
 
-    .pinned-item:has(.pinned-item-menu-btn:hover) .pinned-item-menu-btn {
+    .pinned-item:has(.pinned-item-menu-btn:hover) .pinned-item-menu-btn,
+    .pinned-item:has(.pinned-item-menu.open) .pinned-item-menu-btn {
+      opacity: 1;
       color: var(--text-color);
     }
 
-    .pinned-item-menu-btn:hover {
+    .pinned-item-menu-btn:hover,
+    .pinned-item:has(.pinned-item-menu.open) .pinned-item-menu-btn {
       background: var(--text-color);
       color: var(--window-bg) !important;
     }
@@ -1920,7 +1928,7 @@
           </div>
         </div>
         <div class="sidebar-section" id="pinned-section">
-          <div class="sidebar-section-header">Pinned</div>
+          <div class="sidebar-section-header">Starred</div>
           <div id="pinned-files">
             <!-- Pinned files rendered by JavaScript -->
           </div>
