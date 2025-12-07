@@ -100,11 +100,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 0 8px;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 1000;
+      flex-shrink: 0;
     }
 
     .menu-bar-left {
@@ -114,15 +110,7 @@
     }
 
     .sidebar-toggle-container {
-      width: 300px;
-      flex-shrink: 0;
-      display: flex;
-      justify-content: flex-end;
-      transition: width 0.3s ease;
-    }
-
-    .sidebar-toggle-container.collapsed {
-      width: 44px;
+      display: none;
     }
 
     .menu-bar-right {
@@ -319,21 +307,24 @@
 
     /* Sidebar Toggle Button */
     .sidebar-toggle {
-      padding: 6px 8px;
+      width: 44px;
+      height: 28px;
       cursor: pointer;
-      font-size: 12px;
-      margin-right: 4px;
-      display: inline-block;
-      transition: transform 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .sidebar-toggle:hover {
-      background: var(--text-color);
-      color: var(--window-bg);
+      background: var(--hover-bg);
     }
 
-    .sidebar-toggle.collapsed {
-      transform: rotate(180deg);
+    .sidebar-toggle svg {
+      display: block;
+    }
+
+    .sidebar-toggle.collapsed svg {
+      transform: scaleX(-1);
     }
 
     /* Primary Sidebar Container */
@@ -351,15 +342,28 @@
     /* Primary Sidebar */
     .primary-sidebar {
       width: 300px;
+      height: 100%;
       background: var(--window-bg);
       border-right: 2px solid var(--window-border);
       display: flex;
       flex-direction: column;
-      height: 100%;
     }
 
     .sidebar-container.collapsed .primary-sidebar {
       width: 44px;
+    }
+
+    /* Sidebar Header with Toggle */
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      height: 28px;
+      flex-shrink: 0;
+    }
+
+    .sidebar-container.collapsed .sidebar-header {
+      justify-content: center;
     }
 
     .sidebar-section {
@@ -579,14 +583,22 @@
       background: var(--sidebar-bg);
     }
 
-    /* Main Layout Container */
-    .main-layout {
+    /* App Layout - root container */
+    .app-layout {
       display: flex;
       position: fixed;
-      top: 28px;
+      top: 0;
       left: 0;
       right: 0;
       bottom: 0;
+    }
+
+    /* Main Pane - contains menu bar and desktop */
+    .main-pane {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
     }
 
     /* Desktop Area (viewport + prompt) */
@@ -1635,64 +1647,67 @@
   </style>
 </head>
 <body>
-  <!-- Menu Bar -->
-  <div class="menu-bar">
-    <div class="menu-bar-left">
-      <div class="sidebar-toggle-container" id="sidebar-toggle-container">
-        <span class="sidebar-toggle" id="sidebar-toggle" title="Toggle Sidebar">&lt;&lt;&lt;</span>
-      </div>
-      <div class="workspace-tabs-container" id="workspace-tabs-container">
-        <!-- Workspace tabs rendered dynamically -->
-      </div>
-      <div class="workspace-add-btn" id="workspace-add-btn" title="Add Workspace">+</div>
-    </div>
-    <div class="menu-bar-right">
-      <div class="menu-item-container">
-        <span class="menu-item" id="applications-menu">Applications</span>
-        <div class="menu-dropdown" id="applications-dropdown"></div>
-      </div>
-      <span class="menu-item" id="help-menu">Help</span>
-      <span class="menu-item" id="settings-menu">Settings</span>
-      <span class="menu-item" id="logout-menu">Logout</span>
-    </div>
-  </div>
-
-  <!-- Main Layout -->
-  <div class="main-layout">
-    <!-- Primary Sidebar -->
+  <!-- App Layout -->
+  <div class="app-layout">
+    <!-- Left Pane (Sidebar) -->
     <div class="sidebar-container" id="sidebar-container">
-    <div class="primary-sidebar" id="primary-sidebar">
-      <div class="sidebar-section" id="search-section">
-        <div class="sidebar-item" id="search-item">
-          <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.34-4.34"/></svg>
-          <span class="search-label">Search</span>
+      <div class="primary-sidebar" id="primary-sidebar">
+        <div class="sidebar-header">
+          <span class="sidebar-toggle" id="sidebar-toggle" title="Toggle Sidebar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m16 15-3-3 3-3"/></svg></span>
+        </div>
+        <div class="sidebar-section" id="search-section">
+          <div class="sidebar-item" id="search-item">
+            <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.34-4.34"/></svg>
+            <span class="search-label">Search</span>
+          </div>
+        </div>
+        <div class="sidebar-section" id="pinned-section">
+          <div class="sidebar-section-header">Pinned</div>
+          <div id="pinned-files">
+            <!-- Pinned files rendered by JavaScript -->
+          </div>
+        </div>
+        <div class="sidebar-section sidebar-section-files">
+          <div class="sidebar-section-header">Files</div>
+        </div>
+        <div class="file-tree" id="file-tree">
+          <!-- File tree rendered by JavaScript -->
+        </div>
+        <div class="sidebar-footer">
+          Marketbuffer v1.0
         </div>
       </div>
-      <div class="sidebar-section" id="pinned-section">
-        <div class="sidebar-section-header">Pinned</div>
-        <div id="pinned-files">
-          <!-- Pinned files rendered by JavaScript -->
-        </div>
-      </div>
-      <div class="sidebar-section sidebar-section-files">
-        <div class="sidebar-section-header">Files</div>
-      </div>
-      <div class="file-tree" id="file-tree">
-        <!-- File tree rendered by JavaScript -->
-      </div>
-      <div class="sidebar-footer">
-        Marketbuffer v1.0
-      </div>
-    </div>
     </div>
 
-    <!-- Desktop Area (viewport + prompt) -->
-    <div class="desktop-area">
-      <div class="desktop" id="desktop">
-        <!-- Windows are rendered dynamically -->
+    <!-- Main Pane -->
+    <div class="main-pane">
+      <!-- Menu Bar -->
+      <div class="menu-bar">
+        <div class="menu-bar-left">
+          <div class="workspace-tabs-container" id="workspace-tabs-container">
+            <!-- Workspace tabs rendered dynamically -->
+          </div>
+          <div class="workspace-add-btn" id="workspace-add-btn" title="Add Workspace">+</div>
+        </div>
+        <div class="menu-bar-right">
+          <div class="menu-item-container">
+            <span class="menu-item" id="applications-menu">Applications</span>
+            <div class="menu-dropdown" id="applications-dropdown"></div>
+          </div>
+          <span class="menu-item" id="help-menu">Help</span>
+          <span class="menu-item" id="settings-menu">Settings</span>
+          <span class="menu-item" id="logout-menu">Logout</span>
+        </div>
       </div>
-      <div class="prompt-container" id="prompt-container">
-        <!-- Terminal prompt rendered by JavaScript -->
+
+      <!-- Desktop Area (viewport + prompt) -->
+      <div class="desktop-area">
+        <div class="desktop" id="desktop">
+          <!-- Windows are rendered dynamically -->
+        </div>
+        <div class="prompt-container" id="prompt-container">
+          <!-- Terminal prompt rendered by JavaScript -->
+        </div>
       </div>
     </div>
   </div>
@@ -2824,10 +2839,8 @@
     document.getElementById('sidebar-toggle').addEventListener('click', (e) => {
       e.stopPropagation();
       const sidebarContainer = document.getElementById('sidebar-container');
-      const toggleContainer = document.getElementById('sidebar-toggle-container');
       const toggle = document.getElementById('sidebar-toggle');
       sidebarContainer.classList.toggle('collapsed');
-      toggleContainer.classList.toggle('collapsed');
       toggle.classList.toggle('collapsed');
     });
 
