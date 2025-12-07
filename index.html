@@ -742,7 +742,7 @@
       color: var(--window-bg);
     }
 
-    .tree-item-row:has(.tree-item-menu-btn:hover),
+    .tree-item-row:has(.tree-file-menu-btn:hover),
     .tree-item-row:has(.tree-item-menu.open) {
       background: transparent;
       color: var(--text-color);
@@ -804,33 +804,44 @@
       opacity: 1;
     }
 
-    /* Tree Item Menu Button */
-    .tree-item-menu-btn {
+    /* Tree File Menu Button */
+    .tree-file-menu-btn {
       opacity: 0;
+      background: none;
+      border: none;
+      padding: 0 4px;
+      margin: -3px -8px -3px auto;
+      align-self: stretch;
       cursor: pointer;
-      font-size: 14px;
-      padding: 0 8px;
-      margin: -3px -8px -3px 4px;
+      color: inherit;
       display: flex;
       align-items: center;
-      align-self: stretch;
     }
 
-    .tree-item-row:hover .tree-item-menu-btn {
-      opacity: 1;
-      color: var(--window-bg);
+    .tree-file-menu-btn svg {
+      width: 16px;
+      height: 16px;
     }
 
-    .tree-item-row:has(.tree-item-menu-btn:hover) .tree-item-menu-btn,
-    .tree-item-row:has(.tree-item-menu.open) .tree-item-menu-btn {
+    .tree-item-row:hover .tree-file-menu-btn {
       opacity: 1;
+    }
+
+    .tree-item-row:has(.tree-file-menu-btn:hover),
+    .tree-item-row:has(.tree-item-menu.open) {
+      background: transparent;
       color: var(--text-color);
     }
 
-    .tree-item-menu-btn:hover,
-    .tree-item-row:has(.tree-item-menu.open) .tree-item-menu-btn {
+    .tree-item-row:has(.tree-file-menu-btn:hover) .tree-file-menu-btn,
+    .tree-item-row:has(.tree-item-menu.open) .tree-file-menu-btn {
+      opacity: 1;
+    }
+
+    .tree-file-menu-btn:hover,
+    .tree-item-row:has(.tree-item-menu.open) .tree-file-menu-btn {
       background: var(--text-color);
-      color: var(--window-bg) !important;
+      color: var(--window-bg);
     }
 
     /* Tree Item Context Menu */
@@ -2332,8 +2343,8 @@
         </div>
         <div class="menu-bar-right">
           <span class="menu-item" id="applications-menu">Applications</span>
-          <span class="menu-item" id="applications-dropdown-btn" style="position: relative;">
-            &#8230;
+          <span class="menu-item" id="applications-dropdown-btn" style="position: relative; display: inline-flex; align-items: center;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
             <div class="menu-dropdown right-align" id="applications-dropdown">
               <!-- App list rendered dynamically -->
             </div>
