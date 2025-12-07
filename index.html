@@ -2260,9 +2260,6 @@
     <!-- Left Pane (Sidebar) -->
     <div class="sidebar-container" id="sidebar-container">
       <div class="primary-sidebar" id="primary-sidebar">
-        <div class="sidebar-header">
-          <span class="sidebar-toggle" id="sidebar-toggle" title="Toggle Sidebar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m16 15-3-3 3-3"/></svg></span>
-        </div>
         <div class="sidebar-section" id="search-section">
           <div class="sidebar-item" id="search-item">
             <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.34-4.34"/></svg>
@@ -3480,15 +3477,6 @@
       AppLauncher.close();
     }
 
-    // Sidebar toggle
-    document.getElementById('sidebar-toggle').addEventListener('click', (e) => {
-      e.stopPropagation();
-      const sidebarContainer = document.getElementById('sidebar-container');
-      const toggle = document.getElementById('sidebar-toggle');
-      sidebarContainer.classList.toggle('collapsed');
-      toggle.classList.toggle('collapsed');
-    });
-
     // Project selector
     document.getElementById('project-selector-btn').addEventListener('click', (e) => {
       e.stopPropagation();
@@ -3594,10 +3582,8 @@
     document.getElementById('menu-sidebar-toggle').addEventListener('click', (e) => {
       e.stopPropagation();
       const sidebarContainer = document.getElementById('sidebar-container');
-      const toggle = document.getElementById('sidebar-toggle');
       const menuToggle = document.getElementById('menu-sidebar-toggle');
       sidebarContainer.classList.toggle('collapsed');
-      toggle.classList.toggle('collapsed');
       menuToggle.classList.toggle('collapsed');
     });
 
