@@ -1,0 +1,509 @@
+<!-- Git Modality - Version Control -->
+<style>
+  .git-container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-family: 'Chicago', 'Monaco', 'Courier New', monospace;
+    font-size: 12px;
+  }
+
+  .git-sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    background: #252525;
+    border-right: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .git-sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 0;
+  }
+
+  .git-sidebar-header {
+    padding: 8px 16px;
+    font-weight: bold;
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .git-item {
+    padding: 8px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-left: 3px solid transparent;
+  }
+
+  .git-item:hover {
+    background: #333;
+  }
+
+  .git-item.active {
+    background: #3a3a3a;
+    border-left-color: #e0e0e0;
+  }
+
+  .git-item-icon {
+    color: #888;
+    flex-shrink: 0;
+  }
+
+  .git-item-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+  }
+
+  .git-item-count {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    background: #444;
+    color: #aaa;
+  }
+
+  .git-item-count.changes {
+    background: #e67e22;
+    color: #fff;
+  }
+
+  .git-item-count.ahead {
+    background: #2ecc71;
+    color: #fff;
+  }
+
+  .git-sidebar-footer {
+    padding: 12px 16px;
+    border-top: 1px solid #333;
+    display: flex;
+    gap: 8px;
+  }
+
+  .git-footer-btn {
+    flex: 1;
+    padding: 8px 12px;
+    background: #2d2d2d;
+    border: 1px solid #444;
+    color: #888;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .git-footer-btn:hover {
+    background: #3a3a3a;
+    color: #e0e0e0;
+  }
+
+  .git-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    background: #1a1a1a;
+  }
+
+  .git-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #333;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .git-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .git-header-title {
+    font-weight: bold;
+    font-size: 16px;
+  }
+
+  .git-header-branch {
+    font-size: 12px;
+    color: #2ecc71;
+    background: #1a3a1a;
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+
+  .git-header-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .git-header-btn {
+    padding: 6px 12px;
+    background: #2d2d2d;
+    border: 1px solid #444;
+    color: #e0e0e0;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+  }
+
+  .git-header-btn:hover {
+    background: #3a3a3a;
+  }
+
+  .git-header-btn.primary {
+    background: #2ecc71;
+    border-color: #2ecc71;
+    color: #fff;
+  }
+
+  .git-header-btn.primary:hover {
+    background: #27ae60;
+  }
+
+  .git-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+  }
+
+  .git-section {
+    margin-bottom: 24px;
+  }
+
+  .git-section-header {
+    font-weight: bold;
+    font-size: 13px;
+    margin-bottom: 12px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .git-file-list {
+    background: #252525;
+    border: 1px solid #333;
+    border-radius: 4px;
+  }
+
+  .git-file-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    border-bottom: 1px solid #333;
+    gap: 10px;
+  }
+
+  .git-file-item:last-child {
+    border-bottom: none;
+  }
+
+  .git-file-status {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+    flex-shrink: 0;
+  }
+
+  .git-file-status.modified {
+    background: #e67e22;
+    color: #fff;
+  }
+
+  .git-file-status.added {
+    background: #2ecc71;
+    color: #fff;
+  }
+
+  .git-file-status.deleted {
+    background: #e74c3c;
+    color: #fff;
+  }
+
+  .git-file-status.untracked {
+    background: #9b59b6;
+    color: #fff;
+  }
+
+  .git-file-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .git-file-path {
+    color: #666;
+    font-size: 11px;
+  }
+
+  .git-file-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+  }
+
+  .git-file-item:hover .git-file-actions {
+    opacity: 1;
+  }
+
+  .git-file-action-btn {
+    padding: 4px 8px;
+    background: #333;
+    border: none;
+    color: #888;
+    font-size: 10px;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+
+  .git-file-action-btn:hover {
+    background: #444;
+    color: #e0e0e0;
+  }
+
+  .git-commit-list {
+    background: #252525;
+    border: 1px solid #333;
+    border-radius: 4px;
+  }
+
+  .git-commit-item {
+    display: flex;
+    padding: 12px;
+    border-bottom: 1px solid #333;
+    gap: 12px;
+  }
+
+  .git-commit-item:last-child {
+    border-bottom: none;
+  }
+
+  .git-commit-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .git-commit-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .git-commit-message {
+    font-size: 13px;
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .git-commit-meta {
+    font-size: 11px;
+    color: #666;
+  }
+
+  .git-commit-hash {
+    font-family: monospace;
+    color: #7A68AA;
+  }
+
+  .git-empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+  }
+
+  .git-empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+</style>
+
+<div class="git-container">
+  <div class="git-sidebar">
+    <div class="git-sidebar-content">
+      <div class="git-sidebar-header">Repositories</div>
+      <div class="git-item active" data-repo="marketbuffer">
+        <svg class="git-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+        <span class="git-item-name">marketbuffer</span>
+        <span class="git-item-count changes">3</span>
+      </div>
+      <div class="git-item" data-repo="algo-lib">
+        <svg class="git-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+        <span class="git-item-name">algo-lib</span>
+      </div>
+      <div class="git-item" data-repo="backtest-data">
+        <svg class="git-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+        <span class="git-item-name">backtest-data</span>
+      </div>
+
+      <div class="git-sidebar-header">Branches</div>
+      <div class="git-item" data-branch="main">
+        <svg class="git-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><path d="M6 9v12"/></svg>
+        <span class="git-item-name">main</span>
+        <span class="git-item-count ahead">2</span>
+      </div>
+      <div class="git-item" data-branch="feature/momentum">
+        <svg class="git-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><path d="M6 9v12"/></svg>
+        <span class="git-item-name">feature/momentum</span>
+      </div>
+      <div class="git-item" data-branch="fix/risk-calc">
+        <svg class="git-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><path d="M6 9v12"/></svg>
+        <span class="git-item-name">fix/risk-calc</span>
+      </div>
+    </div>
+    <div class="git-sidebar-footer">
+      <button class="git-footer-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+      </button>
+      <button class="git-footer-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="git-main">
+    <div class="git-header">
+      <div class="git-header-left">
+        <span class="git-header-title">marketbuffer</span>
+        <span class="git-header-branch">main</span>
+      </div>
+      <div class="git-header-actions">
+        <button class="git-header-btn">Pull</button>
+        <button class="git-header-btn">Push</button>
+        <button class="git-header-btn primary">Commit</button>
+      </div>
+    </div>
+    <div class="git-content">
+      <div class="git-section">
+        <div class="git-section-header">Changes (3)</div>
+        <div class="git-file-list">
+          <div class="git-file-item">
+            <div class="git-file-status modified">M</div>
+            <div class="git-file-name">
+              index.html
+              <span class="git-file-path">./</span>
+            </div>
+            <div class="git-file-actions">
+              <button class="git-file-action-btn">Stage</button>
+              <button class="git-file-action-btn">Diff</button>
+              <button class="git-file-action-btn">Revert</button>
+            </div>
+          </div>
+          <div class="git-file-item">
+            <div class="git-file-status modified">M</div>
+            <div class="git-file-name">
+              os.js
+              <span class="git-file-path">./</span>
+            </div>
+            <div class="git-file-actions">
+              <button class="git-file-action-btn">Stage</button>
+              <button class="git-file-action-btn">Diff</button>
+              <button class="git-file-action-btn">Revert</button>
+            </div>
+          </div>
+          <div class="git-file-item">
+            <div class="git-file-status added">A</div>
+            <div class="git-file-name">
+              git.html
+              <span class="git-file-path">modality/</span>
+            </div>
+            <div class="git-file-actions">
+              <button class="git-file-action-btn">Stage</button>
+              <button class="git-file-action-btn">Diff</button>
+              <button class="git-file-action-btn">Revert</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="git-section">
+        <div class="git-section-header">Recent Commits</div>
+        <div class="git-commit-list">
+          <div class="git-commit-item">
+            <div class="git-commit-avatar">U</div>
+            <div class="git-commit-info">
+              <div class="git-commit-message">fix(pins): gme.stock should launch historical if alpaca keys not provided</div>
+              <div class="git-commit-meta">
+                <span class="git-commit-hash">ecd33b1</span> - User, 2 hours ago
+              </div>
+            </div>
+          </div>
+          <div class="git-commit-item">
+            <div class="git-commit-avatar">U</div>
+            <div class="git-commit-info">
+              <div class="git-commit-message">fix(stonks/algo): stepper doesn't step if ticker not selected</div>
+              <div class="git-commit-meta">
+                <span class="git-commit-hash">162fbdc</span> - User, 3 hours ago
+              </div>
+            </div>
+          </div>
+          <div class="git-commit-item">
+            <div class="git-commit-avatar">U</div>
+            <div class="git-commit-info">
+              <div class="git-commit-message">stonks/algo: add sample algos</div>
+              <div class="git-commit-meta">
+                <span class="git-commit-hash">fa61807</span> - User, 5 hours ago
+              </div>
+            </div>
+          </div>
+          <div class="git-commit-item">
+            <div class="git-commit-avatar">U</div>
+            <div class="git-commit-info">
+              <div class="git-commit-message">stonks: add a new algo that compares open to last close</div>
+              <div class="git-commit-meta">
+                <span class="git-commit-hash">1f282c6</span> - User, 6 hours ago
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const items = document.querySelectorAll('.git-item');
+  const headerTitle = document.querySelector('.git-header-title');
+
+  // Handle item clicks
+  items.forEach(item => {
+    item.addEventListener('click', () => {
+      const repo = item.dataset.repo;
+      const branch = item.dataset.branch;
+
+      if (repo) {
+        document.querySelectorAll('.git-item[data-repo]').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        headerTitle.textContent = repo;
+      }
+    });
+  });
+})();
+</script>
