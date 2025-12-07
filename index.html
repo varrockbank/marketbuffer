@@ -116,11 +116,13 @@
     .sidebar-toggle-container {
       width: 300px;
       flex-shrink: 0;
+      display: flex;
+      justify-content: flex-end;
       transition: width 0.3s ease;
     }
 
     .sidebar-toggle-container.collapsed {
-      width: auto;
+      width: 44px;
     }
 
     .menu-bar-right {
@@ -343,7 +345,7 @@
     }
 
     .sidebar-container.collapsed {
-      width: 0;
+      width: 44px;
     }
 
     /* Primary Sidebar */
@@ -356,6 +358,10 @@
       height: 100%;
     }
 
+    .sidebar-container.collapsed .primary-sidebar {
+      width: 44px;
+    }
+
     .sidebar-section {
       border-bottom: 1px solid var(--window-border);
     }
@@ -366,6 +372,15 @@
       font-size: 11px;
       background: var(--sidebar-bg);
       border-bottom: 1px solid var(--window-border);
+    }
+
+    .sidebar-container.collapsed .sidebar-section-header,
+    .sidebar-container.collapsed .pinned-files,
+    .sidebar-container.collapsed .file-tree,
+    .sidebar-container.collapsed .sidebar-footer,
+    .sidebar-container.collapsed #pinned-section,
+    .sidebar-container.collapsed .sidebar-section-files {
+      display: none;
     }
 
     .sidebar-item {
@@ -390,6 +405,34 @@
       top: 50%;
       transform: translateY(-50%);
       font-size: 10px;
+    }
+
+    /* Search item - Claude Artifacts style */
+    #search-section {
+      border-bottom: none;
+    }
+
+    #search-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      font-size: 13px;
+    }
+
+    #search-item .sidebar-item-icon {
+      position: static;
+      transform: none;
+      flex-shrink: 0;
+    }
+
+    .sidebar-container.collapsed #search-item {
+      justify-content: center;
+      padding: 10px;
+    }
+
+    .sidebar-container.collapsed #search-item .search-label {
+      display: none;
     }
 
     .sidebar-spacer {
@@ -1619,21 +1662,12 @@
     <!-- Primary Sidebar -->
     <div class="sidebar-container" id="sidebar-container">
     <div class="primary-sidebar" id="primary-sidebar">
-      <!-- <div class="sidebar-section">
-        <div class="sidebar-section-header">Workspace</div>
-        <div class="sidebar-item active">
-          <span class="sidebar-item-icon">&#9642;</span>
-          Project Files
+      <div class="sidebar-section" id="search-section">
+        <div class="sidebar-item" id="search-item">
+          <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.34-4.34"/></svg>
+          <span class="search-label">Search</span>
         </div>
-        <div class="sidebar-item">
-          <span class="sidebar-item-icon">&#9642;</span>
-          Search
-        </div>
-        <div class="sidebar-item">
-          <span class="sidebar-item-icon">&#9642;</span>
-          Source Control
-        </div>
-      </div> -->
+      </div>
       <div class="sidebar-section" id="pinned-section">
         <div class="sidebar-section-header">Pinned</div>
         <div id="pinned-files">
