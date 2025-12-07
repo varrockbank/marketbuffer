@@ -712,7 +712,8 @@
     #lobby-item,
     #notifications-item,
     #project-item,
-    #data-item {
+    #data-item,
+    #work-item {
       display: flex;
       align-items: center;
       gap: 8px;
@@ -728,7 +729,8 @@
     #lobby-item .sidebar-item-icon,
     #notifications-item .sidebar-item-icon,
     #project-item .sidebar-item-icon,
-    #data-item .sidebar-item-icon {
+    #data-item .sidebar-item-icon,
+    #work-item .sidebar-item-icon {
       position: static;
       transform: none;
       flex-shrink: 0;
@@ -2459,6 +2461,10 @@
               <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
               <span class="sidebar-item-label">Feed</span>
             </div>
+            <div class="sidebar-item active" id="work-item">
+              <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+              <span class="sidebar-item-label">Work</span>
+            </div>
           </div>
           <div class="sidebar-separator"></div>
           <div class="sidebar-section" id="pinned-section">
@@ -2758,8 +2764,9 @@
       // Initialize pinned files (after state is loaded so defaults are available)
       OS.loadPinnedFiles();
 
-      // Initialize workspaces
+      // Initialize workspaces and root state
       OS.initWorkspaces();
+      OS.initRootState();
       renderWorkspaceTabs();
 
       // Apply theme, font size, and wallpaper after state is loaded
@@ -3266,7 +3273,16 @@
     // Workspace tabs
     function renderWorkspaceTabs() {
       const container = document.getElementById('workspace-tabs-container');
+      const addBtn = document.getElementById('workspace-add-btn');
       container.innerHTML = '';
+
+      // Hide tabs and + button for non-tabular root states
+      if (!OS.isTabular()) {
+        container.style.display = 'none';
+        if (addBtn) addBtn.style.display = 'none';
+        return;
+      }
+      container.style.display = 'flex';
 
       OS.workspaces.forEach((workspace, index) => {
         // Add separator before tabs (except first)
@@ -3319,7 +3335,6 @@
       }
 
       // Hide/show the + button based on workspace count
-      const addBtn = document.getElementById('workspace-add-btn');
       if (addBtn) {
         addBtn.style.display = OS.workspaces.length >= 4 ? 'none' : 'flex';
       }
@@ -3793,6 +3808,63 @@
       const workspace = OS.createWorkspace();
       OS.switchToWorkspace(workspace.id);
     });
+
+    // Root state nav buttons
+    const rootStateMap = {
+      'lobby-item': 'yap',
+      'operate-item': 'operate',
+      'deploy-item': 'deploy',
+      'data-item': 'data',
+      'notifications-item': 'feed',
+      'work-item': 'work',
+    };
+
+    Object.entries(rootStateMap).forEach(([elementId, stateName]) => {
+      const el = document.getElementById(elementId);
+      if (el) {
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          OS.setRootState(stateName);
+        });
+      }
+    });
+
+    // Callback for root state changes
+    function onRootStateChange(stateName) {
+      // Update active state in sidebar
+      Object.keys(rootStateMap).forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('active');
+      });
+      const activeId = Object.entries(rootStateMap).find(([, s]) => s === stateName)?.[0];
+      if (activeId) {
+        document.getElementById(activeId)?.classList.add('active');
+      }
+
+      // Re-render workspace tabs (will hide/show based on tabular state)
+      renderWorkspaceTabs();
+
+      // Show/hide windows based on root state
+      const desktop = document.getElementById('desktop');
+      const tabbedWindow = document.getElementById('tabbed-window');
+
+      if (stateName === 'work') {
+        // Show all windows
+        desktop.querySelectorAll('.window').forEach(w => w.style.display = '');
+        if (tabbedWindow) tabbedWindow.style.display = '';
+      } else {
+        // Hide all windows for non-work states
+        desktop.querySelectorAll('.window').forEach(w => w.style.display = 'none');
+        if (tabbedWindow) tabbedWindow.style.display = 'none';
+      }
+    }
+
+    OS.registerCallbacks({
+      onRootStateChange: onRootStateChange,
+    });
+
+    // Set initial active state in sidebar based on current root state
+    onRootStateChange(OS.activeRootState);
 
     // Applications menu event listeners
     document.getElementById('applications-menu').addEventListener('click', (e) => {

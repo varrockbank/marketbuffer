@@ -10,6 +10,17 @@ const OS = {
   STATE_KEY: 'marketbuffer_state',
   PINNED_FILES_KEY: 'marketbuffer_pinned_files',
 
+  // Root state configuration
+  rootStates: {
+    yap: { tabular: false, apps: [] },
+    operate: { tabular: false, apps: [] },
+    deploy: { tabular: false, apps: [] },
+    data: { tabular: false, apps: [] },
+    feed: { tabular: false, apps: [] },
+    work: { tabular: true, apps: ['editor', 'finder', 'about', 'hypercard', 'git', 'settings', 'wallpaper', 'changelog', 'neogotchi', 'trinale', 'stocks', 'simulator'] },
+  },
+  activeRootState: 'work',  // Current root state
+
   // Window state
   initialWindows: [],    // All available window cards
   openWindows: [],       // Currently open windows (for current workspace)
@@ -62,6 +73,7 @@ const OS = {
     renderWorkspaceTabs: null,
     switchWorkspace: null,
     getWindowState: null,  // Get serialized window state for saving
+    onRootStateChange: null,  // Called when root state changes
   },
 
   // Register callbacks from index.html
@@ -478,6 +490,54 @@ const OS = {
       this.state.activeWorkspaceId = this.activeWorkspaceId;
       this.saveSystemState();
     }
+  },
+
+  // ============================================
+  // Root State Management
+  // ============================================
+
+  // Get current root state config
+  getRootState() {
+    return this.rootStates[this.activeRootState];
+  },
+
+  // Check if current root state is tabular
+  isTabular() {
+    return this.getRootState()?.tabular ?? false;
+  },
+
+  // Get apps for current root state
+  getAppsForRootState() {
+    const rootState = this.getRootState();
+    if (!rootState) return [];
+    return this.initialWindows.filter(w => rootState.apps.includes(w.id));
+  },
+
+  // Switch root state
+  setRootState(stateName) {
+    if (!this.rootStates[stateName]) return;
+    if (this.activeRootState === stateName) return;
+
+    this.activeRootState = stateName;
+
+    // Save to state
+    if (this.state) {
+      this.state.activeRootState = stateName;
+      this.saveSystemState();
+    }
+
+    // Trigger callback
+    if (this._callbacks.onRootStateChange) {
+      this._callbacks.onRootStateChange(stateName);
+    }
+  },
+
+  // Initialize root state from saved state
+  initRootState() {
+    if (this.state?.activeRootState && this.rootStates[this.state.activeRootState]) {
+      this.activeRootState = this.state.activeRootState;
+    }
+    return this.activeRootState;
   },
 };
 
