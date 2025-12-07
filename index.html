@@ -2764,9 +2764,8 @@
       // Initialize pinned files (after state is loaded so defaults are available)
       OS.loadPinnedFiles();
 
-      // Initialize workspaces and root state
+      // Initialize workspaces (root state initialized later after callbacks are registered)
       OS.initWorkspaces();
-      OS.initRootState();
       renderWorkspaceTabs();
 
       // Apply theme, font size, and wallpaper after state is loaded
@@ -3847,11 +3846,14 @@
       // Show/hide windows based on root state
       const desktop = document.getElementById('desktop');
       const tabbedWindow = document.getElementById('tabbed-window');
+      let modalityContainer = document.getElementById('modality-container');
 
       if (stateName === 'work') {
         // Show all windows
         desktop.querySelectorAll('.window').forEach(w => w.style.display = '');
         if (tabbedWindow) tabbedWindow.style.display = '';
+        // Hide modality container
+        if (modalityContainer) modalityContainer.style.display = 'none';
         // Restore wallpaper
         desktop.style.background = '';
       } else {
@@ -3861,6 +3863,44 @@
         // Set neutral background
         const isDark = document.body.classList.contains('dark-theme');
         desktop.style.background = isDark ? '#2a2a2a' : '#d0d0d0';
+        // Load modality content
+        loadModality(stateName);
+      }
+    }
+
+    // Load modality HTML content
+    async function loadModality(stateName) {
+      const desktop = document.getElementById('desktop');
+      let modalityContainer = document.getElementById('modality-container');
+
+      // Create container if it doesn't exist
+      if (!modalityContainer) {
+        modalityContainer = document.createElement('div');
+        modalityContainer.id = 'modality-container';
+        modalityContainer.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden;';
+        desktop.appendChild(modalityContainer);
+      }
+
+      // Show container
+      modalityContainer.style.display = 'block';
+
+      // Load the modality HTML
+      try {
+        const response = await fetch(`modality/${stateName}.html`);
+        if (response.ok) {
+          const html = await response.text();
+          modalityContainer.innerHTML = html;
+          // Execute any scripts in the loaded HTML
+          modalityContainer.querySelectorAll('script').forEach(oldScript => {
+            const newScript = document.createElement('script');
+            newScript.textContent = oldScript.textContent;
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+          });
+        } else {
+          modalityContainer.innerHTML = `<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">${stateName} view coming soon</div>`;
+        }
+      } catch (e) {
+        modalityContainer.innerHTML = `<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">${stateName} view coming soon</div>`;
       }
     }
 
@@ -3868,7 +3908,8 @@
       onRootStateChange: onRootStateChange,
     });
 
-    // Set initial active state in sidebar based on current root state
+    // Initialize root state from saved state and apply UI
+    OS.initRootState();
     onRootStateChange(OS.activeRootState);
 
     // Applications menu event listeners
