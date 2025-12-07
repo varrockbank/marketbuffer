@@ -1,0 +1,527 @@
+<!-- Feed Modality - News, RSS, Alerts & Scanners -->
+<style>
+  .feed-container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    background: var(--window-bg);
+    color: var(--text-color);
+    font-family: 'Chicago', 'Monaco', 'Courier New', monospace;
+    font-size: 12px;
+  }
+
+  .feed-sidebar {
+    width: 200px;
+    flex-shrink: 0;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--window-border);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .feed-sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 0;
+  }
+
+  .feed-sidebar-header {
+    padding: 8px 16px;
+    font-weight: bold;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .feed-item {
+    padding: 8px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-left: 3px solid transparent;
+  }
+
+  .feed-item:hover {
+    background: var(--hover-bg);
+  }
+
+  .feed-item.active {
+    background: var(--selected-bg);
+    border-left-color: var(--text-color);
+  }
+
+  .feed-item-icon {
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .feed-item-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+  }
+
+  .feed-item-badge {
+    font-size: 9px;
+    padding: 2px 6px;
+    background: var(--text-color);
+    color: var(--window-bg);
+    border-radius: 8px;
+    font-weight: bold;
+  }
+
+  .feed-item-badge.alert {
+    background: #e74c3c;
+    color: white;
+  }
+
+  .feed-sidebar-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--window-border);
+    display: flex;
+    gap: 8px;
+  }
+
+  .feed-footer-btn {
+    flex: 1;
+    padding: 8px 12px;
+    background: var(--window-bg);
+    border: 1px solid var(--window-border);
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .feed-footer-btn:hover {
+    background: var(--hover-bg);
+    color: var(--text-color);
+  }
+
+  .feed-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .feed-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--window-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .feed-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .feed-header-title {
+    font-weight: bold;
+    font-size: 16px;
+  }
+
+  .feed-header-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .feed-header-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .feed-header-btn {
+    padding: 6px 12px;
+    background: var(--window-bg);
+    border: 1px solid var(--window-border);
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+  }
+
+  .feed-header-btn:hover {
+    background: var(--hover-bg);
+  }
+
+  .feed-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+  }
+
+  .feed-entry {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--window-border);
+    cursor: pointer;
+  }
+
+  .feed-entry:hover {
+    background: var(--hover-bg);
+  }
+
+  .feed-entry-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .feed-entry-source {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .feed-entry-time {
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  .feed-entry-title {
+    font-weight: bold;
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+
+  .feed-entry-summary {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+
+  .feed-entry-tags {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .feed-entry-tag {
+    font-size: 9px;
+    padding: 2px 6px;
+    background: var(--sidebar-bg);
+    border: 1px solid var(--window-border);
+    color: var(--text-muted);
+  }
+
+  .feed-entry-tag.ticker {
+    color: var(--text-color);
+    font-weight: bold;
+  }
+
+  /* Alert specific styles */
+  .feed-entry.alert {
+    border-left: 3px solid #e74c3c;
+  }
+
+  .feed-entry.alert .feed-entry-source {
+    color: #e74c3c;
+  }
+
+  /* Scanner specific styles */
+  .feed-scanner-results {
+    padding: 16px 20px;
+  }
+
+  .feed-scanner-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .feed-scanner-title {
+    font-weight: bold;
+  }
+
+  .feed-scanner-count {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .feed-scanner-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+
+  .feed-scanner-table th {
+    background: var(--sidebar-bg);
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: bold;
+    border-bottom: 1px solid var(--window-border);
+  }
+
+  .feed-scanner-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--window-border);
+  }
+
+  .feed-scanner-table tr:hover td {
+    background: var(--hover-bg);
+  }
+
+  .feed-scanner-table .positive {
+    color: #2ecc71;
+  }
+
+  .feed-scanner-table .negative {
+    color: #e74c3c;
+  }
+
+  .feed-scanner-table .number {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+</style>
+
+<div class="feed-container">
+  <div class="feed-sidebar">
+    <div class="feed-sidebar-content">
+      <div class="feed-sidebar-header">News</div>
+      <div class="feed-item active" data-feed="all-news">
+        <svg class="feed-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
+        <span class="feed-item-name">All News</span>
+        <span class="feed-item-badge">24</span>
+      </div>
+      <div class="feed-item" data-feed="earnings">
+        <svg class="feed-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
+        <span class="feed-item-name">Earnings</span>
+        <span class="feed-item-badge">8</span>
+      </div>
+      <div class="feed-item" data-feed="sec-filings">
+        <svg class="feed-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
+        <span class="feed-item-name">SEC Filings</span>
+        <span class="feed-item-badge">12</span>
+      </div>
+
+      <div class="feed-sidebar-header">RSS Feeds</div>
+      <div class="feed-item" data-feed="bloomberg">
+        <svg class="feed-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
+        <span class="feed-item-name">Bloomberg</span>
+        <span class="feed-item-badge">15</span>
+      </div>
+      <div class="feed-item" data-feed="reuters">
+        <svg class="feed-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
+        <span class="feed-item-name">Reuters</span>
+        <span class="feed-item-badge">9</span>
+      </div>
+      <div class="feed-item" data-feed="wsj">
+        <svg class="feed-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
+        <span class="feed-item-name">WSJ Markets</span>
+        <span class="feed-item-badge">7</span>
+      </div>
+      <div class="feed-item" data-feed="reddit">
+        <svg class="feed-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
+        <span class="feed-item-name">r/wallstreetbets</span>
+        <span class="feed-item-badge">31</span>
+      </div>
+      <div class="feed-item" data-feed="stocktwits">
+        <svg class="feed-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
+        <span class="feed-item-name">StockTwits</span>
+        <span class="feed-item-badge">58</span>
+      </div>
+
+      <div class="feed-sidebar-header">Alerts</div>
+      <div class="feed-item" data-feed="price-alerts">
+        <svg class="feed-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        <span class="feed-item-name">Price Alerts</span>
+        <span class="feed-item-badge alert">3</span>
+      </div>
+      <div class="feed-item" data-feed="volume-alerts">
+        <svg class="feed-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        <span class="feed-item-name">Volume Alerts</span>
+        <span class="feed-item-badge alert">1</span>
+      </div>
+      <div class="feed-item" data-feed="earnings-alerts">
+        <svg class="feed-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        <span class="feed-item-name">Earnings Alerts</span>
+      </div>
+
+      <div class="feed-sidebar-header">Scanners</div>
+      <div class="feed-item" data-feed="gap-up">
+        <svg class="feed-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="m13 13 6 6"/></svg>
+        <span class="feed-item-name">Gap Up >3%</span>
+        <span class="feed-item-badge">18</span>
+      </div>
+      <div class="feed-item" data-feed="high-volume">
+        <svg class="feed-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="m13 13 6 6"/></svg>
+        <span class="feed-item-name">High Volume</span>
+        <span class="feed-item-badge">42</span>
+      </div>
+      <div class="feed-item" data-feed="new-highs">
+        <svg class="feed-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="m13 13 6 6"/></svg>
+        <span class="feed-item-name">52wk Highs</span>
+        <span class="feed-item-badge">27</span>
+      </div>
+      <div class="feed-item" data-feed="unusual-options">
+        <svg class="feed-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="m13 13 6 6"/></svg>
+        <span class="feed-item-name">Unusual Options</span>
+        <span class="feed-item-badge">13</span>
+      </div>
+    </div>
+    <div class="feed-sidebar-footer">
+      <button class="feed-footer-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      <button class="feed-footer-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="feed-main">
+    <div class="feed-header">
+      <div class="feed-header-left">
+        <span class="feed-header-title">All News</span>
+        <span class="feed-header-meta">24 items • Updated 1 min ago</span>
+      </div>
+      <div class="feed-header-actions">
+        <button class="feed-header-btn">Mark All Read</button>
+        <button class="feed-header-btn">Refresh</button>
+      </div>
+    </div>
+    <div class="feed-content" id="feed-content">
+      <div class="feed-entry">
+        <div class="feed-entry-header">
+          <span class="feed-entry-source">Bloomberg</span>
+          <span class="feed-entry-time">2 min ago</span>
+        </div>
+        <div class="feed-entry-title">Fed Officials Signal Potential Rate Cut in Early 2025 Amid Cooling Inflation</div>
+        <div class="feed-entry-summary">Federal Reserve officials indicated they may begin cutting interest rates in the first quarter of 2025 as inflation continues to moderate toward their 2% target...</div>
+        <div class="feed-entry-tags">
+          <span class="feed-entry-tag">Macro</span>
+          <span class="feed-entry-tag">Fed</span>
+        </div>
+      </div>
+
+      <div class="feed-entry">
+        <div class="feed-entry-header">
+          <span class="feed-entry-source">Reuters</span>
+          <span class="feed-entry-time">15 min ago</span>
+        </div>
+        <div class="feed-entry-title">Apple Announces $100B Stock Buyback Program, Beats Q4 Earnings Estimates</div>
+        <div class="feed-entry-summary">Apple Inc. reported quarterly revenue of $94.8 billion, exceeding analyst expectations, and announced a new $100 billion share repurchase authorization...</div>
+        <div class="feed-entry-tags">
+          <span class="feed-entry-tag ticker">AAPL</span>
+          <span class="feed-entry-tag">Earnings</span>
+          <span class="feed-entry-tag">Buyback</span>
+        </div>
+      </div>
+
+      <div class="feed-entry alert">
+        <div class="feed-entry-header">
+          <span class="feed-entry-source">Price Alert</span>
+          <span class="feed-entry-time">23 min ago</span>
+        </div>
+        <div class="feed-entry-title">NVDA crossed above $500.00</div>
+        <div class="feed-entry-summary">NVIDIA Corporation (NVDA) has crossed above your price alert level of $500.00. Current price: $502.45 (+3.2%)</div>
+        <div class="feed-entry-tags">
+          <span class="feed-entry-tag ticker">NVDA</span>
+          <span class="feed-entry-tag">Alert</span>
+        </div>
+      </div>
+
+      <div class="feed-entry">
+        <div class="feed-entry-header">
+          <span class="feed-entry-source">SEC Filing</span>
+          <span class="feed-entry-time">45 min ago</span>
+        </div>
+        <div class="feed-entry-title">Microsoft Corp - Form 10-K Annual Report Filed</div>
+        <div class="feed-entry-summary">Microsoft Corporation has filed its annual report on Form 10-K for fiscal year 2024, reporting record revenue of $245 billion...</div>
+        <div class="feed-entry-tags">
+          <span class="feed-entry-tag ticker">MSFT</span>
+          <span class="feed-entry-tag">10-K</span>
+        </div>
+      </div>
+
+      <div class="feed-entry">
+        <div class="feed-entry-header">
+          <span class="feed-entry-source">WSJ Markets</span>
+          <span class="feed-entry-time">1 hr ago</span>
+        </div>
+        <div class="feed-entry-title">Oil Prices Surge 4% on Middle East Supply Concerns</div>
+        <div class="feed-entry-summary">Crude oil futures jumped more than 4% as escalating tensions in the Middle East raised concerns about potential supply disruptions...</div>
+        <div class="feed-entry-tags">
+          <span class="feed-entry-tag">Energy</span>
+          <span class="feed-entry-tag">Commodities</span>
+        </div>
+      </div>
+
+      <div class="feed-entry">
+        <div class="feed-entry-header">
+          <span class="feed-entry-source">Bloomberg</span>
+          <span class="feed-entry-time">1 hr ago</span>
+        </div>
+        <div class="feed-entry-title">Tesla Deliveries Miss Estimates as EV Competition Intensifies</div>
+        <div class="feed-entry-summary">Tesla Inc. reported fourth-quarter deliveries of 484,507 vehicles, falling short of analyst estimates as competition in the electric vehicle market continues to grow...</div>
+        <div class="feed-entry-tags">
+          <span class="feed-entry-tag ticker">TSLA</span>
+          <span class="feed-entry-tag">EV</span>
+        </div>
+      </div>
+
+      <div class="feed-entry alert">
+        <div class="feed-entry-header">
+          <span class="feed-entry-source">Volume Alert</span>
+          <span class="feed-entry-time">2 hr ago</span>
+        </div>
+        <div class="feed-entry-title">Unusual volume detected in AMD</div>
+        <div class="feed-entry-summary">Advanced Micro Devices (AMD) is trading at 3.5x average volume. Current volume: 45.2M shares vs 20-day avg of 12.9M</div>
+        <div class="feed-entry-tags">
+          <span class="feed-entry-tag ticker">AMD</span>
+          <span class="feed-entry-tag">Alert</span>
+        </div>
+      </div>
+
+      <div class="feed-entry">
+        <div class="feed-entry-header">
+          <span class="feed-entry-source">Reuters</span>
+          <span class="feed-entry-time">3 hr ago</span>
+        </div>
+        <div class="feed-entry-title">Amazon Web Services Reports 29% Revenue Growth in Cloud Division</div>
+        <div class="feed-entry-summary">Amazon's cloud computing division AWS reported revenue of $24.2 billion for the quarter, representing 29% year-over-year growth...</div>
+        <div class="feed-entry-tags">
+          <span class="feed-entry-tag ticker">AMZN</span>
+          <span class="feed-entry-tag">Cloud</span>
+          <span class="feed-entry-tag">Earnings</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const items = document.querySelectorAll('.feed-item');
+  const headerTitle = document.querySelector('.feed-header-title');
+  const headerMeta = document.querySelector('.feed-header-meta');
+
+  // Handle item clicks
+  items.forEach(item => {
+    item.addEventListener('click', () => {
+      items.forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      const name = item.querySelector('.feed-item-name').textContent;
+      const badge = item.querySelector('.feed-item-badge');
+      const count = badge ? badge.textContent : '0';
+      headerTitle.textContent = name;
+      headerMeta.textContent = `${count} items • Updated 1 min ago`;
+    });
+  });
+})();
+</script>
