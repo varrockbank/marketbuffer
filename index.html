@@ -517,20 +517,22 @@
     /* Project Selector */
     .project-selector {
       position: relative;
+      flex: 1;
     }
 
     .project-selector-btn {
       display: flex;
       align-items: center;
-      gap: 4px;
-      padding: 4px 8px;
+      justify-content: space-between;
+      padding: 0;
       cursor: pointer;
-      font-size: 16px;
+      font-size: 13px;
       border-radius: 4px;
+      width: 100%;
     }
 
     .project-selector-btn:hover {
-      background: var(--hover-bg);
+      background: transparent;
     }
 
     .project-selector-btn svg {
@@ -540,16 +542,12 @@
 
     .project-dropdown {
       display: none;
-      position: absolute;
-      top: 100%;
-      left: 0;
-      min-width: 180px;
+      position: fixed;
       background: var(--menu-bg);
       border: 1px solid var(--menu-border);
       border-radius: 4px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
       z-index: 1000;
-      margin-top: 2px;
     }
 
     .project-dropdown.open {
@@ -562,7 +560,8 @@
       gap: 8px;
       padding: 8px 12px;
       cursor: pointer;
-      font-size: 16px;
+      font-size: 14px;
+      color: var(--text-color);
     }
 
     .project-dropdown-item:hover {
@@ -581,19 +580,22 @@
     }
 
     .project-dropdown-item.new-project {
-      color: var(--text-muted);
+      color: #83C18D;
+    }
+
+    .sidebar-separator {
+      height: 1px;
+      background: var(--window-border);
+      margin: 8px 12px;
     }
 
     .sidebar-section {
-      border-bottom: 1px solid var(--window-border);
     }
 
     .sidebar-section-header {
       padding: 8px 12px;
       font-weight: bold;
       font-size: 11px;
-      background: var(--sidebar-bg);
-      border-bottom: 1px solid var(--window-border);
     }
 
     .sidebar-section-header,
@@ -702,6 +704,7 @@
     #operate-item,
     #lobby-item,
     #notifications-item,
+    #project-item,
     #data-item {
       display: flex;
       align-items: center;
@@ -717,6 +720,7 @@
     #operate-item .sidebar-item-icon,
     #lobby-item .sidebar-item-icon,
     #notifications-item .sidebar-item-icon,
+    #project-item .sidebar-item-icon,
     #data-item .sidebar-item-icon {
       position: static;
       transform: none;
@@ -2257,31 +2261,6 @@
     <div class="sidebar-container" id="sidebar-container">
       <div class="primary-sidebar" id="primary-sidebar">
         <div class="sidebar-header">
-          <div class="project-selector" id="project-selector">
-            <div class="project-selector-btn" id="project-selector-btn">
-              <span>foo</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-            </div>
-            <div class="project-dropdown" id="project-dropdown">
-              <div class="project-dropdown-item" data-project="foo">
-                <span class="checkmark">&#10003;</span>
-                <span>foo</span>
-              </div>
-              <div class="project-dropdown-item" data-project="bar">
-                <span class="checkmark"></span>
-                <span>bar</span>
-              </div>
-              <div class="project-dropdown-item" data-project="baz">
-                <span class="checkmark"></span>
-                <span>baz</span>
-              </div>
-              <div class="project-dropdown-separator"></div>
-              <div class="project-dropdown-item new-project" id="new-project-btn">
-                <span class="checkmark">+</span>
-                <span>New Project</span>
-              </div>
-            </div>
-          </div>
           <span class="sidebar-toggle" id="sidebar-toggle" title="Toggle Sidebar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m16 15-3-3 3-3"/></svg></span>
         </div>
         <div class="sidebar-section" id="search-section">
@@ -2313,6 +2292,35 @@
             <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>
             <span class="sidebar-item-label">Data</span>
           </div>
+          <div class="sidebar-separator"></div>
+          <div class="sidebar-item" id="project-item">
+            <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+            <div class="project-selector" id="project-selector">
+              <div class="project-selector-btn" id="project-selector-btn">
+                <span>foo</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </div>
+              <div class="project-dropdown" id="project-dropdown">
+                <div class="project-dropdown-item" data-project="foo">
+                  <span class="checkmark">&#10003;</span>
+                  <span>foo</span>
+                </div>
+                <div class="project-dropdown-item" data-project="bar">
+                  <span class="checkmark"></span>
+                  <span>bar</span>
+                </div>
+                <div class="project-dropdown-item" data-project="baz">
+                  <span class="checkmark"></span>
+                  <span>baz</span>
+                </div>
+                <div class="project-dropdown-separator"></div>
+                <div class="project-dropdown-item new-project" id="new-project-btn">
+                  <span class="checkmark">+</span>
+                  <span>New Project</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="sidebar-section" id="pinned-section">
           <div class="sidebar-section-header">Starred</div>
@@ -2321,7 +2329,6 @@
           </div>
         </div>
         <div class="sidebar-section sidebar-section-files">
-          <div class="sidebar-section-header">Files</div>
         </div>
         <div class="file-tree" id="file-tree">
           <!-- File tree rendered by JavaScript -->
@@ -3486,6 +3493,13 @@
     document.getElementById('project-selector-btn').addEventListener('click', (e) => {
       e.stopPropagation();
       const dropdown = document.getElementById('project-dropdown');
+      const sidebar = document.getElementById('primary-sidebar');
+      const sidebarRect = sidebar.getBoundingClientRect();
+      const btn = document.getElementById('project-item');
+      const rect = btn.getBoundingClientRect();
+      dropdown.style.top = (rect.bottom + 4) + 'px';
+      dropdown.style.left = (sidebarRect.left + 8) + 'px';
+      dropdown.style.width = (sidebarRect.width - 16) + 'px';
       dropdown.classList.toggle('open');
     });
 
