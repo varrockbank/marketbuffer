@@ -713,6 +713,7 @@
     #notifications-item,
     #project-item,
     #data-item,
+    #author-item,
     #work-item {
       display: flex;
       align-items: center;
@@ -730,6 +731,7 @@
     #notifications-item .sidebar-item-icon,
     #project-item .sidebar-item-icon,
     #data-item .sidebar-item-icon,
+    #author-item .sidebar-item-icon,
     #work-item .sidebar-item-icon {
       position: static;
       transform: none;
@@ -2457,6 +2459,10 @@
               <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18c1-1 2-2 4-2 3 0 3 2 5 2s3-4 5-8c1-2 2-4 4-4"/><path d="M12 10c.5-1 1.5-2 3-2"/><path d="M10 12c.3-.5 1-1 2-1"/><path d="M3 20h18"/></svg>
               <span class="sidebar-item-label">Stream</span>
             </div>
+            <div class="sidebar-item" id="author-item">
+              <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+              <span class="sidebar-item-label">Publish</span>
+            </div>
             <div class="sidebar-item active" id="work-item">
               <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
               <span class="sidebar-item-label">Work</span>
@@ -3811,6 +3817,7 @@
       'deploy-item': 'deploy',
       'data-item': 'data',
       'notifications-item': 'feed',
+      'author-item': 'author',
       'work-item': 'work',
     };
 
