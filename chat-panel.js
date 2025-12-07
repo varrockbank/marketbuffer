@@ -15,13 +15,37 @@ const ChatPanel = {
       bottom: 0;
       width: 0;
       background-color: #7A68AA;
-      border-left: 4px solid #83C18D;
       box-shadow: -4px 0 32px rgba(0, 0, 0, 0.2);
       z-index: 500;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
+      overflow: visible;
       transition: width 0.3s ease-in-out;
+    }
+
+    /* Border using pseudo-element to avoid layout shift */
+    #chat-panel::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: #83C18D;
+      transition: width 0.15s ease, transform 0.15s ease;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    #chat-panel:has(.chat-border-hover-zone:hover)::before,
+    #chat-panel:has(.chat-resize-handle:hover)::before,
+    #chat-panel.resizing::before {
+      width: 4px;
+    }
+
+    #chat-panel > .chat-output-drawer,
+    #chat-panel > .chat-input-wrapper {
+      overflow: hidden;
     }
 
     #chat-panel.expanded {
@@ -43,6 +67,59 @@ const ChatPanel = {
     #chat-panel,
     #chat-panel * {
       border-radius: 0 !important;
+    }
+
+    /* Border hover zone - invisible area to detect hover near the border */
+    .chat-border-hover-zone {
+      position: absolute;
+      left: -8px;
+      top: 0;
+      bottom: 0;
+      width: 16px;
+      cursor: ew-resize;
+      z-index: 500;
+    }
+
+    .chat-resize-handle {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 12px;
+      height: 40px;
+      background: #83C18D;
+      border-radius: 4px;
+      cursor: ew-resize;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 501;
+    }
+
+    .chat-resize-handle::before {
+      content: '';
+      width: 3px;
+      height: 20px;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.3) 0px,
+        rgba(0, 0, 0, 0.3) 2px,
+        transparent 2px,
+        transparent 4px
+      );
+    }
+
+    .chat-resize-handle:hover {
+      background: #6fa876;
+    }
+
+    #chat-panel.resizing {
+      transition: none;
+    }
+
+    #chat-panel.resizing .chat-output-drawer,
+    #chat-panel.resizing .chat-input-wrapper {
+      transition: none;
     }
 
     .chat-output-drawer {
@@ -135,6 +212,8 @@ const ChatPanel = {
 
   render() {
     return `
+      <div class="chat-border-hover-zone" id="chat-border-hover-zone"></div>
+      <div class="chat-resize-handle" id="chat-resize-handle"></div>
       <div class="chat-output-drawer">
         <div class="chat-output" id="chat-output"></div>
       </div>
@@ -193,6 +272,50 @@ const ChatPanel = {
       if ((e.ctrlKey || e.metaKey) && e.key === '`') {
         e.preventDefault();
         this.toggle();
+      }
+    });
+
+    // Resize handle and border drag
+    const resizeHandle = document.getElementById('chat-resize-handle');
+    const borderHoverZone = document.getElementById('chat-border-hover-zone');
+
+    let isResizing = false;
+    let startX = 0;
+    let startWidth = 0;
+
+    const startResize = (e) => {
+      e.preventDefault();
+      isResizing = true;
+      startX = e.clientX;
+      startWidth = panelEl.offsetWidth;
+      panelEl.classList.add('resizing');
+      document.body.style.cursor = 'ew-resize';
+      document.body.style.userSelect = 'none';
+    };
+
+    if (resizeHandle) {
+      resizeHandle.addEventListener('mousedown', startResize);
+    }
+
+    if (borderHoverZone) {
+      borderHoverZone.addEventListener('mousedown', startResize);
+    }
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isResizing) return;
+      const desktop = document.getElementById('desktop');
+      const desktopWidth = desktop.offsetWidth;
+      const deltaX = startX - e.clientX;
+      const newWidth = Math.min(Math.max(startWidth + deltaX, 200), desktopWidth - 100);
+      panelEl.style.width = newWidth + 'px';
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (isResizing) {
+        isResizing = false;
+        panelEl.classList.remove('resizing');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
       }
     });
   },
