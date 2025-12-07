@@ -2389,6 +2389,7 @@
   <script src="cards/settings.js"></script>
   <script src="cards/wallpaper.js"></script>
   <script src="cards/terminal.js"></script>
+  <script src="chat-panel.js"></script>
   <script src="cards/changelog.js"></script>
   <script src="cards/neogotchi.js"></script>
   <script src="cards/trinale.js"></script>
@@ -2607,8 +2608,8 @@
       // Reload file contents for all tabs
       await reloadAllTabFiles();
 
-      // Initialize terminal (slide-out from bottom)
-      initTerminal();
+      // Initialize chat panel (slide-out from right)
+      initChatPanel();
     }
 
     // Reload file contents for all tabs that have a filePath
@@ -2618,52 +2619,10 @@
       }
     }
 
-    // Initialize terminal prompt box
-    function initTerminal() {
-      if (typeof terminalCard === 'undefined') return;
-
-      // Inject terminal styles
-      if (terminalCard.styles) {
-        const styleEl = document.createElement('style');
-        styleEl.textContent = terminalCard.styles;
-        document.head.appendChild(styleEl);
-      }
-
-      // Create chat panel element
-      const terminalEl = document.createElement('div');
-      terminalEl.className = 'chat-panel';
-      terminalEl.id = 'chat-panel';
-      terminalEl.innerHTML = terminalCard.render();
-      document.getElementById('desktop').appendChild(terminalEl);
-
-      // Initialize terminal state
-      terminalCard.init(system);
-
-      // Handle focus on input - expand terminal
-      const input = document.getElementById('terminal-input');
-      if (input) {
-        input.addEventListener('focus', () => {
-          terminalCard.expand();
-        });
-      }
-
-      // Handle clicks in terminal
-      terminalEl.addEventListener('click', (e) => {
-        terminalCard.handleClick(e);
-      });
-
-      // Handle keyboard in terminal
-      terminalEl.addEventListener('keydown', (e) => {
-        terminalCard.handleKeydown(e);
-      });
-
-      // Global keyboard shortcut: Ctrl+` or Cmd+` to toggle terminal
-      document.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key === '`') {
-          e.preventDefault();
-          terminalCard.toggle();
-        }
-      });
+    // Initialize chat panel
+    function initChatPanel() {
+      if (typeof ChatPanel === 'undefined') return;
+      ChatPanel.init();
     }
 
     // Render all open windows
@@ -3594,7 +3553,7 @@
       closeActiveWindowMenu();
       closeApplicationsMenu();
       closeApplicationsDropdown();
-      terminalCard.toggle();
+      ChatPanel.toggle();
     });
 
     // Menu bar sidebar toggle
@@ -3651,11 +3610,11 @@
       closeApplicationsDropdown();
       closeActiveWindowMenu();
       // Close chat panel if clicking outside of it
-      if (typeof terminalCard !== 'undefined' && terminalCard.isExpanded) {
+      if (typeof ChatPanel !== 'undefined' && ChatPanel.isExpanded) {
         const chatPanel = document.getElementById('chat-panel');
         const chatBtn = document.getElementById('menu-new-chat');
         if (chatPanel && !chatPanel.contains(e.target) && !chatBtn.contains(e.target)) {
-          terminalCard.collapse();
+          ChatPanel.collapse();
         }
       }
     });
