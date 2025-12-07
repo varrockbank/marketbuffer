@@ -170,7 +170,11 @@ const FileTree = {
           // Close any other open menus
           document.querySelectorAll('.tree-item-menu.open').forEach(m => m.classList.remove('open'));
           const menu = row.querySelector('.tree-item-menu');
-          if (menu) {
+          const btn = e.target.closest('.tree-file-menu-btn');
+          if (menu && btn) {
+            const rect = btn.getBoundingClientRect();
+            menu.style.left = (rect.right + 4) + 'px';
+            menu.style.top = rect.top + 'px';
             menu.classList.toggle('open');
           }
           return;
