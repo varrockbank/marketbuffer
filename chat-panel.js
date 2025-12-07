@@ -1,6 +1,7 @@
 // Chat Panel - Slide-out chat drawer
 const ChatPanel = {
   isExpanded: false,
+  customWidth: null,
 
   // Chat state
   history: [],
@@ -306,8 +307,9 @@ const ChatPanel = {
       const desktop = document.getElementById('desktop');
       const desktopWidth = desktop.offsetWidth;
       const deltaX = startX - e.clientX;
-      const newWidth = Math.min(Math.max(startWidth + deltaX, 200), desktopWidth - 100);
-      panelEl.style.width = newWidth + 'px';
+      const rawWidth = Math.min(Math.max(startWidth + deltaX, 200), desktopWidth - 100);
+      const snappedWidth = Math.round(rawWidth / 40) * 40;
+      panelEl.style.width = snappedWidth + 'px';
     });
 
     document.addEventListener('mouseup', () => {
@@ -316,6 +318,8 @@ const ChatPanel = {
         panelEl.classList.remove('resizing');
         document.body.style.cursor = '';
         document.body.style.userSelect = '';
+        // Store custom width
+        this.customWidth = panelEl.offsetWidth;
       }
     });
   },
@@ -325,6 +329,10 @@ const ChatPanel = {
     if (box && !this.isExpanded) {
       this.isExpanded = true;
       box.classList.add('expanded');
+      // Restore custom width if set
+      if (this.customWidth) {
+        box.style.width = this.customWidth + 'px';
+      }
     }
   },
 
@@ -333,6 +341,8 @@ const ChatPanel = {
     if (box && this.isExpanded) {
       this.isExpanded = false;
       box.classList.remove('expanded');
+      // Clear inline width so CSS transition works
+      box.style.width = '';
       const input = document.getElementById('chat-input');
       if (input) input.blur();
     }
