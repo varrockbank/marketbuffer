@@ -7,6 +7,7 @@
   <script src="vendor/buffer.js"></script>
   <script src="os.js"></script>
   <script src="file-tree.js"></script>
+  <script src="app-launcher.js"></script>
   <link rel="stylesheet" href="vendor/buffer.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Chicago&display=swap');
@@ -93,6 +94,7 @@
 
     /* Menu Bar */
     .menu-bar {
+      position: relative;
       background: var(--menu-bg);
       border-bottom: 2px solid var(--menu-border);
       height: 28px;
@@ -303,6 +305,88 @@
       height: 1px;
       background: var(--window-border);
       margin: 4px 0;
+    }
+
+    /* App Launcher Drawer */
+    .app-launcher {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--menu-bg);
+      border-top: 1px solid var(--menu-border);
+      border-bottom: 1px solid var(--menu-border);
+      padding: 0 24px;
+      overflow: hidden;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      max-height: 0;
+      opacity: 0;
+      transition: max-height 0.5s ease, opacity 0.5s ease, padding 0.5s ease;
+    }
+
+    .app-launcher.open {
+      max-height: 200px;
+      opacity: 1;
+      padding: 16px 24px;
+    }
+
+    .app-launcher-grid {
+      display: flex;
+      gap: 24px;
+      justify-content: flex-start;
+    }
+
+    .app-launcher-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      padding: 12px;
+      border-radius: 8px;
+      min-width: 80px;
+      transition: background 0.15s ease;
+    }
+
+    .app-launcher-item:hover {
+      background: var(--hover-bg);
+    }
+
+    .app-launcher-item.active {
+      background: var(--hover-bg);
+    }
+
+    .app-launcher-icon {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--window-bg);
+      border: 1px solid var(--menu-border);
+      border-radius: 12px;
+      font-size: 24px;
+    }
+
+    .app-launcher-icon svg {
+      width: 28px;
+      height: 28px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .app-launcher-label {
+      font-size: 12px;
+      color: var(--text-color);
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
     }
 
     /* Sidebar Toggle Button */
@@ -2129,9 +2213,12 @@
           <div class="workspace-add-btn" id="workspace-add-btn" title="Add Workspace">+</div>
         </div>
         <div class="menu-bar-right">
-          <div class="menu-item-container">
-            <span class="menu-item" id="applications-menu">Applications</span>
-            <div class="menu-dropdown" id="applications-dropdown"></div>
+          <span class="menu-item" id="applications-menu">Applications</span>
+        </div>
+        <!-- App Launcher Drawer -->
+        <div class="app-launcher" id="app-launcher">
+          <div class="app-launcher-grid" id="app-launcher-grid">
+            <!-- App icons rendered dynamically -->
           </div>
         </div>
       </div>
@@ -3053,38 +3140,12 @@
       highlightParentSplit(false);
     }
 
-    // Applications menu
-    function renderApplicationsMenu() {
-      const dropdown = document.getElementById('applications-dropdown');
-      dropdown.innerHTML = '';
-
-      initialWindows.forEach(win => {
-        const isOpen = OS.isWindowOpen(win.id);
-        const item = document.createElement('div');
-        item.className = `menu-dropdown-item ${isOpen ? 'checked' : ''}`;
-        item.textContent = win.title;
-        item.dataset.windowId = win.id;
-        item.addEventListener('click', () => {
-          openApplication(win.id);
-          closeApplicationsMenu();
-        });
-        dropdown.appendChild(item);
-      });
-
-      // Add separator and close all option
-      const separator = document.createElement('div');
-      separator.className = 'menu-dropdown-separator';
-      dropdown.appendChild(separator);
-
-      const closeAllItem = document.createElement('div');
-      closeAllItem.className = 'menu-dropdown-item';
-      closeAllItem.textContent = 'Close All Windows';
-      closeAllItem.addEventListener('click', () => {
-        OS.openWindows.slice().forEach(w => OS.close(w.id));
-        closeApplicationsMenu();
-      });
-      dropdown.appendChild(closeAllItem);
-    }
+    // Register app launcher callbacks
+    AppLauncher.registerCallbacks({
+      getWindows: () => initialWindows,
+      isWindowOpen: (id) => OS.isWindowOpen(id),
+      openApplication: openApplication,
+    });
 
     function openApplication(windowId) {
       if (OS.isWindowOpen(windowId)) {
@@ -3281,19 +3342,11 @@
     }
 
     function toggleApplicationsMenu() {
-      const dropdown = document.getElementById('applications-dropdown');
-      const isOpen = dropdown.classList.contains('open');
-      if (isOpen) {
-        closeApplicationsMenu();
-      } else {
-        renderApplicationsMenu();
-        dropdown.classList.add('open');
-      }
+      AppLauncher.toggle();
     }
 
     function closeApplicationsMenu() {
-      const dropdown = document.getElementById('applications-dropdown');
-      dropdown.classList.remove('open');
+      AppLauncher.close();
     }
 
     // Sidebar toggle
