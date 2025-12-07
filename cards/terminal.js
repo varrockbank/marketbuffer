@@ -24,46 +24,50 @@ const terminalCard = {
   },
 
   styles: `
-    .terminal-prompt-box {
-      width: 100%;
-      background: #7A68AA;
-      border: none;
-      border-top: 4px solid #83C18D;
-      box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.2);
-      z-index: 400;
+    #chat-panel {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 0;
+      background-color: #7A68AA;
+      border-left: 4px solid #83C18D;
+      box-shadow: -4px 0 32px rgba(0, 0, 0, 0.2);
+      z-index: 500;
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      transition: width 0.3s ease-in-out;
     }
 
-    .terminal-prompt-box,
-    .terminal-prompt-box * {
+    #chat-panel.expanded {
+      width: 50%;
+    }
+
+    #chat-panel .terminal-output-drawer,
+    #chat-panel .terminal-input-wrapper {
+      opacity: 0;
+      transition: opacity 0.15s ease-out;
+    }
+
+    #chat-panel.expanded .terminal-output-drawer,
+    #chat-panel.expanded .terminal-input-wrapper {
+      opacity: 1;
+      transition: opacity 0.15s ease-in 0.15s;
+    }
+
+    #chat-panel,
+    #chat-panel * {
       border-radius: 0 !important;
     }
 
-    body.terminal-active #desktop,
-    body.terminal-active .primary-sidebar,
-    body.terminal-active .menu-bar {
-      opacity: 0.4;
-      pointer-events: none;
-    }
-
-    #desktop, .primary-sidebar, .menu-bar {
-      transition: opacity 0.5s ease;
-    }
-
     .terminal-output-drawer {
-      height: 0;
+      flex: 1;
       overflow: hidden;
-      transition: height 1s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .terminal-prompt-box.expanded .terminal-output-drawer {
-      height: calc(50vh - 48px);
     }
 
     .terminal-output {
-      height: calc(50vh - 48px);
+      height: 100%;
       overflow-y: auto;
       padding: 20px 24px 8px;
       font-family: 'SF Mono', Monaco, 'Courier New', monospace;
@@ -72,12 +76,6 @@ const terminalCard = {
       white-space: pre-wrap;
       word-wrap: break-word;
       line-height: 1.5;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    .terminal-prompt-box.expanded .terminal-output {
-      opacity: 1;
     }
 
     .terminal-output::-webkit-scrollbar {
@@ -119,16 +117,9 @@ const terminalCard = {
       gap: 12px;
       font-family: 'SF Mono', Monaco, 'Courier New', monospace;
       font-size: 14px;
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
       cursor: text;
-    }
-
-    .terminal-prompt-box:not(.expanded) .terminal-input-wrapper {
-      border-top: none;
-    }
-
-    .terminal-prompt-box:not(.expanded) .terminal-input-wrapper:hover {
-      background: rgba(255, 255, 255, 0.03);
+      flex-shrink: 0;
     }
 
     .terminal-caret {
@@ -181,7 +172,7 @@ const terminalCard = {
   },
 
   expand() {
-    const box = document.getElementById('terminal-prompt-box');
+    const box = document.getElementById('chat-panel');
     if (box && !this.isExpanded) {
       this.isExpanded = true;
       box.classList.add('expanded');
@@ -190,7 +181,7 @@ const terminalCard = {
   },
 
   collapse() {
-    const box = document.getElementById('terminal-prompt-box');
+    const box = document.getElementById('chat-panel');
     if (box && this.isExpanded) {
       this.isExpanded = false;
       box.classList.remove('expanded');
