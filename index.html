@@ -331,7 +331,7 @@
     .sidebar-container {
       width: 300px;
       flex-shrink: 0;
-      overflow: hidden;
+      overflow: visible;
       transition: width 0.3s ease;
     }
 
@@ -818,10 +818,163 @@
 
     .sidebar-footer {
       padding: 8px 12px;
-      font-size: 10px;
-      color: var(--text-muted);
       border-top: 1px solid var(--window-border);
       background: var(--sidebar-bg);
+      position: relative;
+    }
+
+    .user-menu-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      cursor: pointer;
+      font-size: 14px;
+      border-radius: 4px;
+      color: var(--text-color);
+    }
+
+    .user-menu-btn:hover {
+      background: var(--hover-bg);
+    }
+
+    .user-menu-btn .user-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: var(--window-bg);
+      flex-shrink: 0;
+    }
+
+    .user-menu-btn .user-name {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .sidebar-container.collapsed .user-menu-btn .user-name,
+    .sidebar-container.collapsed .user-menu-btn .user-chevron {
+      display: none;
+    }
+
+    .sidebar-container.collapsed .user-menu-btn {
+      justify-content: center;
+      padding: 6px;
+    }
+
+    .user-menu {
+      display: none;
+      position: absolute;
+      bottom: 100%;
+      left: 8px;
+      right: 8px;
+      background: var(--menu-bg);
+      border: 1px solid var(--menu-border);
+      border-radius: 4px;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.2);
+      z-index: 1000;
+      margin-bottom: 4px;
+    }
+
+    .user-menu.open {
+      display: block;
+    }
+
+    .user-menu-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--text-color);
+    }
+
+    .user-menu-option:hover {
+      background: var(--hover-bg);
+    }
+
+    .user-menu-option .menu-icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .user-menu-option .menu-icon svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .user-menu-separator {
+      height: 1px;
+      background: var(--menu-border);
+      margin: 4px 12px;
+    }
+
+    .user-menu-email {
+      padding: 8px 12px;
+      font-size: 14px;
+      color: var(--text-color);
+      opacity: 0.7;
+    }
+
+    .user-menu-option.logout {
+      color: #e55;
+    }
+
+    /* Language Submenu */
+    .user-menu-option.has-submenu {
+      position: relative;
+    }
+
+    .user-menu-option.has-submenu::after {
+      content: '';
+      border: 4px solid transparent;
+      border-left-color: var(--text-color);
+      margin-left: auto;
+    }
+
+    .language-submenu {
+      display: none;
+      position: absolute;
+      left: 100%;
+      top: 0;
+      white-space: nowrap;
+      background: var(--menu-bg);
+      border: 1px solid var(--menu-border);
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      z-index: 1001;
+      margin-left: 4px;
+    }
+
+    .user-menu-option.has-submenu:hover .language-submenu {
+      display: block;
+    }
+
+    .language-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--text-color);
+    }
+
+    .language-option:hover {
+      background: var(--hover-bg);
+    }
+
+    .language-option .checkmark {
+      width: 16px;
+      flex-shrink: 0;
     }
 
     /* App Layout - root container */
@@ -1939,8 +2092,28 @@
         <div class="file-tree" id="file-tree">
           <!-- File tree rendered by JavaScript -->
         </div>
-        <div class="sidebar-footer">
-          Marketbuffer v1.0
+        <div class="sidebar-footer" id="sidebar-footer">
+          <div class="user-menu" id="user-menu">
+            <div class="user-menu-email">foobar@gmail.com</div>
+            <div class="user-menu-separator"></div>
+            <div class="user-menu-option" data-action="settings"><span class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></span>Settings</div>
+            <div class="user-menu-option has-submenu" data-action="language"><span class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg></span>Language
+              <div class="language-submenu">
+                <div class="language-option" data-lang="en-US"><span class="checkmark">&#10003;</span>English (United States)</div>
+                <div class="language-option" data-lang="ja"><span class="checkmark"></span>日本語</div>
+              </div>
+            </div>
+            <div class="user-menu-option" data-action="help"><span class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></span>Get Help</div>
+            <div class="user-menu-separator"></div>
+            <div class="user-menu-option" data-action="learn"><span class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></span>Learn More</div>
+            <div class="user-menu-separator"></div>
+            <div class="user-menu-option logout" data-action="logout"><span class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></svg></span>Logout</div>
+          </div>
+          <div class="user-menu-btn" id="user-menu-btn">
+            <span class="user-avatar">U</span>
+            <span class="user-name">User</span>
+            <span class="user-chevron"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg></span>
+          </div>
         </div>
       </div>
     </div>
@@ -1960,9 +2133,6 @@
             <span class="menu-item" id="applications-menu">Applications</span>
             <div class="menu-dropdown" id="applications-dropdown"></div>
           </div>
-          <span class="menu-item" id="help-menu">Help</span>
-          <span class="menu-item" id="settings-menu">Settings</span>
-          <span class="menu-item" id="logout-menu">Logout</span>
         </div>
       </div>
 
@@ -3166,6 +3336,34 @@
     document.addEventListener('click', (e) => {
       if (!e.target.closest('#project-selector')) {
         document.getElementById('project-dropdown').classList.remove('open');
+      }
+    });
+
+    // User menu
+    document.getElementById('user-menu-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const menu = document.getElementById('user-menu');
+      menu.classList.toggle('open');
+    });
+
+    document.getElementById('user-menu').addEventListener('click', (e) => {
+      const option = e.target.closest('.user-menu-option');
+      if (!option) return;
+
+      const action = option.dataset.action;
+      document.getElementById('user-menu').classList.remove('open');
+
+      if (action === 'settings') {
+        openApplication('settings');
+      } else if (action === 'logout') {
+        // Handle logout
+      }
+    });
+
+    // Close user menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#sidebar-footer')) {
+        document.getElementById('user-menu').classList.remove('open');
       }
     });
 
