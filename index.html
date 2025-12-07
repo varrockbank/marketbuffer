@@ -3852,10 +3852,15 @@
         // Show all windows
         desktop.querySelectorAll('.window').forEach(w => w.style.display = '');
         if (tabbedWindow) tabbedWindow.style.display = '';
+        // Restore wallpaper
+        desktop.style.background = '';
       } else {
         // Hide all windows for non-work states
         desktop.querySelectorAll('.window').forEach(w => w.style.display = 'none');
         if (tabbedWindow) tabbedWindow.style.display = 'none';
+        // Set neutral background
+        const isDark = document.body.classList.contains('dark-theme');
+        desktop.style.background = isDark ? '#2a2a2a' : '#d0d0d0';
       }
     }
 
