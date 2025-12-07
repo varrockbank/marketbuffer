@@ -18,6 +18,7 @@ const OS = {
     data: { tabular: false, apps: [] },
     feed: { tabular: false, apps: [] },
     author: { tabular: false, apps: [] },
+    code: { tabular: false, apps: [] },
     work: { tabular: true, apps: ['editor', 'finder', 'about', 'hypercard', 'git', 'settings', 'wallpaper', 'changelog', 'neogotchi', 'trinale', 'stocks', 'simulator'] },
   },
   activeRootState: 'work',  // Current root state

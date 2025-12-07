@@ -711,9 +711,9 @@
     #operate-item,
     #lobby-item,
     #notifications-item,
-    #project-item,
     #data-item,
     #author-item,
+    #code-item,
     #work-item {
       display: flex;
       align-items: center;
@@ -729,9 +729,9 @@
     #operate-item .sidebar-item-icon,
     #lobby-item .sidebar-item-icon,
     #notifications-item .sidebar-item-icon,
-    #project-item .sidebar-item-icon,
     #data-item .sidebar-item-icon,
     #author-item .sidebar-item-icon,
+    #code-item .sidebar-item-icon,
     #work-item .sidebar-item-icon {
       position: static;
       transform: none;
@@ -2463,6 +2463,10 @@
               <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
               <span class="sidebar-item-label">Publish</span>
             </div>
+            <div class="sidebar-item" id="code-item">
+              <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              <span class="sidebar-item-label">Code</span>
+            </div>
             <div class="sidebar-item active" id="work-item">
               <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
               <span class="sidebar-item-label">Work</span>
@@ -2474,39 +2478,6 @@
             <div id="pinned-files">
               <!-- Pinned files rendered by JavaScript -->
             </div>
-          </div>
-          <div class="sidebar-item" id="project-item">
-            <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
-            <div class="project-selector" id="project-selector">
-              <div class="project-selector-btn" id="project-selector-btn">
-                <span>foo</span>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-              </div>
-              <div class="project-dropdown" id="project-dropdown">
-                <div class="project-dropdown-item" data-project="foo">
-                  <span class="checkmark">&#10003;</span>
-                  <span>foo</span>
-                </div>
-                <div class="project-dropdown-item" data-project="bar">
-                  <span class="checkmark"></span>
-                  <span>bar</span>
-                </div>
-                <div class="project-dropdown-item" data-project="baz">
-                  <span class="checkmark"></span>
-                  <span>baz</span>
-                </div>
-                <div class="project-dropdown-separator"></div>
-                <div class="project-dropdown-item new-project" id="new-project-btn">
-                  <span class="checkmark">+</span>
-                  <span>New Project</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="sidebar-section sidebar-section-files">
-          </div>
-          <div class="file-tree" id="file-tree">
-            <!-- File tree rendered by JavaScript -->
           </div>
         </div>
         <div class="sidebar-footer" id="sidebar-footer">
@@ -2775,9 +2746,8 @@
       loadFontSize();
       loadWallpaper();
 
-      // Render file tree and pinned files in sidebar
+      // Render pinned files in sidebar
       renderPinnedFiles();
-      renderFileTree();
 
       // Try to load from localStorage, otherwise use initial windows
       if (!loadState()) {
@@ -3531,7 +3501,6 @@
       closeWindow: closeWindow,
       openApplication: openApplication,
       renderPinnedFiles: renderPinnedFiles,
-      renderFileTree: () => FileTree.render(),
       renderWorkspaceTabs: renderWorkspaceTabs,
       switchWorkspace: switchWorkspace,
       getWindowState: getWindowState,
@@ -3664,47 +3633,6 @@
       AppLauncher.close();
     }
 
-    // Project selector
-    document.getElementById('project-selector-btn').addEventListener('click', (e) => {
-      e.stopPropagation();
-      const dropdown = document.getElementById('project-dropdown');
-      const sidebar = document.getElementById('primary-sidebar');
-      const sidebarRect = sidebar.getBoundingClientRect();
-      const btn = document.getElementById('project-item');
-      const rect = btn.getBoundingClientRect();
-      dropdown.style.top = (rect.bottom + 4) + 'px';
-      dropdown.style.left = (sidebarRect.left + 8) + 'px';
-      dropdown.style.width = (sidebarRect.width - 16) + 'px';
-      dropdown.classList.toggle('open');
-    });
-
-    document.getElementById('project-dropdown').addEventListener('click', (e) => {
-      const item = e.target.closest('.project-dropdown-item');
-      if (!item) return;
-
-      const project = item.dataset.project;
-      if (project) {
-        // Update checkmarks
-        document.querySelectorAll('.project-dropdown-item .checkmark').forEach(cm => {
-          cm.textContent = '';
-        });
-        item.querySelector('.checkmark').textContent = '✓';
-
-        // Update button text
-        document.querySelector('#project-selector-btn span').textContent = project;
-
-        // Close dropdown
-        document.getElementById('project-dropdown').classList.remove('open');
-      }
-    });
-
-    // Close project dropdown when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('#project-selector')) {
-        document.getElementById('project-dropdown').classList.remove('open');
-      }
-    });
-
     // User menu
     document.getElementById('user-menu-btn').addEventListener('click', (e) => {
       e.stopPropagation();
@@ -3818,6 +3746,7 @@
       'data-item': 'data',
       'notifications-item': 'feed',
       'author-item': 'author',
+      'code-item': 'code',
       'work-item': 'work',
     };
 

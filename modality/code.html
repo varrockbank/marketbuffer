@@ -1,0 +1,715 @@
+<!-- Code Modality - Algorithm Editor -->
+<style>
+  .code-container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-family: 'Chicago', 'Monaco', 'Courier New', monospace;
+    font-size: 12px;
+  }
+
+  .code-sidebar {
+    width: 200px;
+    flex-shrink: 0;
+    background: #252525;
+    border-right: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .code-sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 0;
+  }
+
+  /* Project Selector - matches main app */
+  .code-project-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px 10px 13px;
+    font-size: 13px;
+    height: 36px;
+    box-sizing: border-box;
+  }
+
+  .code-project-icon {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .code-project-selector {
+    position: relative;
+    flex: 1;
+  }
+
+  .code-project-selector-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0;
+    cursor: pointer;
+    font-size: 13px;
+    border-radius: 4px;
+    width: 100%;
+  }
+
+  .code-project-selector-btn:hover {
+    background: transparent;
+  }
+
+  .code-project-selector-btn svg {
+    flex-shrink: 0;
+  }
+
+  .code-project-dropdown {
+    display: none;
+    position: fixed;
+    background: #2d2d2d;
+    border: 1px solid #444;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    z-index: 1000;
+  }
+
+  .code-project-dropdown.open {
+    display: block;
+  }
+
+  .code-project-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #e0e0e0;
+  }
+
+  .code-project-dropdown-item:hover {
+    background: #3a3a3a;
+  }
+
+  .code-project-dropdown-item .checkmark {
+    width: 16px;
+    flex-shrink: 0;
+  }
+
+  .code-project-dropdown-separator {
+    height: 1px;
+    background: #444;
+    margin: 4px 12px;
+  }
+
+  .code-project-dropdown-item.new-project {
+    color: #83C18D;
+  }
+
+  /* File Tree - matches main app */
+  .code-file-tree {
+    flex: 1;
+    padding: 4px 0;
+  }
+
+  .code-tree-item {
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .code-tree-item-row {
+    display: flex;
+    align-items: center;
+    padding: 3px 8px;
+    font-size: 11px;
+    position: relative;
+  }
+
+  .code-tree-item-row:hover {
+    background: #e0e0e0;
+    color: #1a1a1a;
+  }
+
+  .code-tree-item-row.selected {
+    background: #3a3a3a;
+  }
+
+  .code-tree-toggle {
+    width: 12px;
+    height: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    flex-shrink: 0;
+    margin-right: 2px;
+  }
+
+  .code-tree-icon {
+    width: 14px;
+    height: 14px;
+    margin-right: 4px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+  }
+
+  .code-tree-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+  }
+
+  .code-tree-children {
+    padding-left: 14px;
+  }
+
+  .code-tree-children.collapsed {
+    display: none;
+  }
+
+  /* Tree File Menu Button */
+  .code-tree-file-menu-btn {
+    opacity: 0;
+    background: none;
+    border: none;
+    padding: 0 4px;
+    margin: -3px -8px -3px auto;
+    align-self: stretch;
+    cursor: pointer;
+    color: inherit;
+    display: flex;
+    align-items: center;
+  }
+
+  .code-tree-file-menu-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .code-tree-item-row:hover .code-tree-file-menu-btn {
+    opacity: 1;
+  }
+
+  .code-tree-item-row:has(.code-tree-file-menu-btn:hover),
+  .code-tree-item-row:has(.code-tree-item-menu.open) {
+    background: transparent;
+    color: #e0e0e0;
+  }
+
+  .code-tree-item-row:has(.code-tree-file-menu-btn:hover) .code-tree-file-menu-btn,
+  .code-tree-item-row:has(.code-tree-item-menu.open) .code-tree-file-menu-btn {
+    opacity: 1;
+  }
+
+  .code-tree-file-menu-btn:hover,
+  .code-tree-item-row:has(.code-tree-item-menu.open) .code-tree-file-menu-btn {
+    background: #e0e0e0;
+    color: #1a1a1a;
+  }
+
+  /* Tree Item Context Menu */
+  .code-tree-item-menu {
+    display: none;
+    position: fixed;
+    min-width: 120px;
+    background: #2d2d2d;
+    border: 1px solid #444;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    z-index: 1000;
+  }
+
+  .code-tree-item-menu.open {
+    display: block;
+  }
+
+  .code-tree-item-menu-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #e0e0e0;
+  }
+
+  .code-tree-item-menu-option:hover {
+    background: #3a3a3a;
+  }
+
+  .code-tree-item-menu-option .menu-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .code-tree-item-menu-option .menu-icon svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .code-tree-item-menu-separator {
+    height: 1px;
+    background: #444;
+    margin: 4px 12px;
+  }
+
+  .code-tree-item-menu-option.delete {
+    color: #e74c3c;
+  }
+
+  .code-sidebar-footer {
+    padding: 12px 16px;
+    border-top: 1px solid #333;
+    display: flex;
+    gap: 8px;
+  }
+
+  .code-footer-btn {
+    flex: 1;
+    padding: 8px 12px;
+    background: #2d2d2d;
+    border: 1px solid #444;
+    color: #888;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .code-footer-btn:hover {
+    background: #3a3a3a;
+    color: #e0e0e0;
+  }
+
+  .code-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    background: #1a1a1a;
+  }
+
+  .code-header {
+    padding: 12px 20px;
+    border-bottom: 1px solid #333;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .code-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .code-header-title {
+    font-weight: bold;
+    font-size: 14px;
+  }
+
+  .code-header-meta {
+    font-size: 11px;
+    color: #888;
+  }
+
+  .code-header-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .code-header-btn {
+    padding: 6px 12px;
+    background: #2d2d2d;
+    border: 1px solid #444;
+    color: #e0e0e0;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+  }
+
+  .code-header-btn:hover {
+    background: #3a3a3a;
+  }
+
+  .code-header-btn.primary {
+    background: #2ecc71;
+    border-color: #2ecc71;
+    color: #fff;
+  }
+
+  .code-header-btn.primary:hover {
+    background: #27ae60;
+  }
+
+  .code-content {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+
+  .code-editor-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .code-editor-tabs {
+    display: flex;
+    background: #252525;
+    border-bottom: 1px solid #333;
+    padding: 0 8px;
+  }
+
+  .code-editor-tab {
+    padding: 8px 16px;
+    font-size: 11px;
+    color: #888;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+  }
+
+  .code-editor-tab:hover {
+    color: #e0e0e0;
+  }
+
+  .code-editor-tab.active {
+    color: #e0e0e0;
+    border-bottom-color: #7A68AA;
+  }
+
+  .code-editor {
+    flex: 1;
+    overflow: auto;
+    padding: 16px;
+    font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    background: #1e1e1e;
+  }
+
+  .code-editor pre {
+    margin: 0;
+    white-space: pre-wrap;
+  }
+
+  .code-editor .comment { color: #6a9955; }
+  .code-editor .keyword { color: #c586c0; }
+  .code-editor .function { color: #dcdcaa; }
+  .code-editor .number { color: #b5cea8; }
+  .code-editor .string { color: #ce9178; }
+  .code-editor .variable { color: #9cdcfe; }
+  .code-editor .operator { color: #d4d4d4; }
+
+</style>
+
+<div class="code-container">
+  <div class="code-sidebar">
+    <div class="code-project-item">
+      <svg class="code-project-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+      <div class="code-project-selector" id="code-project-selector">
+        <div class="code-project-selector-btn" id="code-project-selector-btn">
+          <span>my-algos</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+        <div class="code-project-dropdown" id="code-project-dropdown">
+          <div class="code-project-dropdown-item" data-project="my-algos">
+            <span class="checkmark">&#10003;</span>
+            <span>my-algos</span>
+          </div>
+          <div class="code-project-dropdown-item" data-project="backtests">
+            <span class="checkmark"></span>
+            <span>backtests</span>
+          </div>
+          <div class="code-project-dropdown-item" data-project="experiments">
+            <span class="checkmark"></span>
+            <span>experiments</span>
+          </div>
+          <div class="code-project-dropdown-separator"></div>
+          <div class="code-project-dropdown-item new-project" id="code-new-project-btn">
+            <span class="checkmark">+</span>
+            <span>New Project</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="code-sidebar-content">
+      <div class="code-file-tree" id="code-file-tree">
+        <!-- File tree rendered dynamically from FileTree.data -->
+      </div>
+    </div>
+    <div class="code-sidebar-footer">
+      <button class="code-footer-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+      </button>
+      <button class="code-footer-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="code-main">
+    <div class="code-header">
+      <div class="code-header-left">
+        <span class="code-header-title">momentum.algo</span>
+        <span class="code-header-meta">Modified 2 min ago</span>
+      </div>
+      <div class="code-header-actions">
+        <button class="code-header-btn">Backtest</button>
+        <button class="code-header-btn">Deploy</button>
+        <button class="code-header-btn primary">Run</button>
+      </div>
+    </div>
+    <div class="code-content">
+      <div class="code-editor-pane">
+        <div class="code-editor-tabs">
+          <div class="code-editor-tab active">momentum.algo</div>
+          <div class="code-editor-tab">config.json</div>
+        </div>
+        <div class="code-editor">
+          <pre><span class="comment">// 10-day momentum strategy</span>
+<span class="comment">// Buy when price crosses above 10-day SMA with volume confirmation</span>
+
+<span class="keyword">import</span> { <span class="variable">SMA</span>, <span class="variable">avgVol</span> } <span class="keyword">from</span> <span class="string">'indicators.lib'</span>;
+
+<span class="keyword">export</span> <span class="keyword">function</span> <span class="function">evaluate</span>(<span class="variable">candles</span>, <span class="variable">position</span>) {
+  <span class="keyword">const</span> <span class="variable">sma10</span> <span class="operator">=</span> <span class="function">SMA</span>(<span class="variable">candles</span>, <span class="number">10</span>);
+  <span class="keyword">const</span> <span class="variable">sma20</span> <span class="operator">=</span> <span class="function">SMA</span>(<span class="variable">candles</span>, <span class="number">20</span>);
+  <span class="keyword">const</span> <span class="variable">current</span> <span class="operator">=</span> <span class="variable">candles</span>[<span class="variable">candles</span>.<span class="variable">length</span> <span class="operator">-</span> <span class="number">1</span>];
+  <span class="keyword">const</span> <span class="variable">avgVolume</span> <span class="operator">=</span> <span class="function">avgVol</span>(<span class="variable">candles</span>, <span class="number">20</span>);
+
+  <span class="comment">// Entry signal: price crosses above SMA10, SMA10 > SMA20</span>
+  <span class="keyword">if</span> (<span class="operator">!</span><span class="variable">position</span> <span class="operator">&&</span> <span class="variable">current</span>.<span class="variable">close</span> <span class="operator">></span> <span class="variable">sma10</span> <span class="operator">&&</span> <span class="variable">sma10</span> <span class="operator">></span> <span class="variable">sma20</span>) {
+    <span class="keyword">if</span> (<span class="variable">current</span>.<span class="variable">volume</span> <span class="operator">></span> <span class="variable">avgVolume</span> <span class="operator">*</span> <span class="number">1.5</span>) {
+      <span class="keyword">return</span> { <span class="variable">action</span>: <span class="string">'BUY'</span>, <span class="variable">size</span>: <span class="number">100</span> };
+    }
+  }
+
+  <span class="comment">// Exit signal: price falls below SMA10 or stop loss</span>
+  <span class="keyword">if</span> (<span class="variable">position</span>) {
+    <span class="keyword">const</span> <span class="variable">pnlPct</span> <span class="operator">=</span> (<span class="variable">current</span>.<span class="variable">close</span> <span class="operator">-</span> <span class="variable">position</span>.<span class="variable">entry</span>) <span class="operator">/</span> <span class="variable">position</span>.<span class="variable">entry</span>;
+
+    <span class="keyword">if</span> (<span class="variable">current</span>.<span class="variable">close</span> <span class="operator"><</span> <span class="variable">sma10</span> <span class="operator">||</span> <span class="variable">pnlPct</span> <span class="operator"><</span> <span class="operator">-</span><span class="number">0.02</span>) {
+      <span class="keyword">return</span> { <span class="variable">action</span>: <span class="string">'SELL'</span>, <span class="variable">size</span>: <span class="variable">position</span>.<span class="variable">size</span> };
+    }
+
+    <span class="comment">// Take profit at 5%</span>
+    <span class="keyword">if</span> (<span class="variable">pnlPct</span> <span class="operator">></span> <span class="number">0.05</span>) {
+      <span class="keyword">return</span> { <span class="variable">action</span>: <span class="string">'SELL'</span>, <span class="variable">size</span>: <span class="variable">position</span>.<span class="variable">size</span> };
+    }
+  }
+
+  <span class="keyword">return</span> { <span class="variable">action</span>: <span class="string">'HOLD'</span> };
+}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const headerTitle = document.querySelector('.code-header-title');
+  const projectBtn = document.getElementById('code-project-selector-btn');
+  const projectDropdown = document.getElementById('code-project-dropdown');
+  const fileTreeContainer = document.getElementById('code-file-tree');
+
+  // Project selector - position dropdown correctly
+  projectBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const rect = projectBtn.getBoundingClientRect();
+    projectDropdown.style.top = (rect.bottom + 4) + 'px';
+    projectDropdown.style.left = rect.left + 'px';
+    projectDropdown.style.minWidth = rect.width + 'px';
+    projectDropdown.classList.toggle('open');
+  });
+
+  document.addEventListener('click', () => {
+    projectDropdown.classList.remove('open');
+  });
+
+  document.querySelectorAll('.code-project-dropdown-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      const project = item.dataset.project;
+      if (project) {
+        projectBtn.querySelector('span').textContent = project;
+        document.querySelectorAll('.code-project-dropdown-item .checkmark').forEach(cm => {
+          cm.textContent = '';
+        });
+        item.querySelector('.checkmark').textContent = '\u2713';
+        projectDropdown.classList.remove('open');
+      } else {
+        // New project clicked
+        projectDropdown.classList.remove('open');
+      }
+    });
+  });
+
+  // Render file tree from FileTree.data
+  function renderNode(node, depth) {
+    const isFolder = node.type === 'folder';
+    const hasChildren = isFolder && node.children && node.children.length > 0;
+    const toggleIcon = hasChildren ? (node.expanded ? '&#9660;' : '&#9654;') : '';
+    const icon = isFolder ? '&#128193;' : '&#128196;';
+    const expandedClass = node.expanded ? '' : 'collapsed';
+    const pathAttr = node.path ? `data-path="${node.path}"` : '';
+
+    // Menu HTML for files only
+    const menuHtml = !isFolder && node.path ? `
+          <button class="code-tree-file-menu-btn" data-path="${node.path}" type="button">
+            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2.5"/><circle cx="12" cy="12" r="2.5"/><circle cx="19" cy="12" r="2.5"/></svg>
+          </button>
+          <div class="code-tree-item-menu" data-path="${node.path}">
+            <div class="code-tree-item-menu-option" data-action="rename"><span class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg></span>Rename</div>
+            <div class="code-tree-item-menu-option" data-action="star"><span class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg></span>Star</div>
+            <div class="code-tree-item-menu-separator"></div>
+            <div class="code-tree-item-menu-option delete" data-action="delete"><span class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></span>Delete</div>
+          </div>
+    ` : '';
+
+    let html = `
+      <div class="code-tree-item" data-depth="${depth}" data-type="${node.type}" data-name="${node.name}" ${pathAttr}>
+        <div class="code-tree-item-row">
+          <span class="code-tree-toggle">${toggleIcon}</span>
+          <span class="code-tree-icon">${icon}</span>
+          <span class="code-tree-label">${node.name}</span>
+          ${menuHtml}
+        </div>
+    `;
+
+    if (hasChildren) {
+      html += `<div class="code-tree-children ${expandedClass}">`;
+      node.children.forEach(child => {
+        html += renderNode(child, depth + 1);
+      });
+      html += '</div>';
+    }
+
+    html += '</div>';
+    return html;
+  }
+
+  function renderFileTree() {
+    if (typeof FileTree === 'undefined' || !FileTree.data) return;
+
+    let html = '';
+    if (FileTree.data.children) {
+      FileTree.data.children.forEach(child => {
+        html += renderNode(child, 0);
+      });
+    }
+    fileTreeContainer.innerHTML = html;
+    attachTreeListeners();
+  }
+
+  function attachTreeListeners() {
+    fileTreeContainer.querySelectorAll('.code-tree-item-row').forEach(row => {
+      row.addEventListener('click', (e) => {
+        // Handle menu button click
+        if (e.target.closest('.code-tree-file-menu-btn')) {
+          e.stopPropagation();
+          // Close any other open menus
+          fileTreeContainer.querySelectorAll('.code-tree-item-menu.open').forEach(m => m.classList.remove('open'));
+          const menu = row.querySelector('.code-tree-item-menu');
+          const btn = e.target.closest('.code-tree-file-menu-btn');
+          if (menu && btn) {
+            const rect = btn.getBoundingClientRect();
+            menu.style.left = (rect.right + 4) + 'px';
+            menu.style.top = rect.top + 'px';
+            menu.classList.toggle('open');
+          }
+          return;
+        }
+
+        // Handle menu option click
+        if (e.target.closest('.code-tree-item-menu-option')) {
+          e.stopPropagation();
+          const option = e.target.closest('.code-tree-item-menu-option');
+          const action = option.dataset.action;
+          const path = row.closest('.code-tree-item').dataset.path;
+          // Handle actions here (rename, star, delete)
+          if (action === 'star' && path && typeof OS !== 'undefined') {
+            OS.togglePinFile(path);
+          }
+          // Close menu
+          const menu = row.querySelector('.code-tree-item-menu');
+          if (menu) menu.classList.remove('open');
+          return;
+        }
+
+        // Skip if clicking inside the menu
+        if (e.target.closest('.code-tree-item-menu')) {
+          e.stopPropagation();
+          return;
+        }
+
+        e.stopPropagation();
+        const item = row.closest('.code-tree-item');
+        const type = item.dataset.type;
+        const name = item.dataset.name;
+        const path = item.dataset.path;
+
+        // Handle selection
+        fileTreeContainer.querySelectorAll('.code-tree-item-row.selected').forEach(el => {
+          el.classList.remove('selected');
+        });
+        row.classList.add('selected');
+
+        // Toggle folder expansion
+        if (type === 'folder') {
+          const children = item.querySelector('.code-tree-children');
+          const toggle = row.querySelector('.code-tree-toggle');
+          if (children) {
+            const isExpanded = !children.classList.contains('collapsed');
+            children.classList.toggle('collapsed');
+            toggle.innerHTML = isExpanded ? '&#9654;' : '&#9660;';
+          }
+        } else if (type === 'file' && path) {
+          // Update header title
+          headerTitle.textContent = name;
+          // Open file with appropriate app via OS
+          if (typeof OS !== 'undefined' && OS.openFile) {
+            OS.openFile(path);
+          }
+        }
+      });
+    });
+
+    // Close tree item menus when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.code-tree-file-menu-btn') && !e.target.closest('.code-tree-item-menu')) {
+        fileTreeContainer.querySelectorAll('.code-tree-item-menu.open').forEach(m => m.classList.remove('open'));
+      }
+    });
+  }
+
+  // Render file tree on load
+  renderFileTree();
+
+  // Editor tabs
+  const tabs = document.querySelectorAll('.code-editor-tab');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+})();
+</script>
