@@ -79,6 +79,11 @@ const AppLauncher = {
     } else {
       this.render();
       launcher.classList.add('open');
+      // Wait for animation to complete before checking overflow
+      setTimeout(() => {
+        this.checkOverflow();
+        this.setupScrollListener();
+      }, 500);
     }
   },
 
@@ -87,6 +92,71 @@ const AppLauncher = {
     const launcher = document.getElementById('app-launcher');
     if (launcher) {
       launcher.classList.remove('open');
+    }
+    const leftIndicator = document.getElementById('app-launcher-overflow-left');
+    const rightIndicator = document.getElementById('app-launcher-overflow-right');
+    if (leftIndicator) leftIndicator.classList.remove('visible');
+    if (rightIndicator) rightIndicator.classList.remove('visible');
+  },
+
+  // Check if there's overflow and show/hide indicators
+  checkOverflow() {
+    const launcher = document.getElementById('app-launcher');
+    const leftIndicator = document.getElementById('app-launcher-overflow-left');
+    const rightIndicator = document.getElementById('app-launcher-overflow-right');
+    if (!launcher) return;
+
+    const hasOverflow = launcher.scrollWidth > launcher.clientWidth;
+    const isScrolledToStart = launcher.scrollLeft <= 10;
+    const isScrolledToEnd = launcher.scrollLeft + launcher.clientWidth >= launcher.scrollWidth - 10;
+
+    const rect = launcher.getBoundingClientRect();
+    const topPos = (rect.top + rect.height / 2 - 24) + 'px';
+
+    // Left indicator (show when scrolled right)
+    if (leftIndicator) {
+      if (hasOverflow && !isScrolledToStart) {
+        leftIndicator.style.top = topPos;
+        leftIndicator.classList.add('visible');
+      } else {
+        leftIndicator.classList.remove('visible');
+      }
+    }
+
+    // Right indicator (show when more content on right)
+    if (rightIndicator) {
+      if (hasOverflow && !isScrolledToEnd) {
+        rightIndicator.style.top = topPos;
+        rightIndicator.classList.add('visible');
+      } else {
+        rightIndicator.classList.remove('visible');
+      }
+    }
+  },
+
+  // Setup scroll listener
+  setupScrollListener() {
+    const launcher = document.getElementById('app-launcher');
+    if (!launcher) return;
+
+    launcher.addEventListener('scroll', () => this.checkOverflow());
+
+    // Click left indicator to scroll left
+    const leftIndicator = document.getElementById('app-launcher-overflow-left');
+    if (leftIndicator) {
+      leftIndicator.onclick = (e) => {
+        e.stopPropagation();
+        launcher.scrollBy({ left: -200, behavior: 'smooth' });
+      };
+    }
+
+    // Click right indicator to scroll right
+    const rightIndicator = document.getElementById('app-launcher-overflow-right');
+    if (rightIndicator) {
+      rightIndicator.onclick = (e) => {
+        e.stopPropagation();
+        launcher.scrollBy({ left: 200, behavior: 'smooth' });
+      };
     }
   },
 

@@ -329,7 +329,45 @@
       max-height: 200px;
       opacity: 1;
       padding: 16px 24px;
+      overflow-x: auto;
     }
+
+    .app-launcher-overflow-indicator {
+      display: none;
+      position: fixed;
+      width: 48px;
+      height: 48px;
+      background: var(--text-color);
+      border-radius: 50%;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      z-index: 1002;
+    }
+
+    .app-launcher-overflow-indicator.visible {
+      display: flex;
+    }
+
+    .app-launcher-overflow-indicator.right {
+      right: 24px;
+    }
+
+    .app-launcher-overflow-indicator.left {
+      left: 324px;
+    }
+
+    .app-launcher-overflow-indicator svg {
+      width: 24px;
+      height: 24px;
+      stroke: var(--menu-bg);
+    }
+
+    .app-launcher-overflow-indicator.left svg {
+      transform: rotate(180deg);
+    }
+
 
     .app-launcher-grid {
       display: flex;
@@ -2288,6 +2326,12 @@
           <div class="app-launcher-grid" id="app-launcher-grid">
             <!-- App icons rendered dynamically -->
           </div>
+          <div class="app-launcher-overflow-indicator left" id="app-launcher-overflow-left">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </div>
+          <div class="app-launcher-overflow-indicator right" id="app-launcher-overflow-right">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </div>
         </div>
       </div>
 
@@ -3500,56 +3544,6 @@
       e.stopPropagation();
       closeActiveWindowMenu();
       toggleApplicationsMenu();
-    });
-
-    // Settings menu click handler
-    document.getElementById('settings-menu').addEventListener('click', (e) => {
-      e.stopPropagation();
-      closeApplicationsMenu();
-      closeActiveWindowMenu();
-      openApplication('settings');
-    });
-
-    // Help menu click handler - opens terminal and types out "help" to teach users
-    document.getElementById('help-menu').addEventListener('click', (e) => {
-      e.stopPropagation();
-      closeApplicationsMenu();
-      closeActiveWindowMenu();
-      if (typeof terminalCard !== 'undefined') {
-        terminalCard.expand();
-        const input = document.getElementById('terminal-input');
-        if (input) {
-          input.focus();
-          input.disabled = true;
-          input.value = '';
-
-          const text = 'help';
-          let i = 0;
-          const typeInterval = setInterval(() => {
-            if (i < text.length) {
-              input.value += text[i];
-              i++;
-            } else {
-              clearInterval(typeInterval);
-              // Wait 1 second then execute
-              setTimeout(() => {
-                input.disabled = false;
-                terminalCard.executeCommand('help');
-                input.value = '';
-                input.focus();
-              }, 1000);
-            }
-          }, 250); // 1 second / 4 chars = 250ms per char
-        }
-      }
-    });
-
-    // Logout menu click handler
-    document.getElementById('logout-menu').addEventListener('click', (e) => {
-      e.stopPropagation();
-      closeApplicationsMenu();
-      closeActiveWindowMenu();
-      showUIAlert('This is a demo. There is no account to log out of.');
     });
 
     document.addEventListener('click', (e) => {
