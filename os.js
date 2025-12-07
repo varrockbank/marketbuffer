@@ -121,48 +121,18 @@ const OS = {
     windowEl.style.bottom = win.bottom + 'px';
   },
 
-  // Helper to snap value to grid
+  // Helper to snap value to grid (delegates to SnapGrid)
   snapToGrid(value, gridSize) {
-    return Math.round(value / gridSize) * gridSize;
+    return SnapGrid.snap(value, gridSize);
   },
 
-  // Grid overlay for dragging
+  // Grid overlay for dragging (delegates to SnapGrid)
   showDragGridOverlay(gridSize, excludeWindow) {
-    const desktop = document.getElementById('desktop');
-    let overlay = document.getElementById('grid-overlay');
-    if (!overlay) {
-      overlay = document.createElement('div');
-      overlay.id = 'grid-overlay';
-      overlay.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        pointer-events: none;
-        z-index: 9999;
-      `;
-      desktop.appendChild(overlay);
-    }
-    overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
-    overlay.style.backgroundImage = `
-      linear-gradient(to right, rgba(255,255,255,0.5) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255,255,255,0.5) 1px, transparent 1px)
-    `;
-    overlay.style.backgroundSize = `${gridSize}px ${gridSize}px`;
-    overlay.style.display = 'block';
-
-    // Ensure active window stays above overlay
-    if (excludeWindow) {
-      excludeWindow.style.zIndex = 10000;
-    }
+    SnapGrid.show({ gridSize, excludeElement: excludeWindow });
   },
 
   hideDragGridOverlay() {
-    const overlay = document.getElementById('grid-overlay');
-    if (overlay) {
-      overlay.style.display = 'none';
-    }
+    SnapGrid.hide();
   },
 
   // Create window element HTML

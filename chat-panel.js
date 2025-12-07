@@ -292,6 +292,8 @@ const ChatPanel = {
       panelEl.classList.add('resizing');
       document.body.style.cursor = 'ew-resize';
       document.body.style.userSelect = 'none';
+      // Show snap grid
+      SnapGrid.show({ excludeElement: panelEl });
     };
 
     if (resizeHandle) {
@@ -308,7 +310,10 @@ const ChatPanel = {
       const desktopWidth = desktop.offsetWidth;
       const deltaX = startX - e.clientX;
       const rawWidth = Math.min(Math.max(startWidth + deltaX, 200), desktopWidth - 100);
-      const snappedWidth = Math.round(rawWidth / 40) * 40;
+      // Snap the left edge position (from left of desktop), then convert back to width
+      const leftEdge = desktopWidth - rawWidth;
+      const snappedLeftEdge = SnapGrid.snap(leftEdge);
+      const snappedWidth = desktopWidth - snappedLeftEdge;
       panelEl.style.width = snappedWidth + 'px';
     });
 
@@ -318,6 +323,8 @@ const ChatPanel = {
         panelEl.classList.remove('resizing');
         document.body.style.cursor = '';
         document.body.style.userSelect = '';
+        // Hide snap grid
+        SnapGrid.hide();
         // Store custom width
         this.customWidth = panelEl.offsetWidth;
       }
