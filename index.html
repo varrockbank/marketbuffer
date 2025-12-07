@@ -541,12 +541,22 @@
       border-bottom: 1px solid var(--window-border);
     }
 
+    .sidebar-section-header,
+    .pinned-files,
+    .file-tree,
+    #pinned-section,
+    .sidebar-section-files {
+      transition: opacity 0.1s ease-out 0.2s;
+    }
+
     .sidebar-container.collapsed .sidebar-section-header,
     .sidebar-container.collapsed .pinned-files,
     .sidebar-container.collapsed .file-tree,
     .sidebar-container.collapsed #pinned-section,
     .sidebar-container.collapsed .sidebar-section-files {
-      display: none;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.1s ease-out;
     }
 
     .sidebar-item {
