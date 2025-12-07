@@ -357,13 +357,89 @@
     .sidebar-header {
       display: flex;
       align-items: center;
-      justify-content: flex-end;
-      height: 28px;
+      justify-content: space-between;
+      height: 44px;
       flex-shrink: 0;
+      padding: 0 8px;
+      margin-bottom: 8px;
     }
 
     .sidebar-container.collapsed .sidebar-header {
       justify-content: center;
+      padding: 0;
+    }
+
+    /* Project Selector */
+    .project-selector {
+      position: relative;
+    }
+
+    .project-selector-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 16px;
+      border-radius: 4px;
+    }
+
+    .project-selector-btn:hover {
+      background: var(--hover-bg);
+    }
+
+    .project-selector-btn svg {
+      flex-shrink: 0;
+    }
+
+    .sidebar-container.collapsed .project-selector {
+      display: none;
+    }
+
+    .project-dropdown {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      min-width: 180px;
+      background: var(--menu-bg);
+      border: 1px solid var(--menu-border);
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      z-index: 1000;
+      margin-top: 2px;
+    }
+
+    .project-dropdown.open {
+      display: block;
+    }
+
+    .project-dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .project-dropdown-item:hover {
+      background: var(--hover-bg);
+    }
+
+    .project-dropdown-item .checkmark {
+      width: 16px;
+      flex-shrink: 0;
+    }
+
+    .project-dropdown-separator {
+      height: 1px;
+      background: var(--menu-border);
+      margin: 4px 12px;
+    }
+
+    .project-dropdown-item.new-project {
+      color: var(--text-muted);
     }
 
     .sidebar-section {
@@ -1653,6 +1729,31 @@
     <div class="sidebar-container" id="sidebar-container">
       <div class="primary-sidebar" id="primary-sidebar">
         <div class="sidebar-header">
+          <div class="project-selector" id="project-selector">
+            <div class="project-selector-btn" id="project-selector-btn">
+              <span>foo</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </div>
+            <div class="project-dropdown" id="project-dropdown">
+              <div class="project-dropdown-item" data-project="foo">
+                <span class="checkmark">&#10003;</span>
+                <span>foo</span>
+              </div>
+              <div class="project-dropdown-item" data-project="bar">
+                <span class="checkmark"></span>
+                <span>bar</span>
+              </div>
+              <div class="project-dropdown-item" data-project="baz">
+                <span class="checkmark"></span>
+                <span>baz</span>
+              </div>
+              <div class="project-dropdown-separator"></div>
+              <div class="project-dropdown-item new-project" id="new-project-btn">
+                <span class="checkmark">+</span>
+                <span>New Project</span>
+              </div>
+            </div>
+          </div>
           <span class="sidebar-toggle" id="sidebar-toggle" title="Toggle Sidebar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m16 15-3-3 3-3"/></svg></span>
         </div>
         <div class="sidebar-section" id="search-section">
@@ -2842,6 +2943,40 @@
       const toggle = document.getElementById('sidebar-toggle');
       sidebarContainer.classList.toggle('collapsed');
       toggle.classList.toggle('collapsed');
+    });
+
+    // Project selector
+    document.getElementById('project-selector-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const dropdown = document.getElementById('project-dropdown');
+      dropdown.classList.toggle('open');
+    });
+
+    document.getElementById('project-dropdown').addEventListener('click', (e) => {
+      const item = e.target.closest('.project-dropdown-item');
+      if (!item) return;
+
+      const project = item.dataset.project;
+      if (project) {
+        // Update checkmarks
+        document.querySelectorAll('.project-dropdown-item .checkmark').forEach(cm => {
+          cm.textContent = '';
+        });
+        item.querySelector('.checkmark').textContent = '✓';
+
+        // Update button text
+        document.querySelector('#project-selector-btn span').textContent = project;
+
+        // Close dropdown
+        document.getElementById('project-dropdown').classList.remove('open');
+      }
+    });
+
+    // Close project dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#project-selector')) {
+        document.getElementById('project-dropdown').classList.remove('open');
+      }
     });
 
     // Add workspace button
