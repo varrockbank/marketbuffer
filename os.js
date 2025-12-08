@@ -20,6 +20,7 @@ const OS = {
     author: { tabular: false, apps: [] },
     code: { tabular: false, apps: [] },
     git: { tabular: false, apps: [] },
+    simulate: { tabular: false, apps: [] },
     work: { tabular: true, apps: ['editor', 'finder', 'about', 'hypercard', 'git', 'settings', 'wallpaper', 'changelog', 'neogotchi', 'trinale', 'stocks', 'simulator'] },
   },
   activeRootState: 'work',  // Current root state

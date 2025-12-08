@@ -1,0 +1,539 @@
+<!-- Simulate Modality - Backtesting & Strategy Simulation -->
+<style>
+  .simulate-container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-family: 'Chicago', 'Monaco', 'Courier New', monospace;
+    font-size: 12px;
+  }
+
+  .simulate-sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    background: #252525;
+    border-right: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .simulate-sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 0;
+  }
+
+  .simulate-sidebar-header {
+    padding: 8px 16px;
+    font-weight: bold;
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .simulate-item {
+    padding: 8px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-left: 3px solid transparent;
+  }
+
+  .simulate-item:hover {
+    background: #333;
+  }
+
+  .simulate-item.active {
+    background: #3a3a3a;
+    border-left-color: #e0e0e0;
+  }
+
+  .simulate-item-icon {
+    color: #888;
+    flex-shrink: 0;
+  }
+
+  .simulate-item-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+  }
+
+  .simulate-item-status {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-weight: bold;
+  }
+
+  .simulate-item-status.running {
+    background: #3498db;
+    color: #fff;
+  }
+
+  .simulate-item-status.completed {
+    background: #2ecc71;
+    color: #fff;
+  }
+
+  .simulate-item-status.failed {
+    background: #e74c3c;
+    color: #fff;
+  }
+
+  .simulate-sidebar-footer {
+    padding: 12px 16px;
+    border-top: 1px solid #333;
+    display: flex;
+    gap: 8px;
+  }
+
+  .simulate-footer-btn {
+    flex: 1;
+    padding: 8px 12px;
+    background: #2d2d2d;
+    border: 1px solid #444;
+    color: #888;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .simulate-footer-btn:hover {
+    background: #3a3a3a;
+    color: #e0e0e0;
+  }
+
+  .simulate-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    background: #1a1a1a;
+  }
+
+  .simulate-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #333;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .simulate-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .simulate-header-title {
+    font-weight: bold;
+    font-size: 16px;
+  }
+
+  .simulate-header-meta {
+    font-size: 11px;
+    color: #888;
+  }
+
+  .simulate-header-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .simulate-header-btn {
+    padding: 6px 12px;
+    background: #2d2d2d;
+    border: 1px solid #444;
+    color: #e0e0e0;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+  }
+
+  .simulate-header-btn:hover {
+    background: #3a3a3a;
+  }
+
+  .simulate-header-btn.primary {
+    background: #2ecc71;
+    border-color: #2ecc71;
+    color: #fff;
+  }
+
+  .simulate-header-btn.primary:hover {
+    background: #27ae60;
+  }
+
+  .simulate-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+  }
+
+  .simulate-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .simulate-stat-card {
+    background: #252525;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 16px;
+  }
+
+  .simulate-stat-label {
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+
+  .simulate-stat-value {
+    font-size: 24px;
+    font-weight: bold;
+  }
+
+  .simulate-stat-value.positive {
+    color: #2ecc71;
+  }
+
+  .simulate-stat-value.negative {
+    color: #e74c3c;
+  }
+
+  .simulate-stat-change {
+    font-size: 11px;
+    margin-top: 4px;
+  }
+
+  .simulate-section {
+    margin-bottom: 24px;
+  }
+
+  .simulate-section-header {
+    font-weight: bold;
+    font-size: 13px;
+    margin-bottom: 12px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .simulate-chart {
+    background: #252525;
+    border: 1px solid #333;
+    border-radius: 4px;
+    height: 200px;
+    display: flex;
+    align-items: flex-end;
+    padding: 16px;
+    gap: 2px;
+  }
+
+  .simulate-chart-bar {
+    flex: 1;
+    background: #3498db;
+    min-height: 4px;
+    border-radius: 2px 2px 0 0;
+  }
+
+  .simulate-chart-bar.positive {
+    background: #2ecc71;
+  }
+
+  .simulate-chart-bar.negative {
+    background: #e74c3c;
+  }
+
+  .simulate-trades-table {
+    background: #252525;
+    border: 1px solid #333;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .simulate-trades-header {
+    display: grid;
+    grid-template-columns: 100px 1fr 100px 100px 100px;
+    padding: 12px 16px;
+    background: #2d2d2d;
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .simulate-trades-row {
+    display: grid;
+    grid-template-columns: 100px 1fr 100px 100px 100px;
+    padding: 12px 16px;
+    border-top: 1px solid #333;
+    font-size: 12px;
+  }
+
+  .simulate-trades-row:hover {
+    background: #2d2d2d;
+  }
+
+  .simulate-trade-type {
+    font-weight: bold;
+  }
+
+  .simulate-trade-type.buy {
+    color: #2ecc71;
+  }
+
+  .simulate-trade-type.sell {
+    color: #e74c3c;
+  }
+
+  .simulate-trade-pnl.positive {
+    color: #2ecc71;
+  }
+
+  .simulate-trade-pnl.negative {
+    color: #e74c3c;
+  }
+
+  .simulate-config {
+    background: #252525;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 16px;
+  }
+
+  .simulate-config-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .simulate-config-row:last-child {
+    margin-bottom: 0;
+  }
+
+  .simulate-config-label {
+    width: 150px;
+    font-size: 12px;
+    color: #888;
+  }
+
+  .simulate-config-value {
+    flex: 1;
+    font-size: 12px;
+  }
+
+  .simulate-config-input {
+    background: #1a1a1a;
+    border: 1px solid #444;
+    color: #e0e0e0;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-family: inherit;
+    border-radius: 4px;
+    width: 200px;
+  }
+
+  .simulate-config-input:focus {
+    outline: none;
+    border-color: #7A68AA;
+  }
+</style>
+
+<div class="simulate-container">
+  <div class="simulate-sidebar">
+    <div class="simulate-sidebar-content">
+      <div class="simulate-sidebar-header">Backtests</div>
+      <div class="simulate-item active" data-test="momentum-2024">
+        <svg class="simulate-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+        <span class="simulate-item-name">Momentum 2024</span>
+        <span class="simulate-item-status completed">Done</span>
+      </div>
+      <div class="simulate-item" data-test="mean-reversion-q4">
+        <svg class="simulate-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+        <span class="simulate-item-name">Mean Reversion Q4</span>
+        <span class="simulate-item-status running">Running</span>
+      </div>
+      <div class="simulate-item" data-test="pairs-spy-qqq">
+        <svg class="simulate-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+        <span class="simulate-item-name">Pairs SPY/QQQ</span>
+        <span class="simulate-item-status completed">Done</span>
+      </div>
+      <div class="simulate-item" data-test="breakout-failed">
+        <svg class="simulate-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+        <span class="simulate-item-name">Breakout Test</span>
+        <span class="simulate-item-status failed">Failed</span>
+      </div>
+
+      <div class="simulate-sidebar-header">Strategies</div>
+      <div class="simulate-item" data-strategy="momentum">
+        <svg class="simulate-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        <span class="simulate-item-name">momentum.algo</span>
+      </div>
+      <div class="simulate-item" data-strategy="mean-reversion">
+        <svg class="simulate-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        <span class="simulate-item-name">mean-reversion.algo</span>
+      </div>
+      <div class="simulate-item" data-strategy="pairs-trading">
+        <svg class="simulate-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        <span class="simulate-item-name">pairs-trading.algo</span>
+      </div>
+    </div>
+    <div class="simulate-sidebar-footer">
+      <button class="simulate-footer-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+      </button>
+      <button class="simulate-footer-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="simulate-main">
+    <div class="simulate-header">
+      <div class="simulate-header-left">
+        <span class="simulate-header-title">Momentum 2024</span>
+        <span class="simulate-header-meta">Jan 1, 2024 - Dec 1, 2024 | AAPL, MSFT, GOOGL</span>
+      </div>
+      <div class="simulate-header-actions">
+        <button class="simulate-header-btn">Export</button>
+        <button class="simulate-header-btn">Configure</button>
+        <button class="simulate-header-btn primary">Run Again</button>
+      </div>
+    </div>
+    <div class="simulate-content">
+      <div class="simulate-stats">
+        <div class="simulate-stat-card">
+          <div class="simulate-stat-label">Total Return</div>
+          <div class="simulate-stat-value positive">+24.5%</div>
+          <div class="simulate-stat-change">vs SPY +18.2%</div>
+        </div>
+        <div class="simulate-stat-card">
+          <div class="simulate-stat-label">Sharpe Ratio</div>
+          <div class="simulate-stat-value">1.85</div>
+          <div class="simulate-stat-change">Annualized</div>
+        </div>
+        <div class="simulate-stat-card">
+          <div class="simulate-stat-label">Max Drawdown</div>
+          <div class="simulate-stat-value negative">-8.3%</div>
+          <div class="simulate-stat-change">Mar 15, 2024</div>
+        </div>
+        <div class="simulate-stat-card">
+          <div class="simulate-stat-label">Win Rate</div>
+          <div class="simulate-stat-value">62%</div>
+          <div class="simulate-stat-change">186 / 300 trades</div>
+        </div>
+      </div>
+
+      <div class="simulate-section">
+        <div class="simulate-section-header">Equity Curve</div>
+        <div class="simulate-chart">
+          <div class="simulate-chart-bar positive" style="height: 20%"></div>
+          <div class="simulate-chart-bar positive" style="height: 25%"></div>
+          <div class="simulate-chart-bar positive" style="height: 30%"></div>
+          <div class="simulate-chart-bar negative" style="height: 15%"></div>
+          <div class="simulate-chart-bar positive" style="height: 35%"></div>
+          <div class="simulate-chart-bar positive" style="height: 40%"></div>
+          <div class="simulate-chart-bar positive" style="height: 45%"></div>
+          <div class="simulate-chart-bar negative" style="height: 30%"></div>
+          <div class="simulate-chart-bar negative" style="height: 25%"></div>
+          <div class="simulate-chart-bar positive" style="height: 50%"></div>
+          <div class="simulate-chart-bar positive" style="height: 55%"></div>
+          <div class="simulate-chart-bar positive" style="height: 60%"></div>
+          <div class="simulate-chart-bar positive" style="height: 65%"></div>
+          <div class="simulate-chart-bar negative" style="height: 55%"></div>
+          <div class="simulate-chart-bar positive" style="height: 70%"></div>
+          <div class="simulate-chart-bar positive" style="height: 75%"></div>
+          <div class="simulate-chart-bar positive" style="height: 80%"></div>
+          <div class="simulate-chart-bar positive" style="height: 85%"></div>
+          <div class="simulate-chart-bar negative" style="height: 75%"></div>
+          <div class="simulate-chart-bar positive" style="height: 90%"></div>
+        </div>
+      </div>
+
+      <div class="simulate-section">
+        <div class="simulate-section-header">Recent Trades</div>
+        <div class="simulate-trades-table">
+          <div class="simulate-trades-header">
+            <div>Date</div>
+            <div>Symbol</div>
+            <div>Type</div>
+            <div>Price</div>
+            <div>P&L</div>
+          </div>
+          <div class="simulate-trades-row">
+            <div>Dec 1</div>
+            <div>AAPL</div>
+            <div class="simulate-trade-type sell">SELL</div>
+            <div>$191.24</div>
+            <div class="simulate-trade-pnl positive">+$342.50</div>
+          </div>
+          <div class="simulate-trades-row">
+            <div>Nov 28</div>
+            <div>AAPL</div>
+            <div class="simulate-trade-type buy">BUY</div>
+            <div>$187.81</div>
+            <div class="simulate-trade-pnl">-</div>
+          </div>
+          <div class="simulate-trades-row">
+            <div>Nov 25</div>
+            <div>MSFT</div>
+            <div class="simulate-trade-type sell">SELL</div>
+            <div>$378.91</div>
+            <div class="simulate-trade-pnl negative">-$125.00</div>
+          </div>
+          <div class="simulate-trades-row">
+            <div>Nov 22</div>
+            <div>MSFT</div>
+            <div class="simulate-trade-type buy">BUY</div>
+            <div>$380.16</div>
+            <div class="simulate-trade-pnl">-</div>
+          </div>
+          <div class="simulate-trades-row">
+            <div>Nov 20</div>
+            <div>GOOGL</div>
+            <div class="simulate-trade-type sell">SELL</div>
+            <div>$138.45</div>
+            <div class="simulate-trade-pnl positive">+$567.80</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const items = document.querySelectorAll('.simulate-item');
+  const headerTitle = document.querySelector('.simulate-header-title');
+
+  // Handle item clicks
+  items.forEach(item => {
+    item.addEventListener('click', () => {
+      const test = item.dataset.test;
+      const strategy = item.dataset.strategy;
+
+      if (test) {
+        document.querySelectorAll('.simulate-item[data-test]').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        headerTitle.textContent = item.querySelector('.simulate-item-name').textContent;
+      }
+    });
+  });
+})();
+</script>
