@@ -598,21 +598,21 @@
       font-size: 11px;
     }
 
-    .sidebar-scrollable,
     .sidebar-section-header,
     .pinned-files,
     .file-tree,
     #pinned-section,
-    .sidebar-section-files {
+    .sidebar-section-files,
+    .sidebar-separator {
       transition: opacity 0.1s ease-out 0.2s;
     }
 
-    .sidebar-container.collapsed .sidebar-scrollable,
     .sidebar-container.collapsed .sidebar-section-header,
     .sidebar-container.collapsed .pinned-files,
     .sidebar-container.collapsed .file-tree,
     .sidebar-container.collapsed #pinned-section,
-    .sidebar-container.collapsed .sidebar-section-files {
+    .sidebar-container.collapsed .sidebar-section-files,
+    .sidebar-container.collapsed .sidebar-separator {
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.1s ease-out;
@@ -685,6 +685,15 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.1s ease-out;
+    }
+
+    /* Keep icons stationary when sidebar is collapsed */
+    .sidebar-container.collapsed .sidebar-scrollable {
+      overflow-x: hidden;
+    }
+
+    .sidebar-container.collapsed .sidebar-footer {
+      padding: 10px 12px 10px 11px;
     }
 
     #new-chat-item {
