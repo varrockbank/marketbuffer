@@ -1,0 +1,594 @@
+<!-- Agents Modality - AI Trading Agents -->
+<style>
+  .agents-container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-family: 'Chicago', 'Monaco', 'Courier New', monospace;
+    font-size: 12px;
+  }
+
+  .agents-sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    background: #252525;
+    border-right: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .agents-sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 0;
+  }
+
+  .agents-sidebar-header {
+    padding: 8px 16px;
+    font-weight: bold;
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .agents-item {
+    padding: 8px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-left: 3px solid transparent;
+  }
+
+  .agents-item:hover {
+    background: #333;
+  }
+
+  .agents-item.active {
+    background: #3a3a3a;
+    border-left-color: #e0e0e0;
+  }
+
+  .agents-item-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  .agents-item-icon.running {
+    background: #2ecc71;
+    color: #fff;
+  }
+
+  .agents-item-icon.idle {
+    background: #444;
+    color: #888;
+  }
+
+  .agents-item-icon.error {
+    background: #e74c3c;
+    color: #fff;
+  }
+
+  .agents-item-icon.task {
+    background: #3498db;
+    color: #fff;
+  }
+
+  .agents-item-icon.task.pending {
+    background: #444;
+    color: #888;
+  }
+
+  .agents-item-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .agents-item-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .agents-item-status {
+    font-size: 10px;
+    color: #888;
+  }
+
+  .agents-sidebar-footer {
+    padding: 12px 16px;
+    border-top: 1px solid #333;
+    display: flex;
+    gap: 8px;
+  }
+
+  .agents-footer-btn {
+    flex: 1;
+    padding: 8px 12px;
+    background: #2d2d2d;
+    border: 1px solid #444;
+    color: #888;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .agents-footer-btn:hover {
+    background: #3a3a3a;
+    color: #e0e0e0;
+  }
+
+  .agents-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    background: #1a1a1a;
+  }
+
+  .agents-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #333;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .agents-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .agents-header-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #2ecc71;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+
+  .agents-header-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .agents-header-title {
+    font-weight: bold;
+    font-size: 16px;
+  }
+
+  .agents-header-meta {
+    font-size: 11px;
+    color: #888;
+  }
+
+  .agents-header-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .agents-header-btn {
+    padding: 6px 12px;
+    background: #2d2d2d;
+    border: 1px solid #444;
+    color: #e0e0e0;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+  }
+
+  .agents-header-btn:hover {
+    background: #3a3a3a;
+  }
+
+  .agents-header-btn.primary {
+    background: #2ecc71;
+    border-color: #2ecc71;
+    color: #fff;
+  }
+
+  .agents-header-btn.primary:hover {
+    background: #27ae60;
+  }
+
+  .agents-header-btn.danger {
+    background: #e74c3c;
+    border-color: #e74c3c;
+    color: #fff;
+  }
+
+  .agents-header-btn.danger:hover {
+    background: #c0392b;
+  }
+
+  .agents-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+  }
+
+  .agents-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .agents-stat-card {
+    background: #252525;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 16px;
+  }
+
+  .agents-stat-label {
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+
+  .agents-stat-value {
+    font-size: 24px;
+    font-weight: bold;
+  }
+
+  .agents-stat-value.positive {
+    color: #2ecc71;
+  }
+
+  .agents-stat-value.negative {
+    color: #e74c3c;
+  }
+
+  .agents-section {
+    margin-bottom: 24px;
+  }
+
+  .agents-section-header {
+    font-weight: bold;
+    font-size: 13px;
+    margin-bottom: 12px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .agents-log {
+    background: #252525;
+    border: 1px solid #333;
+    border-radius: 4px;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .agents-log-entry {
+    display: flex;
+    padding: 8px 12px;
+    border-bottom: 1px solid #333;
+    gap: 12px;
+    font-size: 11px;
+  }
+
+  .agents-log-entry:last-child {
+    border-bottom: none;
+  }
+
+  .agents-log-time {
+    color: #666;
+    font-family: monospace;
+    flex-shrink: 0;
+  }
+
+  .agents-log-type {
+    width: 60px;
+    flex-shrink: 0;
+    font-weight: bold;
+  }
+
+  .agents-log-type.info {
+    color: #3498db;
+  }
+
+  .agents-log-type.trade {
+    color: #2ecc71;
+  }
+
+  .agents-log-type.error {
+    color: #e74c3c;
+  }
+
+  .agents-log-type.signal {
+    color: #f39c12;
+  }
+
+  .agents-log-message {
+    flex: 1;
+  }
+
+  .agents-config {
+    background: #252525;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 16px;
+  }
+
+  .agents-config-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .agents-config-row:last-child {
+    margin-bottom: 0;
+  }
+
+  .agents-config-label {
+    width: 150px;
+    font-size: 12px;
+    color: #888;
+  }
+
+  .agents-config-value {
+    flex: 1;
+    font-size: 12px;
+  }
+
+  .agents-positions {
+    background: #252525;
+    border: 1px solid #333;
+    border-radius: 4px;
+  }
+
+  .agents-positions-header {
+    display: grid;
+    grid-template-columns: 1fr 100px 100px 100px 100px;
+    padding: 12px 16px;
+    background: #2d2d2d;
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .agents-positions-row {
+    display: grid;
+    grid-template-columns: 1fr 100px 100px 100px 100px;
+    padding: 12px 16px;
+    border-top: 1px solid #333;
+    font-size: 12px;
+  }
+
+  .agents-positions-row:hover {
+    background: #2d2d2d;
+  }
+
+  .agents-position-pnl.positive {
+    color: #2ecc71;
+  }
+
+  .agents-position-pnl.negative {
+    color: #e74c3c;
+  }
+</style>
+
+<div class="agents-container">
+  <div class="agents-sidebar">
+    <div class="agents-sidebar-content">
+      <div class="agents-sidebar-header">AI Agents</div>
+      <div class="agents-item active" data-agent="momentum-bot" data-type="agent">
+        <div class="agents-item-icon running">M</div>
+        <div class="agents-item-info">
+          <div class="agents-item-name">Momentum Bot</div>
+          <div class="agents-item-status">Running since 9:30 AM</div>
+        </div>
+      </div>
+      <div class="agents-item" data-agent="mean-rev-bot" data-type="agent">
+        <div class="agents-item-icon running">R</div>
+        <div class="agents-item-info">
+          <div class="agents-item-name">Mean Reversion</div>
+          <div class="agents-item-status">Running since 9:30 AM</div>
+        </div>
+      </div>
+      <div class="agents-item" data-agent="vwap-bot" data-type="agent">
+        <div class="agents-item-icon error">V</div>
+        <div class="agents-item-info">
+          <div class="agents-item-name">VWAP Reversion</div>
+          <div class="agents-item-status">API Error</div>
+        </div>
+      </div>
+
+      <div class="agents-sidebar-header">User Tasks</div>
+      <div class="agents-item" data-agent="review-algo" data-type="task">
+        <div class="agents-item-icon task">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div class="agents-item-info">
+          <div class="agents-item-name">Review momentum algo</div>
+          <div class="agents-item-status">Due today</div>
+        </div>
+      </div>
+      <div class="agents-item" data-agent="backtest-spy" data-type="task">
+        <div class="agents-item-icon task pending">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+        </div>
+        <div class="agents-item-info">
+          <div class="agents-item-name">Backtest SPY strategy</div>
+          <div class="agents-item-status">In progress</div>
+        </div>
+      </div>
+      <div class="agents-item" data-agent="add-stops" data-type="task">
+        <div class="agents-item-icon task pending">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+        </div>
+        <div class="agents-item-info">
+          <div class="agents-item-name">Add stop losses to NVDA</div>
+          <div class="agents-item-status">Pending</div>
+        </div>
+      </div>
+    </div>
+    <div class="agents-sidebar-footer">
+      <button class="agents-footer-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+      </button>
+      <button class="agents-footer-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="agents-main">
+    <div class="agents-header">
+      <div class="agents-header-left">
+        <div class="agents-header-avatar">M</div>
+        <div class="agents-header-info">
+          <span class="agents-header-title">Momentum Bot</span>
+          <span class="agents-header-meta">momentum.algo | AAPL, MSFT, GOOGL, NVDA</span>
+        </div>
+      </div>
+      <div class="agents-header-actions">
+        <button class="agents-header-btn">Configure</button>
+        <button class="agents-header-btn">Logs</button>
+        <button class="agents-header-btn danger">Stop</button>
+      </div>
+    </div>
+    <div class="agents-content">
+      <div class="agents-stats">
+        <div class="agents-stat-card">
+          <div class="agents-stat-label">Today P&L</div>
+          <div class="agents-stat-value positive">+$1,245.80</div>
+        </div>
+        <div class="agents-stat-card">
+          <div class="agents-stat-label">Open Positions</div>
+          <div class="agents-stat-value">3</div>
+        </div>
+        <div class="agents-stat-card">
+          <div class="agents-stat-label">Trades Today</div>
+          <div class="agents-stat-value">12</div>
+        </div>
+        <div class="agents-stat-card">
+          <div class="agents-stat-label">Win Rate</div>
+          <div class="agents-stat-value">75%</div>
+        </div>
+      </div>
+
+      <div class="agents-section">
+        <div class="agents-section-header">Open Positions</div>
+        <div class="agents-positions">
+          <div class="agents-positions-header">
+            <div>Symbol</div>
+            <div>Qty</div>
+            <div>Entry</div>
+            <div>Current</div>
+            <div>P&L</div>
+          </div>
+          <div class="agents-positions-row">
+            <div>AAPL</div>
+            <div>100</div>
+            <div>$189.50</div>
+            <div>$191.24</div>
+            <div class="agents-position-pnl positive">+$174.00</div>
+          </div>
+          <div class="agents-positions-row">
+            <div>NVDA</div>
+            <div>50</div>
+            <div>$465.20</div>
+            <div>$468.75</div>
+            <div class="agents-position-pnl positive">+$177.50</div>
+          </div>
+          <div class="agents-positions-row">
+            <div>MSFT</div>
+            <div>75</div>
+            <div>$380.15</div>
+            <div>$378.90</div>
+            <div class="agents-position-pnl negative">-$93.75</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="agents-section">
+        <div class="agents-section-header">Activity Log</div>
+        <div class="agents-log">
+          <div class="agents-log-entry">
+            <span class="agents-log-time">14:32:15</span>
+            <span class="agents-log-type signal">SIGNAL</span>
+            <span class="agents-log-message">Momentum signal detected on NVDA, SMA10 crossed above SMA20</span>
+          </div>
+          <div class="agents-log-entry">
+            <span class="agents-log-time">14:32:16</span>
+            <span class="agents-log-type trade">TRADE</span>
+            <span class="agents-log-message">BUY 50 NVDA @ $465.20</span>
+          </div>
+          <div class="agents-log-entry">
+            <span class="agents-log-time">14:15:42</span>
+            <span class="agents-log-type info">INFO</span>
+            <span class="agents-log-message">Scanning AAPL, MSFT, GOOGL, NVDA for momentum signals</span>
+          </div>
+          <div class="agents-log-entry">
+            <span class="agents-log-time">13:45:22</span>
+            <span class="agents-log-type trade">TRADE</span>
+            <span class="agents-log-message">BUY 100 AAPL @ $189.50</span>
+          </div>
+          <div class="agents-log-entry">
+            <span class="agents-log-time">13:45:21</span>
+            <span class="agents-log-type signal">SIGNAL</span>
+            <span class="agents-log-message">Momentum signal detected on AAPL, volume spike confirmed</span>
+          </div>
+          <div class="agents-log-entry">
+            <span class="agents-log-time">12:30:05</span>
+            <span class="agents-log-type trade">TRADE</span>
+            <span class="agents-log-message">SELL 100 GOOGL @ $138.45 (P&L: +$342.00)</span>
+          </div>
+          <div class="agents-log-entry">
+            <span class="agents-log-time">11:15:33</span>
+            <span class="agents-log-type info">INFO</span>
+            <span class="agents-log-message">Position size adjusted based on volatility: 75 -> 100 shares</span>
+          </div>
+          <div class="agents-log-entry">
+            <span class="agents-log-time">09:30:01</span>
+            <span class="agents-log-type info">INFO</span>
+            <span class="agents-log-message">Agent started, monitoring 4 symbols</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const items = document.querySelectorAll('.agents-item');
+  const headerTitle = document.querySelector('.agents-header-title');
+  const headerAvatar = document.querySelector('.agents-header-avatar');
+
+  // Handle item clicks
+  items.forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.agents-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      const name = item.querySelector('.agents-item-name').textContent;
+      headerTitle.textContent = name;
+      headerAvatar.textContent = name.charAt(0);
+    });
+  });
+})();
+</script>
