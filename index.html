@@ -1099,6 +1099,12 @@
       padding: 2px 8px;
     }
 
+    .sidebar-actions .sidebar-item.disabled {
+      opacity: 0.4;
+      pointer-events: none;
+      cursor: default;
+    }
+
     .sidebar-actions .sidebar-separator {
       margin: 8px 20px;
     }
@@ -1145,6 +1151,13 @@
       background: transparent;
       box-shadow: none;
       color: inherit;
+    }
+
+    #sidebar-toggle-btn.home-active .sidebar-item-inner {
+      background: var(--selected-bg);
+      box-shadow:
+        inset -1px -1px 0 0 var(--window-border),
+        inset 1px 1px 0 0 rgba(255,255,255,0.2);
     }
 
     /* Toggle icon - absolutely positioned, animates via 'left' */
@@ -4008,6 +4021,17 @@
       const activeId = Object.entries(rootStateMap).find(([, s]) => s === stateName)?.[0];
       if (activeId) {
         document.getElementById(activeId)?.classList.add('active');
+      }
+
+      // Show active state on title when on home/work state
+      const toggleBtn = document.getElementById('sidebar-toggle-btn');
+      const appsBtn = document.getElementById('apps-btn');
+      if (stateName === 'work') {
+        toggleBtn?.classList.add('home-active');
+        appsBtn?.classList.remove('disabled');
+      } else {
+        toggleBtn?.classList.remove('home-active');
+        appsBtn?.classList.add('disabled');
       }
 
       // Re-render workspace tabs (will hide/show based on tabular state)
