@@ -153,9 +153,9 @@
     .brand {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 1em;
       color: var(--text-secondary);
-      padding-left: 4px;
+      padding-left: 0.167em;
       cursor: pointer;
       transition: color 0.2s ease-out;
     }
@@ -212,7 +212,7 @@
     }
 
     .sidenav-menu {
-      padding: 8px;
+      padding: 0.5em;
       flex: 1;
       overflow-y: auto;
     }
@@ -220,29 +220,31 @@
     .sidenav-item {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 8px;
-      border-radius: 6px;
+      gap: 0.667em;
+      padding: 0.667em;
+      border-radius: 0.5em;
       cursor: pointer;
       color: var(--text-secondary);
       transition: all 0.15s ease-out;
       text-decoration: none;
+      margin-bottom: 0.167em;
     }
 
     .sidenav-item:hover {
-      background: var(--bg-tertiary);
+      background: #000;
       color: var(--text-primary);
     }
 
     .sidenav-item.active {
-      background: var(--accent);
       color: #fff;
+      box-shadow: inset 2px 0 0 var(--accent), inset -2px 0 0 var(--accent);
     }
 
     .sidenav-icon {
       width: 18px;
       height: 18px;
       flex-shrink: 0;
+      aspect-ratio: 1;
     }
 
     .sidenav-label {
@@ -284,7 +286,7 @@
     }
 
     .sidenav-profile {
-      padding: 8px;
+      padding: 0.5em;
       border-top: 1px solid var(--border-color);
       flex-shrink: 0;
       position: relative;
@@ -367,7 +369,7 @@
     }
 
     .sub-sidenav-header {
-      padding: 18px 8px 18px 8px;
+      padding: 1.167em 0.667em 1.167em 0.667em;
       display: flex;
       align-items: center;
       border-bottom: 1px solid var(--border-color);
