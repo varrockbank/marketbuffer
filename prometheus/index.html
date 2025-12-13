@@ -451,6 +451,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      text-decoration: none;
     }
 
     .project-selector-check {
@@ -489,6 +490,60 @@
     .project-selector-new svg {
       width: 14px;
       height: 14px;
+    }
+
+    /* File Tree */
+    .file-tree-container {
+      padding: 4px 0;
+    }
+
+    .file-tree-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      border-radius: 4px;
+      margin: 0 4px;
+    }
+
+    .file-tree-item:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .file-tree-item.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .file-tree-chevron {
+      width: 12px;
+      height: 12px;
+      flex-shrink: 0;
+      transition: transform 0.15s ease-out;
+    }
+
+    .file-tree-chevron.open {
+      transform: rotate(90deg);
+    }
+
+    .file-tree-chevron-spacer {
+      width: 12px;
+      flex-shrink: 0;
+    }
+
+    .file-tree-icon {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+
+    .file-tree-name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* Main Area */
@@ -591,7 +646,8 @@
       { path: '/deployments', name: 'deployments', component: Viewport },
       { path: '/data', name: 'data', component: Viewport },
       { path: '/stream', name: 'stream', component: Viewport },
-      { path: '/code', name: 'code', component: Viewport },
+      { path: '/code', redirect: '/code/prometheus' },
+      { path: '/code/:project', name: 'code', component: Viewport },
       { path: '/publish', name: 'publish', component: Viewport },
       { path: '/simulate', name: 'simulate', component: Viewport },
       { path: '/agents', name: 'agents', component: Viewport },
@@ -605,6 +661,9 @@
     router.afterEach((to) => {
       if (to.name) {
         store.activeMenuItem = to.name;
+      }
+      if (to.params.project) {
+        store.currentProject = to.params.project;
       }
     });
 

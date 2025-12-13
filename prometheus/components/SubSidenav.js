@@ -1,8 +1,9 @@
 import { store } from '../store.js';
 import { ProjectSelector } from './ProjectSelector.js';
+import { FileTreeContainer } from './FileTree.js';
 
 export const SubSidenav = {
-  components: { ProjectSelector },
+  components: { ProjectSelector, FileTreeContainer },
   template: `
     <div class="sub-sidenav" :class="{ collapsed: store.subSidenavCollapsed }">
       <div class="sub-sidenav-header">
@@ -10,7 +11,8 @@ export const SubSidenav = {
         <span v-else class="sub-sidenav-title">{{ title }}</span>
       </div>
       <div class="sub-sidenav-content">
-        <div style="padding: 8px; color: var(--text-secondary);">
+        <FileTreeContainer v-if="store.activeMenuItem === 'code'" />
+        <div v-else style="padding: 8px; color: var(--text-secondary);">
           {{ store.activeMenuItem }} panel
         </div>
       </div>

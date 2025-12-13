@@ -10,18 +10,19 @@ export const ProjectSelector = {
         </svg>
       </div>
       <div class="project-selector-dropdown" v-if="open">
-        <div
-          class="project-selector-item"
+        <router-link
           v-for="project in projects"
           :key="project"
+          :to="'/code/' + project"
+          class="project-selector-item"
           :class="{ active: store.currentProject === project }"
-          @click="selectProject(project)"
+          @click="open = false"
         >
           <svg v-if="store.currentProject === project" class="project-selector-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M20 6 9 17l-5-5"/>
           </svg>
           <span :style="{ marginLeft: store.currentProject === project ? '0' : '22px' }">{{ project }}</span>
-        </div>
+        </router-link>
         <div class="project-selector-separator"></div>
         <div class="project-selector-item project-selector-new" @click="newProject">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -36,16 +37,11 @@ export const ProjectSelector = {
     const open = Vue.ref(false);
     const projects = ['marketbuffer-api', 'marketbuffer-web', 'prometheus', 'data-pipeline'];
 
-    const selectProject = (project) => {
-      store.currentProject = project;
-      open.value = false;
-    };
-
     const newProject = () => {
       open.value = false;
       // TODO: Open new project dialog
     };
 
-    return { store, open, projects, selectProject, newProject };
+    return { store, open, projects, newProject };
   },
 };

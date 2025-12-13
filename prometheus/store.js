@@ -17,6 +17,7 @@ export const store = reactive({
   terminalExpanded: false,
   activeMenuItem: 'yap',
   currentProject: 'prometheus',
+  activeFile: null,
 });
 
 // ============================================
