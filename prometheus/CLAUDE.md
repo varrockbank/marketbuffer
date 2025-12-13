@@ -1,10 +1,29 @@
 # Prometheus
 
-A/B test rewrite of the Marketbuffer OS web desktop environment using Vue 3.
+A web-based IDE built with Vue 3.
 
 ## Overview
 
-This is an experimental rewrite using Vue 3 via CDN (no build step required).
+Prometheus is a browser-based IDE with a flexible panel layout. Built with Vue 3 via CDN (no build step required).
+
+### Layout
+
+```
+┌─────────────────────────────────────────────────────┐
+│                    Menu Bar                         │
+├────────┬──────────┬─────────────────────────────────┤
+│        │          │                                 │
+│Sidenav │Sub-Sidenav│         Viewport               │
+│ (icons)│ (panel)  │                                 │
+│        │          ├─────────────────────────────────┤
+│        │          │  Terminal (collapsible)         │
+└────────┴──────────┴─────────────────────────────────┘
+```
+
+- **Sidenav**: Icon-based navigation (files, search, settings, etc.)
+- **Sub-Sidenav**: Context panel that changes based on active sidenav item
+- **Viewport**: Main editor/content area
+- **Terminal**: Collapsible bottom panel
 
 ## Architecture
 
@@ -24,6 +43,7 @@ prometheus/
     ├── MenuBarButton.js# Reusable button for menu bar
     ├── Sidenav.js      # Collapsible sidebar
     ├── SidenavItem.js  # Reusable menu item
+    ├── SubSidenav.js   # Context panel (changes based on active menu)
     ├── Viewport.js     # Main content area
     └── Terminal.js     # Collapsible bottom terminal
 ```

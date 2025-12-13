@@ -154,6 +154,50 @@
       width: 0;
     }
 
+    /* Sub-Sidenav */
+    .sub-sidenav {
+      width: 240px;
+      min-width: 0;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      transition: width 0.2s ease-out;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .sub-sidenav > * {
+      min-width: 240px;
+    }
+
+    .sub-sidenav.collapsed {
+      width: 0;
+      border-right: none;
+    }
+
+    .sub-sidenav-header {
+      height: 32px;
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+
+    .sub-sidenav-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      letter-spacing: 0.5px;
+    }
+
+    .sub-sidenav-content {
+      flex: 1;
+      overflow-y: auto;
+    }
+
     /* Main Area */
     .main-area {
       flex: 1;
@@ -220,6 +264,7 @@
   <script type="module">
     import { store, actions } from './store.js';
     import { Sidenav } from './components/Sidenav.js';
+    import { SubSidenav } from './components/SubSidenav.js';
     import { MenuBar } from './components/MenuBar.js';
     import { Viewport } from './components/Viewport.js';
     import { Terminal } from './components/Terminal.js';
@@ -235,6 +280,7 @@
           <MenuBar />
           <div class="body-area">
             <Sidenav />
+            <SubSidenav />
             <div class="main-area">
               <div class="content-area">
                 <Viewport />
@@ -250,6 +296,7 @@
     });
 
     app.component('Sidenav', Sidenav);
+    app.component('SubSidenav', SubSidenav);
     app.component('MenuBar', MenuBar);
     app.component('Viewport', Viewport);
     app.component('Terminal', Terminal);

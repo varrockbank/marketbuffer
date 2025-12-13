@@ -9,6 +9,7 @@ export const store = reactive({
 
   // UI State
   sidenavCollapsed: false,
+  subSidenavCollapsed: false,
   terminalExpanded: false,
   activeMenuItem: 'home',
 });
@@ -27,6 +28,10 @@ export const actions = {
 
   toggleTerminal() {
     store.terminalExpanded = !store.terminalExpanded;
+  },
+
+  toggleSubSidenav() {
+    store.subSidenavCollapsed = !store.subSidenavCollapsed;
   },
 };
 
