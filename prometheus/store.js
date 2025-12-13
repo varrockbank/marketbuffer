@@ -9,6 +9,7 @@ export const store = reactive({
 
   // Theme
   theme: 'dark', // 'dark' | 'light'
+  contrast: true, // contrast mode for sidenavs
 
   // UI State
   sidenavCollapsed: false,
@@ -23,6 +24,10 @@ export const store = reactive({
 export const actions = {
   toggleTheme() {
     store.theme = store.theme === 'dark' ? 'light' : 'dark';
+  },
+
+  toggleContrast() {
+    store.contrast = !store.contrast;
   },
 
   toggleSidenav() {

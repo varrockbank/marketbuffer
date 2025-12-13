@@ -34,6 +34,33 @@
       --accent: #7A68AA;
     }
 
+    /* No Contrast Mode */
+    .no-contrast .menu-bar,
+    .no-contrast .sidenav,
+    .no-contrast .sub-sidenav {
+      background: var(--bg-primary);
+    }
+
+    .no-contrast .menu-bar {
+      border-bottom-color: transparent;
+    }
+
+    .no-contrast .sidenav {
+      border-right-color: transparent;
+    }
+
+    .no-contrast .sub-sidenav {
+      border-right-color: transparent;
+    }
+
+    .no-contrast .sub-sidenav-header {
+      border-bottom-color: transparent;
+    }
+
+    .no-contrast .sidenav-profile {
+      border-top-color: transparent;
+    }
+
     body {
       font-family: Geneva, Tahoma, sans-serif;
       font-size: 12px;
@@ -454,7 +481,7 @@
     // ============================================
     const app = createApp({
       template: `
-        <div class="app-layout" :class="'theme-' + store.theme">
+        <div class="app-layout" :class="['theme-' + store.theme, { 'no-contrast': !store.contrast }]">
           <MenuBar />
           <div class="body-area">
             <Sidenav />

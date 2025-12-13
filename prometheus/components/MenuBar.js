@@ -11,6 +11,7 @@ const icons = {
   terminal: '<polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
   moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+  contrast: '<circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20z"/>',
 };
 
 export const MenuBar = {
@@ -20,6 +21,7 @@ export const MenuBar = {
       <Brand />
       <div class="menu-bar-right">
         <MenuBarButton :icon="themeIcon" :title="themeTitle + ' (' + modKey + '⇧T)'" @click="actions.toggleTheme" />
+        <MenuBarButton :icon="icons.contrast" :title="contrastTitle + ' (' + modKey + '⇧C)'" @click="actions.toggleContrast" />
         <MenuBarButton :icon="icons.sidenav" :title="'Toggle Sidenav (' + modKey + 'B)'" @click="actions.toggleSidenav" />
         <MenuBarButton :icon="icons.subSidenav" :title="'Toggle Panel (' + modKey + 'J)'" @click="actions.toggleSubSidenav" />
         <MenuBarButton :icon="icons.terminal" :title="terminalTitle" @click="actions.toggleTerminal" />
@@ -29,6 +31,7 @@ export const MenuBar = {
   setup() {
     const themeIcon = Vue.computed(() => store.theme === 'dark' ? icons.sun : icons.moon);
     const themeTitle = Vue.computed(() => store.theme === 'dark' ? 'Light mode' : 'Dark mode');
+    const contrastTitle = Vue.computed(() => store.contrast ? 'Borderless' : 'Border');
     const terminalTitle = 'Toggle Terminal (' + modKey + '`)';
 
     Vue.onMounted(() => {
@@ -39,6 +42,9 @@ export const MenuBar = {
         if (e.shiftKey && e.key.toLowerCase() === 't') {
           e.preventDefault();
           actions.toggleTheme();
+        } else if (e.shiftKey && e.key.toLowerCase() === 'c') {
+          e.preventDefault();
+          actions.toggleContrast();
         } else if (e.key.toLowerCase() === 'b') {
           e.preventDefault();
           actions.toggleSidenav();
@@ -55,6 +61,6 @@ export const MenuBar = {
       Vue.onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
     });
 
-    return { store, actions, icons, themeIcon, themeTitle, terminalTitle, modKey };
+    return { store, actions, icons, themeIcon, themeTitle, contrastTitle, terminalTitle, modKey };
   },
 };
