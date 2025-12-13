@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketbuffer OS - Prometheus</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* Theme: Dark */
+    .theme-dark {
+      --bg-primary: #1a1a1a;
+      --bg-secondary: #252525;
+      --bg-tertiary: #333;
+      --border-color: #444;
+      --text-primary: #e0e0e0;
+      --text-secondary: #888;
+      --accent: #7A68AA;
+    }
+
+    /* Theme: Light */
+    .theme-light {
+      --bg-primary: #fff;
+      --bg-secondary: #f0f0f0;
+      --bg-tertiary: #e0e0e0;
+      --border-color: #ccc;
+      --text-primary: #1a1a1a;
+      --text-secondary: #666;
+      --accent: #7A68AA;
+    }
+
+    body {
+      font-family: Geneva, Tahoma, sans-serif;
+      font-size: 12px;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Layout */
+    .app-layout {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* Menu Bar - spans full width */
+    .menu-bar {
+      height: 28px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      flex-shrink: 0;
+    }
+
+    /* Body Area - sidenav + main */
+    .body-area {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Sidenav */
+    .sidenav {
+      width: 200px;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      transition: width 0.2s ease-out;
+      flex-shrink: 0;
+    }
+
+    .sidenav.collapsed {
+      width: 48px;
+    }
+
+    /* Main Area */
+    .main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Content Area */
+    .content-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Viewport */
+    .viewport {
+      flex: 1;
+      background: var(--bg-primary);
+      overflow: auto;
+    }
+
+    /* Terminal */
+    .terminal {
+      height: 0;
+      background: var(--bg-tertiary);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      transition: height 0.2s ease-out;
+      overflow: hidden;
+    }
+
+    .terminal.expanded {
+      height: 200px;
+    }
+
+    .terminal-header {
+      height: 28px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .terminal-content {
+      flex: 1;
+      padding: 8px 12px;
+      font-family: monospace;
+      font-size: 12px;
+      overflow: auto;
+    }
+
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script>
+    const { createApp, reactive, computed } = Vue;
+
+    // ============================================
+    // GLOBAL STORE
+    // ============================================
+    const store = reactive({
+      // Theme
+      theme: 'dark', // 'dark' | 'light'
+
+      // UI State
+      sidenavCollapsed: false,
+      terminalExpanded: false,
+    });
+
+    // Expose store to console for testing
+    window.store = store;
+
+    // ============================================
+    // ACTIONS
+    // ============================================
+    const actions = {
+      toggleTheme() {
+        store.theme = store.theme === 'dark' ? 'light' : 'dark';
+      },
+
+      toggleSidenav() {
+        store.sidenavCollapsed = !store.sidenavCollapsed;
+      },
+
+      toggleTerminal() {
+        store.terminalExpanded = !store.terminalExpanded;
+      },
+    };
+
+    // Expose actions to console for testing
+    window.actions = actions;
+
+    // ============================================
+    // COMPONENTS
+    // ============================================
+
+    const Sidenav = {
+      template: `
+        <div class="sidenav" :class="{ collapsed: store.sidenavCollapsed }">
+          <div style="padding: 12px; color: var(--text-secondary);">Sidenav</div>
+        </div>
+      `,
+      setup() {
+        return { store };
+      },
+    };
+
+    const MenuBar = {
+      template: `
+        <div class="menu-bar">
+          <span style="color: var(--text-secondary);">Menu Bar</span>
+        </div>
+      `,
+      setup() {
+        return { store };
+      },
+    };
+
+    const Terminal = {
+      template: `
+        <div class="terminal" :class="{ expanded: store.terminalExpanded }">
+          <div class="terminal-header" @click="actions.toggleTerminal">
+            <span>Terminal</span>
+          </div>
+          <div class="terminal-content">
+            <div style="color: var(--text-secondary);">$ ready</div>
+          </div>
+        </div>
+      `,
+      setup() {
+        return { store, actions };
+      },
+    };
+
+    // ============================================
+    // APP INIT
+    // ============================================
+    const app = createApp({
+      template: `
+        <div class="app-layout" :class="'theme-' + store.theme">
+          <MenuBar />
+          <div class="body-area">
+            <Sidenav />
+            <div class="main-area">
+              <div class="content-area">
+                <div class="viewport">
+                  <div style="padding: 12px; color: var(--text-secondary);">Viewport</div>
+                </div>
+                <Terminal />
+              </div>
+            </div>
+          </div>
+        </div>
+      `,
+      setup() {
+        return { store };
+      },
+    });
+
+    app.component('Sidenav', Sidenav);
+    app.component('MenuBar', MenuBar);
+    app.component('Terminal', Terminal);
+
+    app.mount('#app');
+
+    // Console instructions
+    console.log('Prometheus Dev Console');
+    console.log('----------------------');
+    console.log('store.theme = "light"   // switch to light theme');
+    console.log('store.theme = "dark"    // switch to dark theme');
+    console.log('actions.toggleSidenav() // toggle sidenav');
+    console.log('actions.toggleTerminal()// toggle terminal (0 <-> 200px)');
+  </script>
+</body>
+</html>
