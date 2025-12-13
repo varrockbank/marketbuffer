@@ -5,12 +5,10 @@ export const HomeView = {
   components: { Window },
   template: `
     <div class="home-view">
-      <Window v-for="type in windowTypes" :key="type" :type="type" />
+      <Window v-for="type in store.openWindows" :key="type" :type="type" />
     </div>
   `,
   setup() {
-    const windowTypes = ['data', 'stream', 'code'];
-
-    return { store, windowTypes };
+    return { store };
   },
 };

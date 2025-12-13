@@ -1,13 +1,13 @@
 import { store } from '../store.js';
-import { Window } from './Window.js';
+import { WindowViewport } from './WindowViewport.js';
 import { HomeView } from './HomeView.js';
 
 export const Viewport = {
-  components: { Window, HomeView },
+  components: { WindowViewport, HomeView },
   template: `
     <div class="viewport">
       <HomeView v-if="isHome" />
-      <Window v-else />
+      <WindowViewport v-else />
     </div>
   `,
   setup() {

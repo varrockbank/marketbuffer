@@ -1,21 +1,16 @@
 import { store } from '../store.js';
-import { WindowMenu } from './WindowMenu.js';
-import { WindowContent } from './WindowContent.js';
-import { Terminal } from './Terminal.js';
+import { TitleBar } from './TitleBar.js';
+import { WindowViewport } from './WindowViewport.js';
 
 export const Window = {
-  components: { WindowMenu, WindowContent, Terminal },
+  components: { TitleBar, WindowViewport },
   props: {
-    type: { type: String, default: null },
+    type: { type: String, required: true },
   },
   template: `
     <div class="window">
-      <WindowMenu :type="type" />
-      <div class="window-main">
-        <WindowContent v-if="type" :type="type" />
-        <router-view v-else />
-        <Terminal />
-      </div>
+      <TitleBar :type="type" />
+      <WindowViewport :type="type" />
     </div>
   `,
   setup(props) {

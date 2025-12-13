@@ -18,6 +18,9 @@ export const store = reactive({
   activeMenuItem: 'yap',
   currentProject: 'prometheus',
   activeFile: null,
+
+  // Windows
+  openWindows: ['data', 'stream', 'code'],
 });
 
 // ============================================
@@ -42,6 +45,19 @@ export const actions = {
 
   toggleSubSidenav() {
     store.subSidenavCollapsed = !store.subSidenavCollapsed;
+  },
+
+  closeWindow(type) {
+    const index = store.openWindows.indexOf(type);
+    if (index > -1) {
+      store.openWindows.splice(index, 1);
+    }
+  },
+
+  openWindow(type) {
+    if (!store.openWindows.includes(type)) {
+      store.openWindows.push(type);
+    }
   },
 };
 
