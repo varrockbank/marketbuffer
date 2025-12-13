@@ -2,6 +2,9 @@ import { store, actions } from '../store.js';
 import { MenuBarButton } from './MenuBarButton.js';
 import { Brand } from './Brand.js';
 
+const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+const modKey = isMac ? '⌘' : 'Ctrl';
+
 const icons = {
   sidenav: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/>',
   subSidenav: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/>',
@@ -16,16 +19,42 @@ export const MenuBar = {
     <div class="menu-bar">
       <Brand />
       <div class="menu-bar-right">
-        <MenuBarButton :icon="themeIcon" :title="themeTitle" @click="actions.toggleTheme" />
-        <MenuBarButton :icon="icons.sidenav" title="Toggle Sidenav" @click="actions.toggleSidenav" />
-        <MenuBarButton :icon="icons.subSidenav" title="Toggle Panel" @click="actions.toggleSubSidenav" />
-        <MenuBarButton :icon="icons.terminal" title="Toggle Terminal" @click="actions.toggleTerminal" />
+        <MenuBarButton :icon="themeIcon" :title="themeTitle + ' (' + modKey + '⇧T)'" @click="actions.toggleTheme" />
+        <MenuBarButton :icon="icons.sidenav" :title="'Toggle Sidenav (' + modKey + 'B)'" @click="actions.toggleSidenav" />
+        <MenuBarButton :icon="icons.subSidenav" :title="'Toggle Panel (' + modKey + 'J)'" @click="actions.toggleSubSidenav" />
+        <MenuBarButton :icon="icons.terminal" :title="terminalTitle" @click="actions.toggleTerminal" />
       </div>
     </div>
   `,
   setup() {
     const themeIcon = Vue.computed(() => store.theme === 'dark' ? icons.sun : icons.moon);
     const themeTitle = Vue.computed(() => store.theme === 'dark' ? 'Light mode' : 'Dark mode');
-    return { store, actions, icons, themeIcon, themeTitle };
+    const terminalTitle = 'Toggle Terminal (' + modKey + '`)';
+
+    Vue.onMounted(() => {
+      const handleKeydown = (e) => {
+        const mod = isMac ? e.metaKey : e.ctrlKey;
+        if (!mod) return;
+
+        if (e.shiftKey && e.key.toLowerCase() === 't') {
+          e.preventDefault();
+          actions.toggleTheme();
+        } else if (e.key.toLowerCase() === 'b') {
+          e.preventDefault();
+          actions.toggleSidenav();
+        } else if (e.key.toLowerCase() === 'j') {
+          e.preventDefault();
+          actions.toggleSubSidenav();
+        } else if (e.key === '`') {
+          e.preventDefault();
+          actions.toggleTerminal();
+        }
+      };
+
+      window.addEventListener('keydown', handleKeydown);
+      Vue.onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
+    });
+
+    return { store, actions, icons, themeIcon, themeTitle, terminalTitle, modKey };
   },
 };
