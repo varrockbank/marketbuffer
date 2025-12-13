@@ -6,6 +6,7 @@ const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 const modKey = isMac ? '⌘' : 'Ctrl';
 
 const icons = {
+  home: '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
   sidenav: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/>',
   subSidenav: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/>',
   terminal: '<polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>',
@@ -20,6 +21,7 @@ export const MenuBar = {
     <div class="menu-bar">
       <Brand />
       <div class="menu-bar-right">
+        <MenuBarButton :icon="icons.home" title="Home" @click="goHome" />
         <MenuBarButton :icon="themeIcon" :title="themeTitle + ' (' + modKey + '⇧T)'" @click="actions.toggleTheme" />
         <MenuBarButton :icon="icons.contrast" :title="contrastTitle + ' (' + modKey + '⇧C)'" @click="actions.toggleContrast" />
         <MenuBarButton :icon="icons.sidenav" :title="'Toggle Sidenav (' + modKey + 'B)'" @click="actions.toggleSidenav" />
@@ -29,10 +31,15 @@ export const MenuBar = {
     </div>
   `,
   setup() {
+    const router = VueRouter.useRouter();
     const themeIcon = Vue.computed(() => store.theme === 'dark' ? icons.sun : icons.moon);
     const themeTitle = Vue.computed(() => store.theme === 'dark' ? 'Light mode' : 'Dark mode');
     const contrastTitle = Vue.computed(() => store.contrast ? 'Borderless' : 'Border');
     const terminalTitle = 'Toggle Terminal (' + modKey + '`)';
+
+    const goHome = () => {
+      router.push('/');
+    };
 
     Vue.onMounted(() => {
       const handleKeydown = (e) => {
@@ -61,6 +68,6 @@ export const MenuBar = {
       Vue.onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
     });
 
-    return { store, actions, icons, themeIcon, themeTitle, contrastTitle, terminalTitle, modKey };
+    return { store, actions, icons, themeIcon, themeTitle, contrastTitle, terminalTitle, modKey, goHome };
   },
 };
