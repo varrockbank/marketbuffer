@@ -146,85 +146,14 @@
 <body>
   <div id="app"></div>
 
-  <script>
-    const { createApp, reactive, computed } = Vue;
+  <script type="module">
+    import { store, actions } from './store.js';
+    import { Sidenav } from './components/Sidenav.js';
+    import { MenuBar } from './components/MenuBar.js';
+    import { Viewport } from './components/Viewport.js';
+    import { Terminal } from './components/Terminal.js';
 
-    // ============================================
-    // GLOBAL STORE
-    // ============================================
-    const store = reactive({
-      // Theme
-      theme: 'dark', // 'dark' | 'light'
-
-      // UI State
-      sidenavCollapsed: false,
-      terminalExpanded: false,
-    });
-
-    // Expose store to console for testing
-    window.store = store;
-
-    // ============================================
-    // ACTIONS
-    // ============================================
-    const actions = {
-      toggleTheme() {
-        store.theme = store.theme === 'dark' ? 'light' : 'dark';
-      },
-
-      toggleSidenav() {
-        store.sidenavCollapsed = !store.sidenavCollapsed;
-      },
-
-      toggleTerminal() {
-        store.terminalExpanded = !store.terminalExpanded;
-      },
-    };
-
-    // Expose actions to console for testing
-    window.actions = actions;
-
-    // ============================================
-    // COMPONENTS
-    // ============================================
-
-    const Sidenav = {
-      template: `
-        <div class="sidenav" :class="{ collapsed: store.sidenavCollapsed }">
-          <div style="padding: 12px; color: var(--text-secondary);">Sidenav</div>
-        </div>
-      `,
-      setup() {
-        return { store };
-      },
-    };
-
-    const MenuBar = {
-      template: `
-        <div class="menu-bar">
-          <span style="color: var(--text-secondary);">Menu Bar</span>
-        </div>
-      `,
-      setup() {
-        return { store };
-      },
-    };
-
-    const Terminal = {
-      template: `
-        <div class="terminal" :class="{ expanded: store.terminalExpanded }">
-          <div class="terminal-header" @click="actions.toggleTerminal">
-            <span>Terminal</span>
-          </div>
-          <div class="terminal-content">
-            <div style="color: var(--text-secondary);">$ ready</div>
-          </div>
-        </div>
-      `,
-      setup() {
-        return { store, actions };
-      },
-    };
+    const { createApp } = Vue;
 
     // ============================================
     // APP INIT
@@ -237,9 +166,7 @@
             <Sidenav />
             <div class="main-area">
               <div class="content-area">
-                <div class="viewport">
-                  <div style="padding: 12px; color: var(--text-secondary);">Viewport</div>
-                </div>
+                <Viewport />
                 <Terminal />
               </div>
             </div>
@@ -253,6 +180,7 @@
 
     app.component('Sidenav', Sidenav);
     app.component('MenuBar', MenuBar);
+    app.component('Viewport', Viewport);
     app.component('Terminal', Terminal);
 
     app.mount('#app');
