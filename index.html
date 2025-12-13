@@ -619,24 +619,47 @@
     }
 
     .sidebar-item {
-      padding: 6px 12px 6px 24px;
+      padding: 6px 12px 6px 6px;
       font-size: 11px;
       cursor: pointer;
       position: relative;
     }
 
     .sidebar-item:hover {
-      background: var(--text-color);
-      color: var(--window-bg);
+      background: transparent;
     }
 
     .sidebar-item.active {
+      background: transparent;
+    }
+
+    .sidebar-item-inner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px;
+      border-radius: 4px;
+      transition: all 0.1s ease-out;
+    }
+
+    .sidebar-item:hover .sidebar-item-inner {
+      background: var(--text-color);
+      color: var(--window-bg);
+      box-shadow:
+        inset -1px -1px 0 0 var(--window-border),
+        inset 1px 1px 0 0 rgba(255,255,255,0.3);
+    }
+
+    .sidebar-item.active .sidebar-item-inner {
       background: var(--selected-bg);
+      box-shadow:
+        inset -1px -1px 0 0 var(--window-border),
+        inset 1px 1px 0 0 rgba(255,255,255,0.2);
     }
 
     .sidebar-item-icon {
       position: absolute;
-      left: 8px;
+      left: 4px;
       top: 50%;
       transform: translateY(-50%);
       font-size: 10px;
@@ -648,13 +671,7 @@
     }
 
     #search-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 12px 10px 13px;
-      font-size: 13px;
-      height: 36px;
-      box-sizing: border-box;
+      padding: 4px 8px;
     }
 
     #search-item .sidebar-item-icon {
@@ -709,6 +726,11 @@
       overflow: visible;
     }
 
+    /* Center icons when collapsed */
+    .sidebar-container.collapsed .sidebar-item .sidebar-item-icon {
+      left: 4px;
+    }
+
     /* Tooltips for collapsed sidebar */
     .sidebar-container.collapsed .sidebar-item {
       position: relative;
@@ -717,17 +739,14 @@
     .sidebar-container.collapsed .sidebar-item::after {
       content: attr(data-tooltip);
       position: absolute;
-      left: 39px;
+      left: 45px;
       top: 50%;
       transform: translateY(-50%);
       padding: 4px 8px;
       background: #000;
       color: #fff;
-      border: 2px solid var(--window-border);
-      box-shadow:
-        inset -1px -1px 0 0 #333,
-        inset 1px 1px 0 0 #444,
-        2px 2px 0 0 rgba(0, 0, 0, 0.15);
+      border-radius: 4px;
+      box-shadow: 2px 2px 0 0 rgba(0, 0, 0, 0.15);
       font-size: 12px;
       white-space: nowrap;
       opacity: 0;
@@ -776,38 +795,11 @@
       background: #6a5a96;
     }
 
-    #deploy-item,
-    #operate-item,
-    #lobby-item,
-    #notifications-item,
-    #data-item,
-    #author-item,
-    #code-item,
-    #git-item,
-    #simulate-item,
-    #agents-item,
-    #work-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 12px 10px 13px;
-      font-size: 13px;
-      height: 36px;
-      box-sizing: border-box;
+    #nav-section .sidebar-item {
+      padding: 4px 8px;
     }
 
-    #new-chat-item .sidebar-item-icon,
-    #deploy-item .sidebar-item-icon,
-    #operate-item .sidebar-item-icon,
-    #lobby-item .sidebar-item-icon,
-    #notifications-item .sidebar-item-icon,
-    #data-item .sidebar-item-icon,
-    #author-item .sidebar-item-icon,
-    #code-item .sidebar-item-icon,
-    #git-item .sidebar-item-icon,
-    #simulate-item .sidebar-item-icon,
-    #agents-item .sidebar-item-icon,
-    #work-item .sidebar-item-icon {
+    #nav-section .sidebar-item-icon {
       position: static;
       transform: none;
       flex-shrink: 0;
@@ -2511,51 +2503,73 @@
       <div class="primary-sidebar" id="primary-sidebar">
         <div class="sidebar-section" id="search-section">
           <div class="sidebar-item" id="search-item" data-tooltip="Jump">
-            <span class="sidebar-item-icon" style="font-size: 16px; font-weight: bold; color: #83C18D;">&gt;</span>
-            <span class="search-label">Jump</span>
+            <div class="sidebar-item-inner">
+              <span class="sidebar-item-icon" style="font-size: 16px; font-weight: bold; color: #83C18D;">&gt;</span>
+              <span class="search-label">Jump</span>
+            </div>
           </div>
         </div>
         <div class="sidebar-scrollable" id="sidebar-scrollable">
           <div class="sidebar-section" id="nav-section">
             <div class="sidebar-item" id="lobby-item" data-tooltip="Yap">
-              <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-              <span class="sidebar-item-label">Yap</span>
+              <div class="sidebar-item-inner">
+                <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span class="sidebar-item-label">Yap</span>
+              </div>
             </div>
             <div class="sidebar-item" id="operate-item" data-tooltip="Deployments">
-              <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
-              <span class="sidebar-item-label">Deployments</span>
+              <div class="sidebar-item-inner">
+                <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+                <span class="sidebar-item-label">Deployments</span>
+              </div>
             </div>
             <div class="sidebar-item" id="data-item" data-tooltip="Data">
-              <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>
-              <span class="sidebar-item-label">Data</span>
+              <div class="sidebar-item-inner">
+                <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>
+                <span class="sidebar-item-label">Data</span>
+              </div>
             </div>
             <div class="sidebar-item" id="notifications-item" data-tooltip="Stream">
-              <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18c1-1 2-2 4-2 3 0 3 2 5 2s3-4 5-8c1-2 2-4 4-4"/><path d="M12 10c.5-1 1.5-2 3-2"/><path d="M10 12c.3-.5 1-1 2-1"/><path d="M3 20h18"/></svg>
-              <span class="sidebar-item-label">Stream</span>
+              <div class="sidebar-item-inner">
+                <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+                <span class="sidebar-item-label">Stream</span>
+              </div>
             </div>
-            <div class="sidebar-item" id="author-item" data-tooltip="Author">
-              <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
-              <span class="sidebar-item-label">Author</span>
+            <div class="sidebar-item" id="publish-item" data-tooltip="Publish">
+              <div class="sidebar-item-inner">
+                <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/></svg>
+                <span class="sidebar-item-label">Publish</span>
+              </div>
             </div>
             <div class="sidebar-item" id="code-item" data-tooltip="Code">
-              <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-              <span class="sidebar-item-label">Code</span>
+              <div class="sidebar-item-inner">
+                <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                <span class="sidebar-item-label">Code</span>
+              </div>
             </div>
             <div class="sidebar-item" id="git-item" data-tooltip="Git">
-              <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><path d="M6 9v12"/></svg>
-              <span class="sidebar-item-label">Git</span>
+              <div class="sidebar-item-inner">
+                <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><path d="M6 9v12"/></svg>
+                <span class="sidebar-item-label">Git</span>
+              </div>
             </div>
             <div class="sidebar-item" id="simulate-item" data-tooltip="Simulate">
-              <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
-              <span class="sidebar-item-label">Simulate</span>
+              <div class="sidebar-item-inner">
+                <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 7V5a1 1 0 0 0-1-1H6.5a.5.5 0 0 0-.4.8l4.5 6a2 2 0 0 1 0 2.4l-4.5 6a.5.5 0 0 0 .4.8H17a1 1 0 0 0 1-1v-2"/></svg>
+                <span class="sidebar-item-label">Simulate</span>
+              </div>
             </div>
             <div class="sidebar-item" id="agents-item" data-tooltip="Agents">
-              <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
-              <span class="sidebar-item-label">Agents</span>
+              <div class="sidebar-item-inner">
+                <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+                <span class="sidebar-item-label">Agents</span>
+              </div>
             </div>
             <div class="sidebar-item active" id="work-item" data-tooltip="Home">
-              <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-              <span class="sidebar-item-label">Home</span>
+              <div class="sidebar-item-inner">
+                <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                <span class="sidebar-item-label">Home</span>
+              </div>
             </div>
           </div>
           <div class="sidebar-separator"></div>
@@ -3831,7 +3845,7 @@
       'deploy-item': 'deploy',
       'data-item': 'data',
       'notifications-item': 'feed',
-      'author-item': 'author',
+      'publish-item': 'author',
       'code-item': 'code',
       'git-item': 'git',
       'simulate-item': 'simulate',
