@@ -1,0 +1,326 @@
+<!-- Yap Modality - Chat App View -->
+<style>
+  .yap-container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    background: var(--window-bg);
+    color: var(--text-color);
+    font-family: 'Chicago', 'Monaco', 'Courier New', monospace;
+    font-size: 12px;
+  }
+
+  .yap-channels {
+    width: 280px;
+    flex-shrink: 0;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--window-border);
+    overflow-y: auto;
+    padding: 12px 0;
+  }
+
+  .yap-channels-header {
+    padding: 8px 16px;
+    font-weight: bold;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .yap-channel {
+    padding: 6px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .yap-channel:hover {
+    background: var(--hover-bg);
+  }
+
+  .yap-channel.active {
+    background: var(--selected-bg);
+  }
+
+  .yap-channel-hash {
+    color: var(--text-muted);
+    font-weight: bold;
+  }
+
+  .yap-channel-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .yap-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .yap-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--window-border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .yap-header-hash {
+    color: var(--text-muted);
+    font-size: 16px;
+    font-weight: bold;
+  }
+
+  .yap-header-name {
+    font-weight: bold;
+    font-size: 14px;
+  }
+
+  .yap-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .yap-message {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .yap-message-time {
+    color: var(--text-muted);
+    font-size: 10px;
+    flex-shrink: 0;
+    width: 50px;
+    padding-top: 2px;
+  }
+
+  .yap-message-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .yap-message-author {
+    font-weight: bold;
+    margin-bottom: 2px;
+  }
+
+  .yap-message-text {
+    line-height: 1.4;
+    word-wrap: break-word;
+  }
+
+  .yap-input-wrapper {
+    padding: 12px 16px;
+    border-top: 1px solid var(--window-border);
+    flex-shrink: 0;
+  }
+
+  .yap-input {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 12px;
+    outline: none;
+    box-sizing: border-box;
+  }
+
+  .yap-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .yap-input:focus {
+    border-color: var(--text-color);
+  }
+</style>
+
+<div class="yap-container">
+  <div class="yap-channels">
+    <div class="yap-channels-header">AI Chats</div>
+    <div class="yap-channel" data-channel="market-analysis">
+      <span class="yap-channel-hash">~</span>
+      <span class="yap-channel-name">Market analysis</span>
+    </div>
+    <div class="yap-channel" data-channel="portfolio-review">
+      <span class="yap-channel-hash">~</span>
+      <span class="yap-channel-name">Portfolio review</span>
+    </div>
+    <div class="yap-channel" data-channel="trading-strategy">
+      <span class="yap-channel-hash">~</span>
+      <span class="yap-channel-name">Trading strategy</span>
+    </div>
+
+    <div class="yap-channels-header">DMs</div>
+    <div class="yap-channel" data-channel="alice">
+      <span class="yap-channel-hash">@</span>
+      <span class="yap-channel-name">alice</span>
+    </div>
+    <div class="yap-channel" data-channel="bob">
+      <span class="yap-channel-hash">@</span>
+      <span class="yap-channel-name">bob</span>
+    </div>
+    <div class="yap-channel" data-channel="charlie">
+      <span class="yap-channel-hash">@</span>
+      <span class="yap-channel-name">charlie</span>
+    </div>
+    <div class="yap-channel" data-channel="dave">
+      <span class="yap-channel-hash">@</span>
+      <span class="yap-channel-name">dave</span>
+    </div>
+
+    <div class="yap-channels-header">Channels</div>
+    <div class="yap-channel active" data-channel="general">
+      <span class="yap-channel-hash">#</span>
+      <span class="yap-channel-name">general</span>
+    </div>
+    <div class="yap-channel" data-channel="random">
+      <span class="yap-channel-hash">#</span>
+      <span class="yap-channel-name">random</span>
+    </div>
+    <div class="yap-channel" data-channel="trading">
+      <span class="yap-channel-hash">#</span>
+      <span class="yap-channel-name">trading</span>
+    </div>
+    <div class="yap-channel" data-channel="markets">
+      <span class="yap-channel-hash">#</span>
+      <span class="yap-channel-name">markets</span>
+    </div>
+    <div class="yap-channel" data-channel="tech">
+      <span class="yap-channel-hash">#</span>
+      <span class="yap-channel-name">tech</span>
+    </div>
+    <div class="yap-channel" data-channel="off-topic">
+      <span class="yap-channel-hash">#</span>
+      <span class="yap-channel-name">off-topic</span>
+    </div>
+    <div class="yap-channel" data-channel="announcements">
+      <span class="yap-channel-hash">#</span>
+      <span class="yap-channel-name">announcements</span>
+    </div>
+    <div class="yap-channel" data-channel="help">
+      <span class="yap-channel-hash">#</span>
+      <span class="yap-channel-name">help</span>
+    </div>
+  </div>
+  <div class="yap-main">
+    <div class="yap-header">
+      <span class="yap-header-hash">#</span>
+      <span class="yap-header-name">general</span>
+    </div>
+    <div class="yap-messages" id="yap-messages">
+      <div class="yap-message">
+        <span class="yap-message-time">9:15 AM</span>
+        <div class="yap-message-content">
+          <div class="yap-message-author">alice</div>
+          <div class="yap-message-text">Good morning everyone! Ready for another trading day?</div>
+        </div>
+      </div>
+      <div class="yap-message">
+        <span class="yap-message-time">9:17 AM</span>
+        <div class="yap-message-content">
+          <div class="yap-message-author">bob</div>
+          <div class="yap-message-text">Morning! Yeah, watching the pre-market closely. Looks like it might be volatile today.</div>
+        </div>
+      </div>
+      <div class="yap-message">
+        <span class="yap-message-time">9:22 AM</span>
+        <div class="yap-message-content">
+          <div class="yap-message-author">charlie</div>
+          <div class="yap-message-text">Did anyone see the Fed announcement yesterday? Thinking it might affect tech stocks.</div>
+        </div>
+      </div>
+      <div class="yap-message">
+        <span class="yap-message-time">9:25 AM</span>
+        <div class="yap-message-content">
+          <div class="yap-message-author">alice</div>
+          <div class="yap-message-text">Yeah, I'm keeping an eye on AAPL and MSFT. Might be some opportunities there.</div>
+        </div>
+      </div>
+      <div class="yap-message">
+        <span class="yap-message-time">9:31 AM</span>
+        <div class="yap-message-content">
+          <div class="yap-message-author">dave</div>
+          <div class="yap-message-text">Just joined. What's the sentiment today?</div>
+        </div>
+      </div>
+      <div class="yap-message">
+        <span class="yap-message-time">9:33 AM</span>
+        <div class="yap-message-content">
+          <div class="yap-message-author">bob</div>
+          <div class="yap-message-text">Cautiously optimistic. Futures are green but not by much.</div>
+        </div>
+      </div>
+      <div class="yap-message">
+        <span class="yap-message-time">9:40 AM</span>
+        <div class="yap-message-content">
+          <div class="yap-message-author">eve</div>
+          <div class="yap-message-text">Anyone looking at the energy sector? Oil prices have been interesting lately.</div>
+        </div>
+      </div>
+      <div class="yap-message">
+        <span class="yap-message-time">9:45 AM</span>
+        <div class="yap-message-content">
+          <div class="yap-message-author">charlie</div>
+          <div class="yap-message-text">I've been watching XOM. Might be a good entry point soon.</div>
+        </div>
+      </div>
+    </div>
+    <div class="yap-input-wrapper">
+      <input type="text" class="yap-input" placeholder="Message #general" id="yap-input">
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const channels = document.querySelectorAll('.yap-channel');
+  const headerHash = document.querySelector('.yap-header-hash');
+  const headerName = document.querySelector('.yap-header-name');
+  const input = document.getElementById('yap-input');
+
+  channels.forEach(channel => {
+    channel.addEventListener('click', () => {
+      channels.forEach(c => c.classList.remove('active'));
+      channel.classList.add('active');
+      const name = channel.dataset.channel;
+      const prefix = channel.querySelector('.yap-channel-hash').textContent;
+      headerHash.textContent = prefix;
+      headerName.textContent = name;
+      input.placeholder = `Message ${prefix}${name}`;
+    });
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && input.value.trim()) {
+      const messages = document.getElementById('yap-messages');
+      const now = new Date();
+      const time = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      const msg = document.createElement('div');
+      msg.className = 'yap-message';
+      msg.innerHTML = `
+        <span class="yap-message-time">${time}</span>
+        <div class="yap-message-content">
+          <div class="yap-message-author">you</div>
+          <div class="yap-message-text">${input.value}</div>
+        </div>
+      `;
+      messages.appendChild(msg);
+      messages.scrollTop = messages.scrollHeight;
+      input.value = '';
+    }
+  });
+})();
+</script>

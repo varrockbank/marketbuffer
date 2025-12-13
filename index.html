@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Marketbuffer</title>
   <script src="vendor/buffer.js"></script>
+  <script src="snap-grid.js"></script>
   <script src="os.js"></script>
   <script src="file-tree.js"></script>
+  <script src="app-launcher.js"></script>
   <link rel="stylesheet" href="vendor/buffer.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Chicago&display=swap');
@@ -93,6 +95,7 @@
 
     /* Menu Bar */
     .menu-bar {
+      position: relative;
       background: var(--menu-bg);
       border-bottom: 2px solid var(--menu-border);
       height: 28px;
@@ -100,11 +103,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 0 8px;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 1000;
+      flex-shrink: 0;
     }
 
     .menu-bar-left {
@@ -114,13 +113,7 @@
     }
 
     .sidebar-toggle-container {
-      width: 200px;
-      flex-shrink: 0;
-      transition: width 0.3s ease;
-    }
-
-    .sidebar-toggle-container.collapsed {
-      width: auto;
+      display: none;
     }
 
     .menu-bar-right {
@@ -137,7 +130,8 @@
       font-weight: bold;
     }
 
-    .menu-item:hover {
+    .menu-item:hover,
+    .menu-item.active {
       background: var(--text-color);
       color: var(--window-bg);
     }
@@ -291,11 +285,17 @@
       display: block;
     }
 
+    .menu-dropdown.right-align {
+      left: auto;
+      right: 0;
+    }
+
     .menu-dropdown-item {
       padding: 4px 12px 4px 24px;
       cursor: pointer;
       position: relative;
       white-space: nowrap;
+      color: var(--text-color);
     }
 
     .menu-dropdown-item:hover {
@@ -315,91 +315,477 @@
       margin: 4px 0;
     }
 
+    /* App Launcher Drawer */
+    .app-launcher {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--menu-bg);
+      border-top: 1px solid var(--menu-border);
+      border-bottom: 1px solid var(--menu-border);
+      padding: 0 24px;
+      overflow: hidden;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      max-height: 0;
+      opacity: 0;
+      transition: max-height 0.5s ease, opacity 0.5s ease, padding 0.5s ease;
+    }
+
+    .app-launcher.open {
+      max-height: 200px;
+      opacity: 1;
+      padding: 16px 24px;
+      overflow-x: auto;
+    }
+
+    .app-launcher-overflow-indicator {
+      display: none;
+      position: fixed;
+      width: 48px;
+      height: 48px;
+      background: var(--text-color);
+      border-radius: 50%;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      z-index: 1002;
+    }
+
+    .app-launcher-overflow-indicator.visible {
+      display: flex;
+    }
+
+    .app-launcher-overflow-indicator.right {
+      right: 24px;
+    }
+
+    .app-launcher-overflow-indicator.left {
+      left: 324px;
+    }
+
+    .app-launcher-overflow-indicator svg {
+      width: 24px;
+      height: 24px;
+      stroke: var(--menu-bg);
+    }
+
+    .app-launcher-overflow-indicator.left svg {
+      transform: rotate(180deg);
+    }
+
+
+    .app-launcher-grid {
+      display: flex;
+      gap: 24px;
+      justify-content: flex-start;
+    }
+
+    .app-launcher-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      padding: 12px;
+      border-radius: 8px;
+      min-width: 80px;
+      transition: background 0.15s ease;
+    }
+
+    .app-launcher-item:hover {
+      background: var(--hover-bg);
+    }
+
+    .app-launcher-item.active {
+      background: var(--hover-bg);
+    }
+
+    .app-launcher-icon {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--window-bg);
+      border: 1px solid var(--menu-border);
+      border-radius: 12px;
+      font-size: 24px;
+    }
+
+    .app-launcher-icon svg {
+      width: 28px;
+      height: 28px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .app-launcher-label {
+      font-size: 12px;
+      color: var(--text-color);
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
     /* Sidebar Toggle Button */
     .sidebar-toggle {
-      padding: 6px 8px;
+      width: 44px;
+      height: 28px;
       cursor: pointer;
-      font-size: 12px;
-      margin-right: 4px;
-      display: inline-block;
-      transition: transform 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .sidebar-toggle:hover {
-      background: var(--text-color);
-      color: var(--window-bg);
+      background: var(--hover-bg);
     }
 
-    .sidebar-toggle.collapsed {
-      transform: rotate(180deg);
+    .sidebar-toggle svg {
+      display: block;
+    }
+
+    .sidebar-toggle.collapsed svg {
+      transform: scaleX(-1);
     }
 
     /* Primary Sidebar Container */
     .sidebar-container {
-      width: 200px;
       flex-shrink: 0;
-      overflow: hidden;
-      transition: width 0.3s ease;
+      overflow: visible;
+      width: 160px;
+      transition: width 0.3s ease-in-out;
+      z-index: 100;
     }
 
     .sidebar-container.collapsed {
-      width: 0;
+      width: 44px;
     }
 
     /* Primary Sidebar */
     .primary-sidebar {
-      width: 200px;
+      width: 100%;
+      height: 100%;
       background: var(--window-bg);
       border-right: 2px solid var(--window-border);
       display: flex;
       flex-direction: column;
-      height: 100%;
+      overflow: visible;
+    }
+
+    /* Sidebar Header with Toggle */
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 44px;
+      flex-shrink: 0;
+      padding: 0 8px;
+      margin-bottom: 8px;
+      position: relative;
+    }
+
+    .sidebar-header .sidebar-toggle {
+      position: absolute;
+      right: 8px;
+    }
+
+    .sidebar-container.collapsed .sidebar-header .sidebar-toggle {
+      right: auto;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+
+
+    /* Project Selector */
+    .project-selector {
+      position: relative;
+      flex: 1;
+    }
+
+    .project-selector-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0;
+      cursor: pointer;
+      font-size: 13px;
+      border-radius: 4px;
+      width: 100%;
+    }
+
+    .project-selector-btn:hover {
+      background: transparent;
+    }
+
+    .project-selector-btn svg {
+      flex-shrink: 0;
+    }
+
+
+    .project-dropdown {
+      display: none;
+      position: fixed;
+      background: var(--menu-bg);
+      border: 1px solid var(--menu-border);
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      z-index: 1000;
+    }
+
+    .project-dropdown.open {
+      display: block;
+    }
+
+    .project-dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--text-color);
+    }
+
+    .project-dropdown-item:hover {
+      background: var(--hover-bg);
+    }
+
+    .project-dropdown-item .checkmark {
+      width: 16px;
+      flex-shrink: 0;
+    }
+
+    .project-dropdown-separator {
+      height: 1px;
+      background: var(--menu-border);
+      margin: 4px 12px;
+    }
+
+    .project-dropdown-item.new-project {
+      color: #83C18D;
+    }
+
+    .sidebar-separator {
+      height: 1px;
+      background: var(--window-border);
+      margin: 8px 12px;
     }
 
     .sidebar-section {
-      border-bottom: 1px solid var(--window-border);
     }
 
     .sidebar-section-header {
       padding: 8px 12px;
       font-weight: bold;
       font-size: 11px;
-      background: var(--sidebar-bg);
-      border-bottom: 1px solid var(--window-border);
+    }
+
+    .sidebar-section-header,
+    .pinned-files,
+    .file-tree,
+    #pinned-section,
+    .sidebar-section-files,
+    .sidebar-separator {
+      transition: opacity 0.1s ease-out 0.2s;
+    }
+
+    .sidebar-container.collapsed .sidebar-section-header,
+    .sidebar-container.collapsed .pinned-files,
+    .sidebar-container.collapsed .file-tree,
+    .sidebar-container.collapsed #pinned-section,
+    .sidebar-container.collapsed .sidebar-section-files,
+    .sidebar-container.collapsed .sidebar-separator {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.1s ease-out;
     }
 
     .sidebar-item {
-      padding: 6px 12px 6px 24px;
+      padding: 6px 12px 6px 6px;
       font-size: 11px;
       cursor: pointer;
       position: relative;
     }
 
     .sidebar-item:hover {
-      background: var(--text-color);
-      color: var(--window-bg);
+      background: transparent;
     }
 
     .sidebar-item.active {
+      background: transparent;
+    }
+
+    .sidebar-item-inner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px;
+      border-radius: 4px;
+      transition: all 0.1s ease-out;
+    }
+
+    .sidebar-item:hover .sidebar-item-inner {
+      background: #000;
+      color: #fff;
+    }
+
+    .sidebar-item.active .sidebar-item-inner {
       background: var(--selected-bg);
+      box-shadow:
+        inset -1px -1px 0 0 var(--window-border),
+        inset 1px 1px 0 0 rgba(255,255,255,0.2);
     }
 
     .sidebar-item-icon {
       position: absolute;
-      left: 8px;
+      left: 4px;
       top: 50%;
       transform: translateY(-50%);
       font-size: 10px;
     }
+    .sidebar-item-label,
+    .user-menu-btn .user-name,
+    .user-menu-btn .user-chevron,
+    .project-selector {
+      transition: opacity 0.1s ease-out 0.2s;
+    }
+
+    .sidebar-container.collapsed .sidebar-item-label,
+    .sidebar-container.collapsed .user-menu-btn .user-name,
+    .sidebar-container.collapsed .user-menu-btn .user-chevron,
+    .sidebar-container.collapsed .project-selector {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.1s ease-out;
+    }
+
+    /* Keep icons stationary when sidebar is collapsed */
+    .sidebar-container.collapsed .sidebar-scrollable {
+      overflow-x: hidden;
+    }
+
+    .sidebar-container.collapsed .sidebar-footer {
+      padding: 10px 12px 10px 11px;
+    }
+
+    /* Allow tooltips to overflow when collapsed */
+    .sidebar-container.collapsed .primary-sidebar {
+      overflow: visible;
+    }
+
+    .sidebar-container.collapsed .sidebar-scrollable {
+      overflow: visible;
+    }
+
+    .sidebar-container.collapsed #nav-section {
+      overflow: visible;
+    }
+
+    /* Center icons when collapsed */
+    .sidebar-container.collapsed .sidebar-item .sidebar-item-icon {
+      left: 4px;
+    }
+
+    /* Tooltips for collapsed sidebar */
+    .sidebar-container.collapsed .sidebar-item {
+      position: relative;
+    }
+
+    .sidebar-container.collapsed .sidebar-item::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: 45px;
+      top: 50%;
+      transform: translateY(-50%);
+      padding: 4px 8px;
+      background: #000;
+      color: #fff;
+      border-radius: 4px;
+      box-shadow: 2px 2px 0 0 rgba(0, 0, 0, 0.15);
+      font-size: 12px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s ease-out;
+      z-index: 1000;
+    }
+
+    .sidebar-container.collapsed .sidebar-item:hover::after {
+      opacity: 1;
+    }
+
+    #nav-section .sidebar-item .sidebar-item-icon {
+      transition: transform 0.15s ease-out;
+    }
+
+    #nav-section .sidebar-item:hover .sidebar-item-icon {
+      transform: rotate(30deg);
+    }
+
+    #search-item .sidebar-item-icon {
+      transition: transform 0.15s ease-out;
+    }
+
+    #search-item:hover .sidebar-item-icon {
+      transform: rotate(30deg);
+    }
+
+    #new-chat-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px 10px 13px;
+      font-size: 13px;
+      height: 36px;
+      box-sizing: border-box;
+    }
+
+    #new-chat-item .sidebar-item-icon {
+      background: #7A68AA;
+      color: #fff;
+      border-radius: 4px;
+    }
+
+    #new-chat-item:hover .sidebar-item-icon {
+      background: #6a5a96;
+    }
+
+    #nav-section .sidebar-item {
+      padding: 2px 8px;
+    }
+
+    #nav-section .sidebar-item-icon {
+      position: static;
+      transform: none;
+      flex-shrink: 0;
+    }
+
 
     .sidebar-spacer {
       flex: 1;
     }
 
+    /* Sidebar Scrollable Content */
+    .sidebar-scrollable {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
     /* File Tree */
     .file-tree {
       flex: 1;
-      overflow-y: auto;
       padding: 4px 0;
     }
 
@@ -413,11 +799,18 @@
       align-items: center;
       padding: 3px 8px;
       font-size: 11px;
+      position: relative;
     }
 
     .tree-item-row:hover {
       background: var(--text-color);
       color: var(--window-bg);
+    }
+
+    .tree-item-row:has(.tree-file-menu-btn:hover),
+    .tree-item-row:has(.tree-item-menu.open) {
+      background: transparent;
+      color: var(--text-color);
     }
 
     .tree-item-row.selected {
@@ -476,12 +869,105 @@
       opacity: 1;
     }
 
+    /* Tree File Menu Button */
+    .tree-file-menu-btn {
+      opacity: 0;
+      background: none;
+      border: none;
+      padding: 0 4px;
+      margin: -3px -8px -3px auto;
+      align-self: stretch;
+      cursor: pointer;
+      color: inherit;
+      display: flex;
+      align-items: center;
+    }
+
+    .tree-file-menu-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .tree-item-row:hover .tree-file-menu-btn {
+      opacity: 1;
+    }
+
+    .tree-item-row:has(.tree-file-menu-btn:hover),
+    .tree-item-row:has(.tree-item-menu.open) {
+      background: transparent;
+      color: var(--text-color);
+    }
+
+    .tree-item-row:has(.tree-file-menu-btn:hover) .tree-file-menu-btn,
+    .tree-item-row:has(.tree-item-menu.open) .tree-file-menu-btn {
+      opacity: 1;
+    }
+
+    .tree-file-menu-btn:hover,
+    .tree-item-row:has(.tree-item-menu.open) .tree-file-menu-btn {
+      background: var(--text-color);
+      color: var(--window-bg);
+    }
+
+    /* Tree Item Context Menu */
+    .tree-item-menu {
+      display: none;
+      position: fixed;
+      min-width: 120px;
+      background: var(--menu-bg);
+      border: 1px solid var(--menu-border);
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      z-index: 1000;
+    }
+
+    .tree-item-menu.open {
+      display: block;
+    }
+
+    .tree-item-menu-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--text-color);
+    }
+
+    .tree-item-menu-option .menu-icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .tree-item-menu-option .menu-icon svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .tree-item-menu-option:hover {
+      background: var(--hover-bg);
+    }
+
+    .tree-item-menu-option.delete {
+      color: #e55;
+    }
+
+    .tree-item-menu-separator {
+      height: 1px;
+      background: var(--menu-border);
+      margin: 4px 12px;
+    }
+
     .pinned-item {
       display: flex;
       align-items: center;
-      padding: 3px 8px;
+      padding: 6px 12px 6px 13px;
       font-size: 11px;
       cursor: pointer;
+      position: relative;
+      gap: 8px;
     }
 
     .pinned-item:hover {
@@ -489,9 +975,17 @@
       color: var(--window-bg);
     }
 
+    .pinned-item:has(.pinned-item-menu-btn:hover),
+    .pinned-item:has(.pinned-item-menu.open) {
+      background: transparent;
+      color: var(--text-color);
+    }
+
     .pinned-item-icon {
-      margin-right: 4px;
       font-size: 10px;
+      flex-shrink: 0;
+      width: 16px;
+      text-align: center;
     }
 
     .pinned-item-name {
@@ -500,18 +994,86 @@
       text-overflow: ellipsis;
     }
 
-    .pinned-item-unpin {
+    .pinned-item-menu-btn {
       opacity: 0;
       cursor: pointer;
-      font-size: 10px;
+      font-size: 14px;
+      padding: 0 12px;
+      margin: -6px -12px -6px 0;
+      display: flex;
+      align-items: center;
+      align-self: stretch;
     }
 
-    .pinned-item:hover .pinned-item-unpin {
-      opacity: 0.5;
+    .pinned-item:hover .pinned-item-menu-btn {
+      opacity: 1;
+      color: var(--window-bg);
     }
 
-    .pinned-item-unpin:hover {
-      opacity: 1 !important;
+    .pinned-item:has(.pinned-item-menu-btn:hover) .pinned-item-menu-btn,
+    .pinned-item:has(.pinned-item-menu.open) .pinned-item-menu-btn {
+      opacity: 1;
+      color: var(--text-color);
+    }
+
+    .pinned-item-menu-btn:hover,
+    .pinned-item:has(.pinned-item-menu.open) .pinned-item-menu-btn {
+      background: var(--text-color);
+      color: var(--window-bg) !important;
+    }
+
+    /* Pinned Item Context Menu */
+    .pinned-item-menu {
+      display: none;
+      position: absolute;
+      right: 8px;
+      top: 100%;
+      min-width: 120px;
+      background: var(--menu-bg);
+      border: 1px solid var(--menu-border);
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      z-index: 1000;
+      margin-top: 2px;
+    }
+
+    .pinned-item-menu.open {
+      display: block;
+    }
+
+    .pinned-item-menu-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--text-color);
+    }
+
+    .pinned-item-menu-option .menu-icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .pinned-item-menu-option .menu-icon svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .pinned-item-menu-option:hover {
+      background: var(--hover-bg);
+    }
+
+    .pinned-item-menu-option.delete {
+      color: #e55;
+    }
+
+    .pinned-item-menu-separator {
+      height: 1px;
+      background: var(--menu-border);
+      margin: 4px 12px;
     }
 
     .tree-children {
@@ -528,22 +1090,453 @@
     .tree-item[data-depth="3"] > .tree-item-row { padding-left: 50px; }
     .tree-item[data-depth="4"] > .tree-item-row { padding-left: 64px; }
 
-    .sidebar-footer {
-      padding: 8px 12px;
-      font-size: 10px;
-      color: var(--text-muted);
-      border-top: 1px solid var(--window-border);
-      background: var(--sidebar-bg);
+    .sidebar-actions {
+      padding: 8px 0 0 0;
+      overflow: visible;
     }
 
-    /* Main Layout Container */
-    .main-layout {
+    .sidebar-actions .sidebar-item {
+      padding: 2px 8px;
+    }
+
+    .sidebar-actions .sidebar-separator {
+      margin: 8px 20px;
+    }
+
+    /*
+     * TOGGLE BUTTON - Special case
+     * Expanded: "Marketbuffer" title on left, toggle icon on right
+     * Collapsed: title fades out, toggle icon slides to left (aligns with other icons)
+     * Uses absolute positioning for toggle so it animates independently
+     */
+    #sidebar-toggle-btn {
+      position: relative;
+      overflow: visible;
+    }
+
+    /* Title: "M" + "arketbuffer" */
+    #sidebar-toggle-btn .sidebar-item-inner {
+      gap: 0;
+      opacity: 1;
+      transition: opacity 0.3s ease-in-out;
+    }
+
+    #sidebar-toggle-btn .sidebar-item-label {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-weight: 300;
+      font-size: 16px;
+      margin-left: -4px;
+    }
+
+    #sidebar-toggle-btn .title-icon {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-weight: 300;
+      font-size: 16px;
+      width: auto;
+      height: auto;
+      display: inline-block;
+      margin-left: 1px;
+      margin-right: 4px;
+      transition: transform 0.15s ease-out;
+    }
+
+    #sidebar-toggle-btn:hover .sidebar-item-inner,
+    #sidebar-toggle-btn .sidebar-item-inner:hover {
+      background: transparent;
+      box-shadow: none;
+      color: inherit;
+    }
+
+    /* Toggle icon - absolutely positioned, animates via 'left' */
+    #sidebar-toggle-btn .toggle-icon-wrapper {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      right: 8px;
+      left: auto;
       display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      border-radius: 4px;
+      transition: left 0.3s ease-in-out, right 0.3s ease-in-out, background 0.1s ease-out;
+      cursor: pointer;
+    }
+
+    #sidebar-toggle-btn .toggle-icon-wrapper:hover {
+      background: #000;
+      color: #fff;
+    }
+
+    #sidebar-toggle-btn .toggle-icon {
+      display: block;
+    }
+
+    /* Tooltip for toggle icon */
+    #sidebar-toggle-btn .toggle-icon-wrapper::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: 100%;
+      top: 50%;
+      transform: translateY(-50%);
+      margin-left: 10px;
+      padding: 4px 8px;
+      background: #000;
+      color: #fff;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: 400;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s ease-out;
+      z-index: 10000;
+    }
+
+    #sidebar-toggle-btn .toggle-icon-wrapper:hover::after {
+      opacity: 1;
+    }
+
+    .sidebar-container.animating #sidebar-toggle-btn .toggle-icon-wrapper::after {
+      opacity: 0 !important;
+      transition: none;
+    }
+
+    /* Collapsed state */
+    .sidebar-container.collapsed .sidebar-actions {
+      overflow: visible;
+    }
+
+    .sidebar-container.collapsed #sidebar-toggle-btn .sidebar-item-inner {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .sidebar-container.collapsed #sidebar-toggle-btn .toggle-icon-wrapper {
+      left: 8px;
+      right: auto;
+    }
+
+    .sidebar-container.collapsed #sidebar-toggle-btn::after {
+      display: none;
+    }
+
+    .sidebar-actions .sidebar-item-icon {
+      position: static;
+      transform: none;
+      flex-shrink: 0;
+    }
+
+    .sidebar-actions .sidebar-item .sidebar-item-icon {
+      transition: transform 0.15s ease-out;
+    }
+
+    .sidebar-actions .sidebar-item:hover .sidebar-item-icon {
+      transform: rotate(30deg);
+    }
+
+    /* Exclude toggle button from general hover rotation */
+    #sidebar-toggle-btn:hover .sidebar-item-icon {
+      transform: none;
+    }
+
+    #sidebar-toggle-btn .sidebar-item-inner:hover .title-icon {
+      transform: rotate(30deg);
+    }
+
+    #chat-toggle-btn .sidebar-item-icon {
+      background: #7A68AA;
+      color: #fff;
+      border-radius: 4px;
+    }
+
+    #chat-toggle-btn:hover .sidebar-item-icon {
+      background: #6a5a96;
+    }
+
+    .sidebar-footer {
+      padding: 10px 12px 10px 11px;
+      border-top: 1px solid var(--window-border);
+      background: var(--sidebar-bg);
+      position: relative;
+    }
+
+    .user-menu-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      border-radius: 4px;
+      color: var(--text-color);
+      white-space: nowrap;
+    }
+
+    .sidebar-footer:hover {
+      background: var(--hover-bg);
+    }
+
+    .user-menu-btn .user-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: var(--window-bg);
+      flex-shrink: 0;
+    }
+
+    .user-menu-btn .user-name {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+
+    .user-menu {
+      display: none;
       position: fixed;
-      top: 28px;
+      bottom: 54px;
+      left: 8px;
+      width: 164px;
+      background: var(--menu-bg);
+      border: 1px solid var(--menu-border);
+      border-radius: 4px;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.2);
+      z-index: 10000;
+    }
+
+    .user-menu.open {
+      display: block;
+    }
+
+    .user-menu-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--text-color);
+    }
+
+    .user-menu-option:hover {
+      background: var(--hover-bg);
+    }
+
+    .user-menu-option .menu-icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .user-menu-option .menu-icon svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .user-menu-separator {
+      height: 1px;
+      background: var(--menu-border);
+      margin: 4px 12px;
+    }
+
+    .user-menu-email {
+      padding: 8px 12px;
+      font-size: 14px;
+      color: var(--text-color);
+      opacity: 0.7;
+    }
+
+    .user-menu-option.logout {
+      color: #e55;
+    }
+
+    /* Language Submenu */
+    .user-menu-option.has-submenu {
+      position: relative;
+    }
+
+    .user-menu-option.has-submenu::after {
+      content: '';
+      border: 4px solid transparent;
+      border-left-color: var(--text-color);
+      margin-left: auto;
+    }
+
+    .language-submenu {
+      display: none;
+      position: absolute;
+      left: 100%;
+      top: 0;
+      white-space: nowrap;
+      background: var(--menu-bg);
+      border: 1px solid var(--menu-border);
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      z-index: 1001;
+      margin-left: 4px;
+    }
+
+    .user-menu-option.has-submenu:hover .language-submenu {
+      display: block;
+    }
+
+    .language-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--text-color);
+    }
+
+    .language-option:hover {
+      background: var(--hover-bg);
+    }
+
+    .language-option .checkmark {
+      width: 16px;
+      flex-shrink: 0;
+    }
+
+    /* Command Palette */
+    .command-palette-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
       left: 0;
       right: 0;
       bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 2000;
+      justify-content: center;
+      padding-top: 15vh;
+    }
+
+    .command-palette-overlay.open {
+      display: flex;
+    }
+
+    .command-palette {
+      width: 100%;
+      max-width: 560px;
+      background: var(--menu-bg);
+      border: 1px solid var(--menu-border);
+      border-radius: 8px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+      max-height: 400px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .command-palette-input-wrapper {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--menu-border);
+      gap: 12px;
+    }
+
+    .command-palette-input-wrapper svg {
+      flex-shrink: 0;
+      opacity: 0.5;
+    }
+
+    .command-palette-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-size: 16px;
+      color: var(--text-color);
+    }
+
+    .command-palette-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .command-palette-results {
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .command-palette-section {
+      padding: 8px 0;
+    }
+
+    .command-palette-section-header {
+      padding: 4px 16px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .command-palette-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 16px;
+      cursor: pointer;
+      color: var(--text-color);
+    }
+
+    .command-palette-item:hover,
+    .command-palette-item.selected {
+      background: var(--hover-bg);
+    }
+
+    .command-palette-item-icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      opacity: 0.7;
+    }
+
+    .command-palette-item-label {
+      flex: 1;
+      font-size: 14px;
+    }
+
+    .command-palette-item-shortcut {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      gap: 4px;
+    }
+
+    .command-palette-item-shortcut kbd {
+      background: var(--hover-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 11px;
+    }
+
+    /* App Layout - root container */
+    .app-layout {
+      display: flex;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+
+    /* Main Pane - contains menu bar and desktop */
+    .main-pane {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
     }
 
     /* Desktop Area (viewport + prompt) */
@@ -559,7 +1552,8 @@
       flex: 1;
       min-height: 0;
       position: relative;
-      overflow: hidden;
+      overflow: clip;
+      overflow-x: visible;
     }
 
     /* Prompt Container */
@@ -1592,73 +2586,204 @@
   </style>
 </head>
 <body>
-  <!-- Menu Bar -->
-  <div class="menu-bar">
-    <div class="menu-bar-left">
-      <div class="sidebar-toggle-container" id="sidebar-toggle-container">
-        <span class="sidebar-toggle" id="sidebar-toggle" title="Toggle Sidebar">&lt;&lt;&lt;</span>
+  <!-- Command Palette -->
+  <div class="command-palette-overlay" id="command-palette-overlay">
+    <div class="command-palette">
+      <div class="command-palette-input-wrapper">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.34-4.34"/></svg>
+        <input type="text" class="command-palette-input" id="command-palette-input" placeholder="Search commands..." autocomplete="off" spellcheck="false">
       </div>
-      <div class="workspace-tabs-container" id="workspace-tabs-container">
-        <!-- Workspace tabs rendered dynamically -->
+      <div class="command-palette-results" id="command-palette-results">
+        <div class="command-palette-section">
+          <div class="command-palette-section-header">Applications</div>
+          <div class="command-palette-item" data-action="open-app" data-app="editor">
+            <svg class="command-palette-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
+            <span class="command-palette-item-label">Open Editor</span>
+          </div>
+          <div class="command-palette-item" data-action="open-app" data-app="stocks">
+            <svg class="command-palette-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+            <span class="command-palette-item-label">Open Stocks</span>
+          </div>
+          <div class="command-palette-item" data-action="open-app" data-app="settings">
+            <svg class="command-palette-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span class="command-palette-item-label">Open Settings</span>
+          </div>
+        </div>
+        <div class="command-palette-section">
+          <div class="command-palette-section-header">Actions</div>
+          <div class="command-palette-item" data-action="toggle-chat">
+            <svg class="command-palette-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="18" rx="1"/><rect x="13" y="3" width="8" height="18" rx="1"/></svg>
+            <span class="command-palette-item-label">Toggle Chat Panel</span>
+            <span class="command-palette-item-shortcut"><kbd>⌘</kbd><kbd>`</kbd></span>
+          </div>
+          <div class="command-palette-item" data-action="toggle-sidebar">
+            <svg class="command-palette-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg>
+            <span class="command-palette-item-label">Toggle Sidebar</span>
+          </div>
+        </div>
       </div>
-      <div class="workspace-add-btn" id="workspace-add-btn" title="Add Workspace">+</div>
-    </div>
-    <div class="menu-bar-right">
-      <div class="menu-item-container">
-        <span class="menu-item" id="applications-menu">Applications</span>
-        <div class="menu-dropdown" id="applications-dropdown"></div>
-      </div>
-      <span class="menu-item" id="help-menu">Help</span>
-      <span class="menu-item" id="settings-menu">Settings</span>
-      <span class="menu-item" id="logout-menu">Logout</span>
     </div>
   </div>
 
-  <!-- Main Layout -->
-  <div class="main-layout">
-    <!-- Primary Sidebar -->
+  <!-- App Layout -->
+  <div class="app-layout">
+    <!-- Left Pane (Sidebar) -->
     <div class="sidebar-container" id="sidebar-container">
-    <div class="primary-sidebar" id="primary-sidebar">
-      <!-- <div class="sidebar-section">
-        <div class="sidebar-section-header">Workspace</div>
-        <div class="sidebar-item active">
-          <span class="sidebar-item-icon">&#9642;</span>
-          Project Files
+      <div class="primary-sidebar" id="primary-sidebar">
+        <div class="sidebar-actions" id="search-section">
+          <div class="sidebar-item" id="sidebar-toggle-btn">
+            <div class="sidebar-item-inner">
+              <span class="sidebar-item-icon title-icon">M</span>
+              <span class="sidebar-item-label">arketbuffer</span>
+            </div>
+            <span class="toggle-icon-wrapper" data-tooltip="Toggle Sidebar">
+              <svg class="sidebar-item-icon toggle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg>
+            </span>
+          </div>
+          <div class="sidebar-item" id="chat-toggle-btn" data-tooltip="Chat">
+            <div class="sidebar-item-inner">
+              <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+              <span class="sidebar-item-label">Chat</span>
+            </div>
+          </div>
+          <div class="sidebar-item" id="search-item" data-tooltip="Command">
+            <div class="sidebar-item-inner">
+              <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#83C18D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+              <span class="sidebar-item-label">Command</span>
+            </div>
+          </div>
+          <div class="sidebar-item" id="apps-btn" data-tooltip="Applications">
+            <div class="sidebar-item-inner">
+              <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D2691E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18"/><path d="M3 12h18"/></svg>
+              <span class="sidebar-item-label">Applications</span>
+            </div>
+          </div>
+          <div class="sidebar-separator"></div>
         </div>
-        <div class="sidebar-item">
-          <span class="sidebar-item-icon">&#9642;</span>
-          Search
+        <div class="sidebar-scrollable" id="sidebar-scrollable">
+          <div class="sidebar-section" id="nav-section">
+            <div class="sidebar-item" id="lobby-item" data-tooltip="Yap">
+              <div class="sidebar-item-inner">
+                <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span class="sidebar-item-label">Yap</span>
+              </div>
+            </div>
+            <div class="sidebar-item" id="operate-item" data-tooltip="Deployments">
+              <div class="sidebar-item-inner">
+                <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+                <span class="sidebar-item-label">Deployments</span>
+              </div>
+            </div>
+            <div class="sidebar-item" id="data-item" data-tooltip="Data">
+              <div class="sidebar-item-inner">
+                <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>
+                <span class="sidebar-item-label">Data</span>
+              </div>
+            </div>
+            <div class="sidebar-item" id="notifications-item" data-tooltip="Stream">
+              <div class="sidebar-item-inner">
+                <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+                <span class="sidebar-item-label">Stream</span>
+              </div>
+            </div>
+            <div class="sidebar-item" id="publish-item" data-tooltip="Publish">
+              <div class="sidebar-item-inner">
+                <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/></svg>
+                <span class="sidebar-item-label">Publish</span>
+              </div>
+            </div>
+            <div class="sidebar-item" id="code-item" data-tooltip="Code">
+              <div class="sidebar-item-inner">
+                <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                <span class="sidebar-item-label">Code</span>
+              </div>
+            </div>
+            <div class="sidebar-item" id="git-item" data-tooltip="Git">
+              <div class="sidebar-item-inner">
+                <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><path d="M6 9v12"/></svg>
+                <span class="sidebar-item-label">Git</span>
+              </div>
+            </div>
+            <div class="sidebar-item" id="simulate-item" data-tooltip="Simulate">
+              <div class="sidebar-item-inner">
+                <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 7V5a1 1 0 0 0-1-1H6.5a.5.5 0 0 0-.4.8l4.5 6a2 2 0 0 1 0 2.4l-4.5 6a.5.5 0 0 0 .4.8H17a1 1 0 0 0 1-1v-2"/></svg>
+                <span class="sidebar-item-label">Simulate</span>
+              </div>
+            </div>
+            <div class="sidebar-item" id="agents-item" data-tooltip="Agents">
+              <div class="sidebar-item-inner">
+                <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+                <span class="sidebar-item-label">Agents</span>
+              </div>
+            </div>
+          </div>
+          <div class="sidebar-separator"></div>
+          <div class="sidebar-section" id="pinned-section">
+            <div class="sidebar-section-header">Starred</div>
+            <div id="pinned-files">
+              <!-- Pinned files rendered by JavaScript -->
+            </div>
+          </div>
         </div>
-        <div class="sidebar-item">
-          <span class="sidebar-item-icon">&#9642;</span>
-          Source Control
-        </div>
-      </div> -->
-      <div class="sidebar-section" id="pinned-section">
-        <div class="sidebar-section-header">Pinned</div>
-        <div id="pinned-files">
-          <!-- Pinned files rendered by JavaScript -->
+        <div class="sidebar-footer" id="sidebar-footer">
+          <div class="user-menu" id="user-menu">
+            <div class="user-menu-email">foobar@gmail.com</div>
+            <div class="user-menu-separator"></div>
+            <div class="user-menu-option" data-action="settings"><span class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></span>Settings</div>
+            <div class="user-menu-option has-submenu" data-action="language"><span class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg></span>Language
+              <div class="language-submenu">
+                <div class="language-option" data-lang="en-US"><span class="checkmark">&#10003;</span>English (United States)</div>
+                <div class="language-option" data-lang="ja"><span class="checkmark"></span>日本語</div>
+              </div>
+            </div>
+            <div class="user-menu-option" data-action="help"><span class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></span>Get Help</div>
+            <div class="user-menu-separator"></div>
+            <div class="user-menu-option" data-action="learn"><span class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></span>Learn More</div>
+            <div class="user-menu-separator"></div>
+            <div class="user-menu-option logout" data-action="logout"><span class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></svg></span>Logout</div>
+          </div>
+          <div class="user-menu-btn" id="user-menu-btn">
+            <span class="user-avatar">U</span>
+            <span class="user-name">User</span>
+            <span class="user-chevron"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg></span>
+          </div>
         </div>
       </div>
-      <div class="sidebar-section sidebar-section-files">
-        <div class="sidebar-section-header">Files</div>
-      </div>
-      <div class="file-tree" id="file-tree">
-        <!-- File tree rendered by JavaScript -->
-      </div>
-      <div class="sidebar-footer">
-        Marketbuffer v1.0
-      </div>
-    </div>
     </div>
 
-    <!-- Desktop Area (viewport + prompt) -->
-    <div class="desktop-area">
-      <div class="desktop" id="desktop">
-        <!-- Windows are rendered dynamically -->
+    <!-- Main Pane -->
+    <div class="main-pane">
+      <!-- Menu Bar -->
+      <div class="menu-bar">
+        <div class="menu-bar-left">
+          <div class="workspace-tabs-container" id="workspace-tabs-container">
+            <!-- Workspace tabs rendered dynamically -->
+          </div>
+          <div class="workspace-add-btn" id="workspace-add-btn" title="Add Workspace">+</div>
+        </div>
+        <!-- Applications dropdown (positioned by JS) -->
+        <div class="menu-dropdown" id="applications-dropdown" style="z-index: 10001;">
+          <!-- App list rendered dynamically -->
+        </div>
+        <!-- App Launcher Drawer -->
+        <div class="app-launcher" id="app-launcher">
+          <div class="app-launcher-grid" id="app-launcher-grid">
+            <!-- App icons rendered dynamically -->
+          </div>
+          <div class="app-launcher-overflow-indicator left" id="app-launcher-overflow-left">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </div>
+          <div class="app-launcher-overflow-indicator right" id="app-launcher-overflow-right">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </div>
+        </div>
       </div>
-      <div class="prompt-container" id="prompt-container">
-        <!-- Terminal prompt rendered by JavaScript -->
+
+      <!-- Desktop Area (viewport + prompt) -->
+      <div class="desktop-area">
+        <div class="desktop" id="desktop">
+          <!-- Windows are rendered dynamically -->
+        </div>
       </div>
     </div>
   </div>
@@ -1672,6 +2797,7 @@
   <script src="cards/settings.js"></script>
   <script src="cards/wallpaper.js"></script>
   <script src="cards/terminal.js"></script>
+  <script src="chat-panel.js"></script>
   <script src="cards/changelog.js"></script>
   <script src="cards/neogotchi.js"></script>
   <script src="cards/trinale.js"></script>
@@ -1720,7 +2846,13 @@
           <div class="pinned-item" data-path="${path}">
             <span class="pinned-item-icon">${icon}</span>
             <span class="pinned-item-name">${name}</span>
-            <span class="pinned-item-unpin" data-path="${path}">&#10005;</span>
+            <span class="pinned-item-menu-btn" data-path="${path}">&#8230;</span>
+            <div class="pinned-item-menu" data-path="${path}">
+              <div class="pinned-item-menu-option" data-action="rename"><span class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg></span>Rename</div>
+              <div class="pinned-item-menu-option" data-action="star"><span class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg></span>Star</div>
+              <div class="pinned-item-menu-separator"></div>
+              <div class="pinned-item-menu-option delete" data-action="delete"><span class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></span>Delete</div>
+            </div>
           </div>
         `;
       });
@@ -1729,15 +2861,34 @@
       // Attach click listeners
       container.querySelectorAll('.pinned-item').forEach(item => {
         item.addEventListener('click', (e) => {
-          if (e.target.classList.contains('pinned-item-unpin')) {
+          if (e.target.classList.contains('pinned-item-menu-btn')) {
             e.stopPropagation();
-            OS.unpinFile(e.target.dataset.path);
-          } else {
+            // Close any other open menus
+            document.querySelectorAll('.pinned-item-menu.open').forEach(m => m.classList.remove('open'));
+            const menu = item.querySelector('.pinned-item-menu');
+            menu.classList.toggle('open');
+          } else if (e.target.closest('.pinned-item-menu-option')) {
+            e.stopPropagation();
+            const action = e.target.dataset.action;
+            const path = item.dataset.path;
+            if (action === 'delete') {
+              OS.unpinFile(path);
+            }
+            // Close menu
+            item.querySelector('.pinned-item-menu').classList.remove('open');
+          } else if (!e.target.closest('.pinned-item-menu')) {
             OS.openFile(item.dataset.path);
           }
         });
       });
     }
+
+    // Close pinned item menus when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.pinned-item-menu-btn') && !e.target.closest('.pinned-item-menu')) {
+        document.querySelectorAll('.pinned-item-menu.open').forEach(m => m.classList.remove('open'));
+      }
+    });
 
     // Register FileTree callbacks (systemState available after loadSystemState)
     FileTree.registerCallbacks({
@@ -1820,7 +2971,7 @@
       // Initialize pinned files (after state is loaded so defaults are available)
       OS.loadPinnedFiles();
 
-      // Initialize workspaces
+      // Initialize workspaces (root state initialized later after callbacks are registered)
       OS.initWorkspaces();
       renderWorkspaceTabs();
 
@@ -1829,9 +2980,8 @@
       loadFontSize();
       loadWallpaper();
 
-      // Render file tree and pinned files in sidebar
+      // Render pinned files in sidebar
       renderPinnedFiles();
-      renderFileTree();
 
       // Try to load from localStorage, otherwise use initial windows
       if (!loadState()) {
@@ -1865,8 +3015,8 @@
       // Reload file contents for all tabs
       await reloadAllTabFiles();
 
-      // Initialize terminal (slide-out from bottom)
-      initTerminal();
+      // Initialize chat panel (slide-out from right)
+      initChatPanel();
     }
 
     // Reload file contents for all tabs that have a filePath
@@ -1876,52 +3026,10 @@
       }
     }
 
-    // Initialize terminal prompt box
-    function initTerminal() {
-      if (typeof terminalCard === 'undefined') return;
-
-      // Inject terminal styles
-      if (terminalCard.styles) {
-        const styleEl = document.createElement('style');
-        styleEl.textContent = terminalCard.styles;
-        document.head.appendChild(styleEl);
-      }
-
-      // Create terminal prompt box element
-      const terminalEl = document.createElement('div');
-      terminalEl.className = 'terminal-prompt-box';
-      terminalEl.id = 'terminal-prompt-box';
-      terminalEl.innerHTML = terminalCard.render();
-      document.getElementById('prompt-container').appendChild(terminalEl);
-
-      // Initialize terminal state
-      terminalCard.init(system);
-
-      // Handle focus on input - expand terminal
-      const input = document.getElementById('terminal-input');
-      if (input) {
-        input.addEventListener('focus', () => {
-          terminalCard.expand();
-        });
-      }
-
-      // Handle clicks in terminal
-      terminalEl.addEventListener('click', (e) => {
-        terminalCard.handleClick(e);
-      });
-
-      // Handle keyboard in terminal
-      terminalEl.addEventListener('keydown', (e) => {
-        terminalCard.handleKeydown(e);
-      });
-
-      // Global keyboard shortcut: Ctrl+` or Cmd+` to toggle terminal
-      document.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key === '`') {
-          e.preventDefault();
-          terminalCard.toggle();
-        }
-      });
+    // Initialize chat panel
+    function initChatPanel() {
+      if (typeof ChatPanel === 'undefined') return;
+      ChatPanel.init();
     }
 
     // Render all open windows
@@ -2370,7 +3478,19 @@
     // Workspace tabs
     function renderWorkspaceTabs() {
       const container = document.getElementById('workspace-tabs-container');
+      const addBtn = document.getElementById('workspace-add-btn');
+      const menuBar = document.querySelector('.menu-bar');
       container.innerHTML = '';
+
+      // Hide tabs, + button, and menu bar for non-tabular root states
+      if (!OS.isTabular()) {
+        container.style.display = 'none';
+        if (addBtn) addBtn.style.display = 'none';
+        if (menuBar) menuBar.style.display = 'none';
+        return;
+      }
+      container.style.display = 'flex';
+      if (menuBar) menuBar.style.display = '';
 
       OS.workspaces.forEach((workspace, index) => {
         // Add separator before tabs (except first)
@@ -2423,7 +3543,6 @@
       }
 
       // Hide/show the + button based on workspace count
-      const addBtn = document.getElementById('workspace-add-btn');
       if (addBtn) {
         addBtn.style.display = OS.workspaces.length >= 4 ? 'none' : 'flex';
       }
@@ -2543,38 +3662,12 @@
       highlightParentSplit(false);
     }
 
-    // Applications menu
-    function renderApplicationsMenu() {
-      const dropdown = document.getElementById('applications-dropdown');
-      dropdown.innerHTML = '';
-
-      initialWindows.forEach(win => {
-        const isOpen = OS.isWindowOpen(win.id);
-        const item = document.createElement('div');
-        item.className = `menu-dropdown-item ${isOpen ? 'checked' : ''}`;
-        item.textContent = win.title;
-        item.dataset.windowId = win.id;
-        item.addEventListener('click', () => {
-          openApplication(win.id);
-          closeApplicationsMenu();
-        });
-        dropdown.appendChild(item);
-      });
-
-      // Add separator and close all option
-      const separator = document.createElement('div');
-      separator.className = 'menu-dropdown-separator';
-      dropdown.appendChild(separator);
-
-      const closeAllItem = document.createElement('div');
-      closeAllItem.className = 'menu-dropdown-item';
-      closeAllItem.textContent = 'Close All Windows';
-      closeAllItem.addEventListener('click', () => {
-        OS.openWindows.slice().forEach(w => OS.close(w.id));
-        closeApplicationsMenu();
-      });
-      dropdown.appendChild(closeAllItem);
-    }
+    // Register app launcher callbacks
+    AppLauncher.registerCallbacks({
+      getWindows: () => initialWindows,
+      isWindowOpen: (id) => OS.isWindowOpen(id),
+      openApplication: openApplication,
+    });
 
     function openApplication(windowId) {
       if (OS.isWindowOpen(windowId)) {
@@ -2645,7 +3738,6 @@
       closeWindow: closeWindow,
       openApplication: openApplication,
       renderPinnedFiles: renderPinnedFiles,
-      renderFileTree: () => FileTree.render(),
       renderWorkspaceTabs: renderWorkspaceTabs,
       switchWorkspace: switchWorkspace,
       getWindowState: getWindowState,
@@ -2771,30 +3863,108 @@
     }
 
     function toggleApplicationsMenu() {
-      const dropdown = document.getElementById('applications-dropdown');
-      const isOpen = dropdown.classList.contains('open');
-      if (isOpen) {
-        closeApplicationsMenu();
-      } else {
-        renderApplicationsMenu();
-        dropdown.classList.add('open');
-      }
+      AppLauncher.toggle();
     }
 
     function closeApplicationsMenu() {
-      const dropdown = document.getElementById('applications-dropdown');
-      dropdown.classList.remove('open');
+      AppLauncher.close();
     }
 
-    // Sidebar toggle
-    document.getElementById('sidebar-toggle').addEventListener('click', (e) => {
+    // User menu
+    document.getElementById('user-menu-btn').addEventListener('click', (e) => {
       e.stopPropagation();
-      const sidebarContainer = document.getElementById('sidebar-container');
-      const toggleContainer = document.getElementById('sidebar-toggle-container');
-      const toggle = document.getElementById('sidebar-toggle');
-      sidebarContainer.classList.toggle('collapsed');
-      toggleContainer.classList.toggle('collapsed');
-      toggle.classList.toggle('collapsed');
+      const menu = document.getElementById('user-menu');
+      menu.classList.toggle('open');
+    });
+
+    document.getElementById('user-menu').addEventListener('click', (e) => {
+      const option = e.target.closest('.user-menu-option');
+      if (!option) return;
+
+      const action = option.dataset.action;
+      document.getElementById('user-menu').classList.remove('open');
+
+      if (action === 'settings') {
+        openApplication('settings');
+      } else if (action === 'logout') {
+        // Handle logout
+      }
+    });
+
+    // Close user menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#sidebar-footer') && !e.target.closest('#user-menu')) {
+        document.getElementById('user-menu').classList.remove('open');
+      }
+    });
+
+    // Command Palette
+    const commandPalette = {
+      overlay: document.getElementById('command-palette-overlay'),
+      input: document.getElementById('command-palette-input'),
+
+      open() {
+        this.overlay.classList.add('open');
+        this.input.value = '';
+        this.input.focus();
+      },
+
+      close() {
+        this.overlay.classList.remove('open');
+      },
+
+      toggle() {
+        if (this.overlay.classList.contains('open')) {
+          this.close();
+        } else {
+          this.open();
+        }
+      },
+
+      executeAction(action, data) {
+        this.close();
+        if (action === 'open-app') {
+          openApplication(data.app);
+        } else if (action === 'toggle-chat') {
+          ChatPanel.toggle();
+        } else if (action === 'toggle-sidebar') {
+          document.getElementById('sidebar-container').classList.toggle('collapsed');
+        }
+      },
+    };
+
+    // Search item click opens command palette
+    document.getElementById('search-item').addEventListener('click', () => {
+      commandPalette.open();
+    });
+
+    // Keyboard shortcut: Cmd+K or Ctrl+K
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        commandPalette.toggle();
+      }
+      // Escape to close
+      if (e.key === 'Escape' && commandPalette.overlay.classList.contains('open')) {
+        commandPalette.close();
+      }
+    });
+
+    // Click outside to close
+    commandPalette.overlay.addEventListener('click', (e) => {
+      if (e.target === commandPalette.overlay) {
+        commandPalette.close();
+      }
+    });
+
+    // Handle command palette item clicks
+    document.getElementById('command-palette-results').addEventListener('click', (e) => {
+      const item = e.target.closest('.command-palette-item');
+      if (item) {
+        const action = item.dataset.action;
+        const app = item.dataset.app;
+        commandPalette.executeAction(action, { app });
+      }
     });
 
     // Add workspace button
@@ -2804,71 +3974,197 @@
       OS.switchToWorkspace(workspace.id);
     });
 
-    // Applications menu event listeners
-    document.getElementById('applications-menu').addEventListener('click', (e) => {
-      e.stopPropagation();
-      closeActiveWindowMenu();
-      toggleApplicationsMenu();
-    });
+    // Root state nav buttons
+    const rootStateMap = {
+      'lobby-item': 'yap',
+      'operate-item': 'operate',
+      'deploy-item': 'deploy',
+      'data-item': 'data',
+      'notifications-item': 'feed',
+      'publish-item': 'author',
+      'code-item': 'code',
+      'git-item': 'git',
+      'simulate-item': 'simulate',
+      'agents-item': 'agents',
+    };
 
-    // Settings menu click handler
-    document.getElementById('settings-menu').addEventListener('click', (e) => {
-      e.stopPropagation();
-      closeApplicationsMenu();
-      closeActiveWindowMenu();
-      openApplication('settings');
-    });
-
-    // Help menu click handler - opens terminal and types out "help" to teach users
-    document.getElementById('help-menu').addEventListener('click', (e) => {
-      e.stopPropagation();
-      closeApplicationsMenu();
-      closeActiveWindowMenu();
-      if (typeof terminalCard !== 'undefined') {
-        terminalCard.expand();
-        const input = document.getElementById('terminal-input');
-        if (input) {
-          input.focus();
-          input.disabled = true;
-          input.value = '';
-
-          const text = 'help';
-          let i = 0;
-          const typeInterval = setInterval(() => {
-            if (i < text.length) {
-              input.value += text[i];
-              i++;
-            } else {
-              clearInterval(typeInterval);
-              // Wait 1 second then execute
-              setTimeout(() => {
-                input.disabled = false;
-                terminalCard.executeCommand('help');
-                input.value = '';
-                input.focus();
-              }, 1000);
-            }
-          }, 250); // 1 second / 4 chars = 250ms per char
-        }
+    Object.entries(rootStateMap).forEach(([elementId, stateName]) => {
+      const el = document.getElementById(elementId);
+      if (el) {
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          OS.setRootState(stateName);
+        });
       }
     });
 
-    // Logout menu click handler
-    document.getElementById('logout-menu').addEventListener('click', (e) => {
-      e.stopPropagation();
-      closeApplicationsMenu();
-      closeActiveWindowMenu();
-      showUIAlert('This is a demo. There is no account to log out of.');
+    // Callback for root state changes
+    function onRootStateChange(stateName) {
+      // Update active state in sidebar
+      Object.keys(rootStateMap).forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('active');
+      });
+      const activeId = Object.entries(rootStateMap).find(([, s]) => s === stateName)?.[0];
+      if (activeId) {
+        document.getElementById(activeId)?.classList.add('active');
+      }
+
+      // Re-render workspace tabs (will hide/show based on tabular state)
+      renderWorkspaceTabs();
+
+      // Show/hide windows based on root state
+      const desktop = document.getElementById('desktop');
+      const tabbedWindow = document.getElementById('tabbed-window');
+      let modalityContainer = document.getElementById('modality-container');
+
+      if (stateName === 'work') {
+        // Show all windows
+        desktop.querySelectorAll('.window').forEach(w => w.style.display = '');
+        if (tabbedWindow) tabbedWindow.style.display = '';
+        // Hide modality container
+        if (modalityContainer) modalityContainer.style.display = 'none';
+        // Restore wallpaper
+        desktop.style.background = '';
+      } else {
+        // Hide all windows for non-work states
+        desktop.querySelectorAll('.window').forEach(w => w.style.display = 'none');
+        if (tabbedWindow) tabbedWindow.style.display = 'none';
+        // Set neutral background
+        const isDark = document.body.classList.contains('dark-theme');
+        desktop.style.background = isDark ? '#2a2a2a' : '#d0d0d0';
+        // Load modality content
+        loadModality(stateName);
+      }
+    }
+
+    // Load modality HTML content
+    async function loadModality(stateName) {
+      const desktop = document.getElementById('desktop');
+      let modalityContainer = document.getElementById('modality-container');
+
+      // Create container if it doesn't exist
+      if (!modalityContainer) {
+        modalityContainer = document.createElement('div');
+        modalityContainer.id = 'modality-container';
+        modalityContainer.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden;';
+        desktop.appendChild(modalityContainer);
+      }
+
+      // Show container
+      modalityContainer.style.display = 'block';
+
+      // Load the modality HTML
+      try {
+        const response = await fetch(`modality/${stateName}.html`);
+        if (response.ok) {
+          const html = await response.text();
+          modalityContainer.innerHTML = html;
+          // Execute any scripts in the loaded HTML
+          modalityContainer.querySelectorAll('script').forEach(oldScript => {
+            const newScript = document.createElement('script');
+            newScript.textContent = oldScript.textContent;
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+          });
+        } else {
+          modalityContainer.innerHTML = `<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">${stateName} view coming soon</div>`;
+        }
+      } catch (e) {
+        modalityContainer.innerHTML = `<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">${stateName} view coming soon</div>`;
+      }
+    }
+
+    OS.registerCallbacks({
+      onRootStateChange: onRootStateChange,
     });
+
+    // Initialize root state from saved state and apply UI
+    OS.initRootState();
+    onRootStateChange(OS.activeRootState);
+
+
+
+    // Sidebar action buttons
+    document.getElementById('sidebar-toggle-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      // If clicking the icon, toggle sidebar; otherwise go home
+      if (e.target.closest('.toggle-icon-wrapper')) {
+        const sidebar = document.getElementById('sidebar-container');
+        sidebar.classList.add('animating');
+        sidebar.classList.toggle('collapsed');
+        setTimeout(() => sidebar.classList.remove('animating'), 300);
+      } else {
+        OS.setRootState('work');
+      }
+    });
+
+    document.getElementById('chat-toggle-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      ChatPanel.toggle();
+    });
+
+    document.getElementById('apps-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeActiveWindowMenu();
+      closeApplicationsMenu();
+      toggleApplicationsDropdown('sidebar');
+    });
+
+    function toggleApplicationsDropdown(source) {
+      const dropdown = document.getElementById('applications-dropdown');
+      if (dropdown.classList.contains('open')) {
+        closeApplicationsDropdown();
+      } else {
+        renderApplicationsDropdown();
+        dropdown.classList.add('open');
+
+        // Position next to sidebar
+        const sidebar = document.getElementById('sidebar-container');
+        const appsBtn = document.getElementById('apps-btn');
+        const sidebarRect = sidebar.getBoundingClientRect();
+        const btnRect = appsBtn.getBoundingClientRect();
+        dropdown.style.position = 'fixed';
+        dropdown.style.top = btnRect.top + 'px';
+        dropdown.style.left = sidebarRect.right + 'px';
+      }
+    }
+
+    function closeApplicationsDropdown() {
+      const dropdown = document.getElementById('applications-dropdown');
+      if (dropdown) {
+        dropdown.classList.remove('open');
+      }
+    }
+
+    function renderApplicationsDropdown() {
+      const dropdown = document.getElementById('applications-dropdown');
+      dropdown.innerHTML = '';
+      initialWindows.forEach(win => {
+        const item = document.createElement('div');
+        item.className = 'menu-dropdown-item';
+        if (OS.isWindowOpen(win.id)) {
+          item.classList.add('checked');
+        }
+        item.textContent = win.title;
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openApplication(win.id);
+          closeApplicationsDropdown();
+        });
+        dropdown.appendChild(item);
+      });
+    }
 
     document.addEventListener('click', (e) => {
       closeApplicationsMenu();
+      closeApplicationsDropdown();
       closeActiveWindowMenu();
-      // Close terminal if clicking outside of it
-      if (typeof terminalCard !== 'undefined' && terminalCard.isExpanded) {
-        const terminalBox = document.getElementById('terminal-prompt-box');
-        if (terminalBox && !terminalBox.contains(e.target)) {
-          terminalCard.collapse();
+      // Close chat panel if clicking outside of it (but not while resizing)
+      if (typeof ChatPanel !== 'undefined' && ChatPanel.isExpanded && !ChatPanel.isResizing) {
+        const chatPanel = document.getElementById('chat-panel');
+        const chatBtn = document.getElementById('chat-toggle-btn');
+        if (chatPanel && !chatPanel.contains(e.target) && !chatBtn.contains(e.target)) {
+          ChatPanel.collapse();
         }
       }
     });

@@ -1,0 +1,343 @@
+<!-- Author Modality - Writing & Publishing -->
+<style>
+  .author-container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-family: 'Chicago', 'Monaco', 'Courier New', monospace;
+    font-size: 12px;
+  }
+
+  .author-sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    background: #252525;
+    border-right: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .author-sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 0;
+  }
+
+  .author-sidebar-header {
+    padding: 8px 16px;
+    font-weight: bold;
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .author-item {
+    padding: 8px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-left: 3px solid transparent;
+  }
+
+  .author-item:hover {
+    background: #333;
+  }
+
+  .author-item.active {
+    background: #3a3a3a;
+    border-left-color: #e0e0e0;
+  }
+
+  .author-item-icon {
+    color: #888;
+    flex-shrink: 0;
+  }
+
+  .author-item-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+  }
+
+  .author-item-status {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-weight: bold;
+  }
+
+  .author-item-status.draft {
+    background: #555;
+    color: #aaa;
+  }
+
+  .author-item-status.published {
+    background: #2ecc71;
+    color: #fff;
+  }
+
+  .author-sidebar-footer {
+    padding: 12px 16px;
+    border-top: 1px solid #333;
+    display: flex;
+    gap: 8px;
+  }
+
+  .author-footer-btn {
+    flex: 1;
+    padding: 8px 12px;
+    background: #2d2d2d;
+    border: 1px solid #444;
+    color: #888;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .author-footer-btn:hover {
+    background: #3a3a3a;
+    color: #e0e0e0;
+  }
+
+  .author-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    background: #1a1a1a;
+  }
+
+  .author-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #333;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .author-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .author-header-title {
+    font-weight: bold;
+    font-size: 16px;
+  }
+
+  .author-header-meta {
+    font-size: 11px;
+    color: #888;
+  }
+
+  .author-header-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .author-header-btn {
+    padding: 6px 12px;
+    background: #2d2d2d;
+    border: 1px solid #444;
+    color: #e0e0e0;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+  }
+
+  .author-header-btn:hover {
+    background: #3a3a3a;
+  }
+
+  .author-header-btn.primary {
+    background: #7A68AA;
+    border-color: #7A68AA;
+    color: #fff;
+  }
+
+  .author-header-btn.primary:hover {
+    background: #6a5a96;
+  }
+
+  .author-content {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  .author-editor {
+    max-width: 700px;
+    width: 100%;
+  }
+
+  .author-editor-title {
+    font-size: 32px;
+    font-weight: bold;
+    border: none;
+    background: transparent;
+    color: #e0e0e0;
+    width: 100%;
+    outline: none;
+    margin-bottom: 24px;
+    font-family: Georgia, 'Times New Roman', serif;
+  }
+
+  .author-editor-title::placeholder {
+    color: #555;
+  }
+
+  .author-editor-body {
+    font-size: 16px;
+    line-height: 1.8;
+    border: none;
+    background: transparent;
+    color: #ccc;
+    width: 100%;
+    min-height: 400px;
+    outline: none;
+    resize: none;
+    font-family: Georgia, 'Times New Roman', serif;
+  }
+
+  .author-editor-body::placeholder {
+    color: #555;
+  }
+
+  .author-word-count {
+    margin-top: 20px;
+    font-size: 11px;
+    color: #555;
+    text-align: right;
+  }
+</style>
+
+<div class="author-container">
+  <div class="author-sidebar">
+    <div class="author-sidebar-content">
+      <div class="author-sidebar-header">Drafts</div>
+      <div class="author-item active" data-doc="market-outlook">
+        <svg class="author-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="author-item-name">Q4 Market Outlook</span>
+        <span class="author-item-status draft">Draft</span>
+      </div>
+      <div class="author-item" data-doc="trading-journal">
+        <svg class="author-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="author-item-name">Trading Journal - Dec</span>
+        <span class="author-item-status draft">Draft</span>
+      </div>
+      <div class="author-item" data-doc="algo-notes">
+        <svg class="author-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="author-item-name">Algorithm Design Notes</span>
+        <span class="author-item-status draft">Draft</span>
+      </div>
+
+      <div class="author-sidebar-header">Published</div>
+      <div class="author-item" data-doc="momentum-guide">
+        <svg class="author-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="author-item-name">Momentum Trading Guide</span>
+        <span class="author-item-status published">Live</span>
+      </div>
+      <div class="author-item" data-doc="risk-management">
+        <svg class="author-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="author-item-name">Risk Management 101</span>
+        <span class="author-item-status published">Live</span>
+      </div>
+      <div class="author-item" data-doc="backtest-results">
+        <svg class="author-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="author-item-name">Backtest Results Nov</span>
+        <span class="author-item-status published">Live</span>
+      </div>
+    </div>
+    <div class="author-sidebar-footer">
+      <button class="author-footer-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+      </button>
+      <button class="author-footer-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="author-main">
+    <div class="author-header">
+      <div class="author-header-left">
+        <span class="author-header-title">Q4 Market Outlook</span>
+        <span class="author-header-meta">Draft • Last edited 5 min ago</span>
+      </div>
+      <div class="author-header-actions">
+        <button class="author-header-btn">Preview</button>
+        <button class="author-header-btn primary">Publish</button>
+      </div>
+    </div>
+    <div class="author-content">
+      <div class="author-editor">
+        <input type="text" class="author-editor-title" id="author-title" value="Q4 2024 Market Outlook: Navigating Uncertainty" placeholder="Title...">
+        <textarea class="author-editor-body" id="author-body" placeholder="Start writing...">As we enter the final quarter of 2024, markets face a complex landscape of competing forces. The Federal Reserve's evolving stance on interest rates, persistent inflation concerns, and geopolitical uncertainties continue to shape investor sentiment.
+
+Key themes to watch:
+
+1. Interest Rate Trajectory
+The Fed's recent communications suggest a more dovish tone, with markets pricing in potential rate cuts in early 2025. However, the timing and magnitude remain uncertain, creating opportunities for volatility-based strategies.
+
+2. Earnings Season Dynamics
+Q3 earnings have shown resilience in the technology sector, while traditional value sectors face headwinds. Our momentum algorithms are positioned to capture rotational opportunities as sector leadership shifts.
+
+3. Technical Levels
+The S&P 500 remains in a consolidation pattern, with key support at 4,200 and resistance at 4,600. A decisive break in either direction could trigger significant algorithmic flows.
+
+Portfolio Positioning:
+- Maintaining neutral equity exposure
+- Overweight quality factor
+- Tactical allocation to volatility strategies
+- Cash reserves for opportunistic deployment</textarea>
+        <div class="author-word-count" id="author-word-count">247 words</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const items = document.querySelectorAll('.author-item');
+  const headerTitle = document.querySelector('.author-header-title');
+  const headerMeta = document.querySelector('.author-header-meta');
+  const titleInput = document.getElementById('author-title');
+  const bodyInput = document.getElementById('author-body');
+  const wordCount = document.getElementById('author-word-count');
+
+  // Handle item clicks
+  items.forEach(item => {
+    item.addEventListener('click', () => {
+      items.forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      const name = item.querySelector('.author-item-name').textContent;
+      const status = item.querySelector('.author-item-status');
+      headerTitle.textContent = name;
+      headerMeta.textContent = `${status.textContent === 'Live' ? 'Published' : 'Draft'} • Last edited 5 min ago`;
+    });
+  });
+
+  // Update word count
+  function updateWordCount() {
+    const text = bodyInput.value.trim();
+    const words = text ? text.split(/\s+/).length : 0;
+    wordCount.textContent = `${words} word${words !== 1 ? 's' : ''}`;
+  }
+
+  bodyInput.addEventListener('input', updateWordCount);
+  updateWordCount();
+})();
+</script>

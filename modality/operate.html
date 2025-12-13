@@ -1,0 +1,620 @@
+<!-- Deploy Modality - Trading Algo Deployments -->
+<style>
+  .deploy-container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    background: var(--window-bg);
+    color: var(--text-color);
+    font-family: 'Chicago', 'Monaco', 'Courier New', monospace;
+    font-size: 12px;
+  }
+
+  .deploy-sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--window-border);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .deploy-sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 0;
+  }
+
+  .deploy-sidebar-header {
+    padding: 8px 16px;
+    font-weight: bold;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .deploy-item {
+    padding: 10px 16px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+  }
+
+  .deploy-item:hover {
+    background: var(--hover-bg);
+  }
+
+  .deploy-item.active {
+    background: var(--selected-bg);
+    border-left-color: var(--text-color);
+  }
+
+  .deploy-item-title {
+    font-weight: bold;
+    margin-bottom: 4px;
+  }
+
+  .deploy-item-pnl {
+    font-size: 11px;
+    font-weight: bold;
+  }
+
+  .deploy-item-pnl.positive {
+    color: #2ecc71;
+  }
+
+  .deploy-item-pnl.negative {
+    color: #e74c3c;
+  }
+
+  .deploy-item.disabled {
+    opacity: 0.6;
+  }
+
+  .deploy-item.disabled .deploy-item-pnl {
+    color: var(--text-muted);
+    font-weight: normal;
+  }
+
+  .deploy-sidebar-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--window-border);
+    display: flex;
+    gap: 8px;
+  }
+
+  .deploy-footer-btn {
+    flex: 1;
+    padding: 8px 12px;
+    background: var(--window-bg);
+    border: 1px solid var(--window-border);
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .deploy-footer-btn:hover {
+    background: var(--hover-bg);
+    color: var(--text-color);
+  }
+
+  .deploy-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .deploy-content {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .deploy-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--window-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .deploy-header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .deploy-header-title {
+    font-weight: bold;
+    font-size: 16px;
+  }
+
+  .deploy-header-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .deploy-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #2ecc71;
+  }
+
+  .deploy-status-dot.disabled {
+    background: #95a5a6;
+  }
+
+  .deploy-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 6px 12px;
+    border: 1px solid var(--window-border);
+    background: var(--window-bg);
+    font-family: inherit;
+    font-size: 11px;
+    color: var(--text-color);
+  }
+
+  .deploy-toggle:hover {
+    background: var(--hover-bg);
+  }
+
+  .deploy-toggle-switch {
+    width: 32px;
+    height: 18px;
+    background: #95a5a6;
+    border-radius: 9px;
+    position: relative;
+    transition: background 0.2s;
+  }
+
+  .deploy-toggle-switch.active {
+    background: #2ecc71;
+  }
+
+  .deploy-toggle-switch::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background: white;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.2s;
+  }
+
+  .deploy-toggle-switch.active::after {
+    transform: translateX(14px);
+  }
+
+  .deploy-stats {
+    padding: 20px;
+    border-bottom: 1px solid var(--window-border);
+  }
+
+  .deploy-stats-header {
+    font-weight: bold;
+    margin-bottom: 12px;
+    font-size: 13px;
+  }
+
+  .deploy-stats-row {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 16px;
+  }
+
+  .deploy-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .deploy-stat-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .deploy-stat-value {
+    font-size: 18px;
+    font-weight: bold;
+  }
+
+  .deploy-stat-value.positive {
+    color: #2ecc71;
+  }
+
+  .deploy-stat-value.negative {
+    color: #e74c3c;
+  }
+
+  .deploy-chart {
+    display: flex;
+    gap: 2px;
+    height: 40px;
+    align-items: flex-end;
+  }
+
+  .deploy-chart-bar {
+    flex: 1;
+    min-width: 3px;
+    max-width: 8px;
+    border-radius: 1px;
+  }
+
+  .deploy-chart-bar.positive {
+    background: #2ecc71;
+  }
+
+  .deploy-chart-bar.negative {
+    background: #e74c3c;
+  }
+
+  .deploy-source {
+    padding: 16px 20px;
+  }
+
+  .deploy-source-header {
+    font-weight: bold;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .deploy-source-code {
+    font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+    font-size: 11px;
+    line-height: 1.5;
+    background: var(--sidebar-bg);
+    padding: 16px;
+    border: 1px solid var(--window-border);
+    white-space: pre-wrap;
+    overflow-x: auto;
+  }
+
+  .deploy-source-code .comment {
+    color: var(--text-muted);
+  }
+
+  .deploy-source-code .keyword {
+    color: #9b59b6;
+  }
+
+  .deploy-source-code .function {
+    color: #3498db;
+  }
+
+  .deploy-source-code .number {
+    color: #e67e22;
+  }
+
+  .deploy-source-code .string {
+    color: #2ecc71;
+  }
+
+  .deploy-logs {
+    padding: 16px 20px;
+    border-top: 1px solid var(--window-border);
+  }
+
+  .deploy-logs-header {
+    font-weight: bold;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .deploy-logs-content {
+    font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+    font-size: 10px;
+    line-height: 1.6;
+    background: var(--sidebar-bg);
+    padding: 12px;
+    border: 1px solid var(--window-border);
+  }
+
+  .deploy-log-entry {
+    display: flex;
+    gap: 12px;
+  }
+
+  .deploy-log-time {
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .deploy-log-level {
+    flex-shrink: 0;
+    width: 45px;
+  }
+
+  .deploy-log-level.info {
+    color: #3498db;
+  }
+
+  .deploy-log-level.warn {
+    color: #f39c12;
+  }
+
+  .deploy-log-level.error {
+    color: #e74c3c;
+  }
+
+  .deploy-log-level.success {
+    color: #2ecc71;
+  }
+
+  .deploy-log-msg {
+    flex: 1;
+  }
+</style>
+
+<div class="deploy-container">
+  <div class="deploy-sidebar">
+    <div class="deploy-sidebar-content">
+      <div class="deploy-sidebar-header">Production</div>
+      <div class="deploy-item active" data-algo="momentum-10">
+        <div class="deploy-item-title">10-day momentum</div>
+        <div class="deploy-item-pnl positive">+$1,247.50 today</div>
+      </div>
+      <div class="deploy-item" data-algo="mean-reversion">
+        <div class="deploy-item-title">Mean reversion</div>
+        <div class="deploy-item-pnl negative">-$342.10 today</div>
+      </div>
+      <div class="deploy-item" data-algo="pairs-trade">
+        <div class="deploy-item-title">Pairs trading</div>
+        <div class="deploy-item-pnl positive">+$523.00 today</div>
+      </div>
+
+      <div class="deploy-sidebar-header">Walk-forward Tests</div>
+      <div class="deploy-item" data-algo="breakout-vol">
+        <div class="deploy-item-title">Breakout + volume</div>
+        <div class="deploy-item-pnl positive">+$89.25 today</div>
+      </div>
+      <div class="deploy-item" data-algo="vwap-revert">
+        <div class="deploy-item-title">VWAP reversion</div>
+        <div class="deploy-item-pnl positive">+$312.40 today</div>
+      </div>
+      <div class="deploy-item" data-algo="gap-fill">
+        <div class="deploy-item-title">Gap fill</div>
+        <div class="deploy-item-pnl negative">-$78.50 today</div>
+      </div>
+
+      <div class="deploy-sidebar-header">Disabled</div>
+      <div class="deploy-item disabled" data-algo="rsi-oversold">
+        <div class="deploy-item-title">RSI oversold</div>
+        <div class="deploy-item-pnl">paused</div>
+      </div>
+      <div class="deploy-item disabled" data-algo="macd-cross">
+        <div class="deploy-item-title">MACD crossover</div>
+        <div class="deploy-item-pnl">paused</div>
+      </div>
+    </div>
+    <div class="deploy-sidebar-footer">
+      <button class="deploy-footer-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>
+      </button>
+      <button class="deploy-footer-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="deploy-main">
+    <div class="deploy-header">
+      <div class="deploy-header-left">
+        <span class="deploy-header-title">10-day momentum</span>
+        <div class="deploy-header-status">
+          <span class="deploy-status-dot"></span>
+          <span>Running</span>
+        </div>
+      </div>
+      <button class="deploy-toggle" id="deploy-toggle">
+        <span class="deploy-toggle-switch active"></span>
+        <span>Enabled</span>
+      </button>
+    </div>
+    <div class="deploy-content">
+      <div class="deploy-stats">
+        <div class="deploy-stats-header">Today</div>
+      <div class="deploy-stats-row">
+        <div class="deploy-stat">
+          <span class="deploy-stat-label">P&L</span>
+          <span class="deploy-stat-value positive">+$1,247.50</span>
+        </div>
+        <div class="deploy-stat">
+          <span class="deploy-stat-label">Target Shares</span>
+          <span class="deploy-stat-value">500</span>
+        </div>
+        <div class="deploy-stat">
+          <span class="deploy-stat-label">Executed</span>
+          <span class="deploy-stat-value">350</span>
+        </div>
+        <div class="deploy-stat">
+          <span class="deploy-stat-label">Avg Price</span>
+          <span class="deploy-stat-value">$142.38</span>
+        </div>
+        <div class="deploy-stat">
+          <span class="deploy-stat-label">Remaining Cash</span>
+          <span class="deploy-stat-value">$21,167</span>
+        </div>
+      </div>
+    </div>
+    <div class="deploy-stats">
+      <div class="deploy-stats-header">Performance YTD</div>
+      <div class="deploy-stats-row">
+        <div class="deploy-stat">
+          <span class="deploy-stat-label">Total P&L</span>
+          <span class="deploy-stat-value positive">+$24,832.50</span>
+        </div>
+        <div class="deploy-stat">
+          <span class="deploy-stat-label">Win Rate</span>
+          <span class="deploy-stat-value">67%</span>
+        </div>
+        <div class="deploy-stat">
+          <span class="deploy-stat-label">Trades</span>
+          <span class="deploy-stat-value">142</span>
+        </div>
+        <div class="deploy-stat">
+          <span class="deploy-stat-label">Avg Win</span>
+          <span class="deploy-stat-value positive">+$412</span>
+        </div>
+        <div class="deploy-stat">
+          <span class="deploy-stat-label">Avg Loss</span>
+          <span class="deploy-stat-value negative">-$198</span>
+        </div>
+      </div>
+      <div class="deploy-chart" id="deploy-chart">
+        <!-- Chart bars generated by JS -->
+      </div>
+    </div>
+    <div class="deploy-source">
+      <div class="deploy-source-header">Source Code</div>
+      <div class="deploy-source-code" id="deploy-source-code">
+<span class="comment">// 10-day momentum strategy</span>
+<span class="comment">// Buy when price crosses above 10-day SMA with volume confirmation</span>
+
+<span class="keyword">function</span> <span class="function">evaluate</span>(candles, position) {
+  <span class="keyword">const</span> sma10 = <span class="function">SMA</span>(candles, <span class="number">10</span>);
+  <span class="keyword">const</span> sma20 = <span class="function">SMA</span>(candles, <span class="number">20</span>);
+  <span class="keyword">const</span> current = candles[candles.length - <span class="number">1</span>];
+  <span class="keyword">const</span> avgVolume = <span class="function">avgVol</span>(candles, <span class="number">20</span>);
+
+  <span class="comment">// Entry signal: price crosses above SMA10, SMA10 > SMA20</span>
+  <span class="keyword">if</span> (!position && current.close > sma10 && sma10 > sma20) {
+    <span class="keyword">if</span> (current.volume > avgVolume * <span class="number">1.5</span>) {
+      <span class="keyword">return</span> { action: <span class="string">'BUY'</span>, size: <span class="number">100</span> };
+    }
+  }
+
+  <span class="comment">// Exit signal: price falls below SMA10 or stop loss</span>
+  <span class="keyword">if</span> (position) {
+    <span class="keyword">const</span> pnlPct = (current.close - position.entry) / position.entry;
+
+    <span class="keyword">if</span> (current.close < sma10 || pnlPct < -<span class="number">0.02</span>) {
+      <span class="keyword">return</span> { action: <span class="string">'SELL'</span>, size: position.size };
+    }
+
+    <span class="comment">// Take profit at 5%</span>
+    <span class="keyword">if</span> (pnlPct > <span class="number">0.05</span>) {
+      <span class="keyword">return</span> { action: <span class="string">'SELL'</span>, size: position.size };
+    }
+  }
+
+  <span class="keyword">return</span> { action: <span class="string">'HOLD'</span> };
+}</div>
+    </div>
+    <div class="deploy-logs">
+      <div class="deploy-logs-header">Logs</div>
+      <div class="deploy-logs-content">
+        <div class="deploy-log-entry">
+          <span class="deploy-log-time">09:30:01</span>
+          <span class="deploy-log-level info">[INFO]</span>
+          <span class="deploy-log-msg">Strategy initialized. Watching AAPL, MSFT, GOOGL</span>
+        </div>
+        <div class="deploy-log-entry">
+          <span class="deploy-log-time">09:31:15</span>
+          <span class="deploy-log-level info">[INFO]</span>
+          <span class="deploy-log-msg">AAPL: SMA10=142.35, SMA20=141.82, Close=142.50</span>
+        </div>
+        <div class="deploy-log-entry">
+          <span class="deploy-log-time">09:31:15</span>
+          <span class="deploy-log-level success">[BUY]</span>
+          <span class="deploy-log-msg">AAPL: Entry signal triggered. Bought 100 shares @ $142.38</span>
+        </div>
+        <div class="deploy-log-entry">
+          <span class="deploy-log-time">09:45:22</span>
+          <span class="deploy-log-level info">[INFO]</span>
+          <span class="deploy-log-msg">AAPL: Position P&L +0.8% ($112.00)</span>
+        </div>
+        <div class="deploy-log-entry">
+          <span class="deploy-log-time">10:02:08</span>
+          <span class="deploy-log-level warn">[WARN]</span>
+          <span class="deploy-log-msg">MSFT: Volume spike detected (2.3x avg) but no entry signal</span>
+        </div>
+        <div class="deploy-log-entry">
+          <span class="deploy-log-time">10:15:33</span>
+          <span class="deploy-log-level info">[INFO]</span>
+          <span class="deploy-log-msg">AAPL: Position P&L +1.2% ($171.00)</span>
+        </div>
+        <div class="deploy-log-entry">
+          <span class="deploy-log-time">10:30:01</span>
+          <span class="deploy-log-level success">[BUY]</span>
+          <span class="deploy-log-msg">GOOGL: Entry signal triggered. Bought 50 shares @ $138.92</span>
+        </div>
+        <div class="deploy-log-entry">
+          <span class="deploy-log-time">11:15:44</span>
+          <span class="deploy-log-level error">[SELL]</span>
+          <span class="deploy-log-msg">GOOGL: Stop loss hit (-2.1%). Sold 50 shares @ $136.00</span>
+        </div>
+        <div class="deploy-log-entry">
+          <span class="deploy-log-time">11:45:12</span>
+          <span class="deploy-log-level info">[INFO]</span>
+          <span class="deploy-log-msg">AAPL: Position P&L +2.8% ($398.00)</span>
+        </div>
+        <div class="deploy-log-entry">
+          <span class="deploy-log-time">12:30:05</span>
+          <span class="deploy-log-level success">[BUY]</span>
+          <span class="deploy-log-msg">MSFT: Entry signal triggered. Bought 200 shares @ $378.25</span>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const items = document.querySelectorAll('.deploy-item');
+  const headerTitle = document.querySelector('.deploy-header-title');
+  const toggleBtn = document.getElementById('deploy-toggle');
+  const toggleSwitch = toggleBtn.querySelector('.deploy-toggle-switch');
+  const toggleLabel = toggleBtn.querySelector('span:last-child');
+  const statusDot = document.querySelector('.deploy-status-dot');
+  const statusText = document.querySelector('.deploy-header-status span:last-child');
+
+  // Generate random chart data
+  const chart = document.getElementById('deploy-chart');
+  for (let i = 0; i < 30; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'deploy-chart-bar';
+    const isPositive = Math.random() > 0.33;
+    bar.classList.add(isPositive ? 'positive' : 'negative');
+    bar.style.height = (Math.random() * 30 + 10) + 'px';
+    chart.appendChild(bar);
+  }
+
+  // Handle item clicks
+  items.forEach(item => {
+    item.addEventListener('click', () => {
+      items.forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      headerTitle.textContent = item.querySelector('.deploy-item-title').textContent;
+    });
+  });
+
+  // Handle toggle
+  let enabled = true;
+  toggleBtn.addEventListener('click', () => {
+    enabled = !enabled;
+    toggleSwitch.classList.toggle('active', enabled);
+    toggleLabel.textContent = enabled ? 'Enabled' : 'Disabled';
+    statusDot.classList.toggle('disabled', !enabled);
+    statusText.textContent = enabled ? 'Running' : 'Stopped';
+  });
+})();
+</script>

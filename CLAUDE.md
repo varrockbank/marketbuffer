@@ -60,6 +60,29 @@ When making changes, always update:
 
 - Always use trailing commas in arrays and objects
 
+## Icons
+
+Use **Lucide** SVG icons instead of Unicode glyphs/emojis. Lucide icons render consistently across browsers and scale properly.
+
+**Usage pattern:**
+```html
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- paths from Lucide -->
+</svg>
+```
+
+**Fetching icons:**
+Get SVG paths from: `https://unpkg.com/lucide-static@latest/icons/{icon-name}.svg`
+
+**Common icons already in use:**
+- `search` - magnifying glass
+- `panel-left-close` - sidebar toggle
+- `pencil` - edit/rename
+- `star` - favorite
+- `trash-2` - delete
+
+Browse available icons at: https://lucide.dev/icons
+
 ## Data API
 
 The stock data API has two implementations that must be kept in sync:

@@ -1,0 +1,495 @@
+<!-- Data Modality - Data Explorer & SQL Interface -->
+<style>
+  .data-container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    background: var(--window-bg);
+    color: var(--text-color);
+    font-family: 'Chicago', 'Monaco', 'Courier New', monospace;
+    font-size: 12px;
+  }
+
+  .data-sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--window-border);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .data-sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 0;
+  }
+
+  .data-sidebar-header {
+    padding: 8px 16px;
+    font-weight: bold;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .data-item {
+    padding: 8px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-left: 3px solid transparent;
+  }
+
+  .data-item:hover {
+    background: var(--hover-bg);
+  }
+
+  .data-item.active {
+    background: var(--selected-bg);
+    border-left-color: var(--text-color);
+  }
+
+  .data-item-icon {
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .data-item-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .data-item-rows {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-left: auto;
+  }
+
+  .data-sidebar-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--window-border);
+    display: flex;
+    gap: 8px;
+  }
+
+  .data-footer-btn {
+    flex: 1;
+    padding: 8px 12px;
+    background: var(--window-bg);
+    border: 1px solid var(--window-border);
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .data-footer-btn:hover {
+    background: var(--hover-bg);
+    color: var(--text-color);
+  }
+
+  .data-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .data-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--window-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .data-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .data-header-title {
+    font-weight: bold;
+    font-size: 16px;
+  }
+
+  .data-header-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .data-content {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .data-preview {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--window-border);
+  }
+
+  .data-preview-header {
+    font-weight: bold;
+    margin-bottom: 12px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .data-preview-count {
+    font-weight: normal;
+    color: var(--text-muted);
+    font-size: 11px;
+  }
+
+  .data-table-wrapper {
+    overflow-x: auto;
+    border: 1px solid var(--window-border);
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+
+  .data-table th {
+    background: var(--sidebar-bg);
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: bold;
+    border-bottom: 1px solid var(--window-border);
+    white-space: nowrap;
+  }
+
+  .data-table td {
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--window-border);
+    white-space: nowrap;
+  }
+
+  .data-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .data-table tr:hover td {
+    background: var(--hover-bg);
+  }
+
+  .data-table .null {
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  .data-table .number {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .data-sql {
+    padding: 16px 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .data-sql-header {
+    font-weight: bold;
+    margin-bottom: 12px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .data-sql-run {
+    padding: 4px 12px;
+    background: var(--window-bg);
+    border: 1px solid var(--window-border);
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+  }
+
+  .data-sql-run:hover {
+    background: var(--hover-bg);
+  }
+
+  .data-sql-editor {
+    flex: 1;
+    min-height: 120px;
+    padding: 12px;
+    background: var(--sidebar-bg);
+    border: 1px solid var(--window-border);
+    font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+    font-size: 12px;
+    color: var(--text-color);
+    resize: none;
+    outline: none;
+  }
+
+  .data-sql-editor::placeholder {
+    color: var(--text-muted);
+  }
+
+  .data-sql-results {
+    margin-top: 12px;
+    padding: 12px;
+    background: var(--sidebar-bg);
+    border: 1px solid var(--window-border);
+    font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    min-height: 60px;
+  }
+
+  .data-sql-results.has-results {
+    color: var(--text-color);
+  }
+
+  .data-sql-results .error {
+    color: #e74c3c;
+  }
+
+  .data-sql-results .success {
+    color: #2ecc71;
+  }
+</style>
+
+<div class="data-container">
+  <div class="data-sidebar">
+    <div class="data-sidebar-content">
+      <div class="data-sidebar-header">User Data</div>
+      <div class="data-item active" data-table="portfolio">
+        <svg class="data-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="data-item-name">portfolio.csv</span>
+        <span class="data-item-rows">1.2k</span>
+      </div>
+      <div class="data-item" data-table="transactions">
+        <svg class="data-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="data-item-name">transactions.pqt</span>
+        <span class="data-item-rows">8.4k</span>
+      </div>
+      <div class="data-item" data-table="watchlist">
+        <svg class="data-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="data-item-name">watchlist.json</span>
+        <span class="data-item-rows">45</span>
+      </div>
+
+      <div class="data-sidebar-header">Datamart</div>
+      <div class="data-item" data-table="stocks_daily">
+        <svg class="data-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>
+        <span class="data-item-name">stocks_daily</span>
+        <span class="data-item-rows">2.1M</span>
+      </div>
+      <div class="data-item" data-table="stocks_intraday">
+        <svg class="data-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>
+        <span class="data-item-name">stocks_intraday</span>
+        <span class="data-item-rows">48M</span>
+      </div>
+      <div class="data-item" data-table="earnings">
+        <svg class="data-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>
+        <span class="data-item-name">earnings</span>
+        <span class="data-item-rows">125k</span>
+      </div>
+      <div class="data-item" data-table="fundamentals">
+        <svg class="data-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>
+        <span class="data-item-name">fundamentals</span>
+        <span class="data-item-rows">42k</span>
+      </div>
+      <div class="data-item" data-table="options_chain">
+        <svg class="data-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>
+        <span class="data-item-name">options_chain</span>
+        <span class="data-item-rows">890k</span>
+      </div>
+    </div>
+    <div class="data-sidebar-footer">
+      <button class="data-footer-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      </button>
+      <button class="data-footer-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="data-main">
+    <div class="data-header">
+      <div class="data-header-left">
+        <span class="data-header-title">portfolio</span>
+        <span class="data-header-meta">1,247 rows • 6 columns • Updated 2 min ago</span>
+      </div>
+    </div>
+    <div class="data-content">
+      <div class="data-preview">
+        <div class="data-preview-header">
+          <span>Preview</span>
+          <span class="data-preview-count">Showing 10 of 1,247 rows</span>
+        </div>
+        <div class="data-table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>id</th>
+                <th>ticker</th>
+                <th>shares</th>
+                <th>avg_cost</th>
+                <th>current_price</th>
+                <th>pnl</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="number">1</td>
+                <td>AAPL</td>
+                <td class="number">150</td>
+                <td class="number">142.50</td>
+                <td class="number">178.25</td>
+                <td class="number">5,362.50</td>
+              </tr>
+              <tr>
+                <td class="number">2</td>
+                <td>MSFT</td>
+                <td class="number">75</td>
+                <td class="number">285.00</td>
+                <td class="number">378.50</td>
+                <td class="number">7,012.50</td>
+              </tr>
+              <tr>
+                <td class="number">3</td>
+                <td>GOOGL</td>
+                <td class="number">40</td>
+                <td class="number">125.75</td>
+                <td class="number">138.92</td>
+                <td class="number">526.80</td>
+              </tr>
+              <tr>
+                <td class="number">4</td>
+                <td>AMZN</td>
+                <td class="number">60</td>
+                <td class="number">145.20</td>
+                <td class="number">178.35</td>
+                <td class="number">1,989.00</td>
+              </tr>
+              <tr>
+                <td class="number">5</td>
+                <td>NVDA</td>
+                <td class="number">25</td>
+                <td class="number">420.00</td>
+                <td class="number">495.80</td>
+                <td class="number">1,895.00</td>
+              </tr>
+              <tr>
+                <td class="number">6</td>
+                <td>TSLA</td>
+                <td class="number">30</td>
+                <td class="number">265.50</td>
+                <td class="number">248.20</td>
+                <td class="number">-519.00</td>
+              </tr>
+              <tr>
+                <td class="number">7</td>
+                <td>META</td>
+                <td class="number">45</td>
+                <td class="number">298.00</td>
+                <td class="number">505.75</td>
+                <td class="number">9,348.75</td>
+              </tr>
+              <tr>
+                <td class="number">8</td>
+                <td>JPM</td>
+                <td class="number">80</td>
+                <td class="number">145.25</td>
+                <td class="number">198.40</td>
+                <td class="number">4,252.00</td>
+              </tr>
+              <tr>
+                <td class="number">9</td>
+                <td>V</td>
+                <td class="number">55</td>
+                <td class="number">225.80</td>
+                <td class="number">278.95</td>
+                <td class="number">2,923.25</td>
+              </tr>
+              <tr>
+                <td class="number">10</td>
+                <td>JNJ</td>
+                <td class="number">100</td>
+                <td class="number">162.40</td>
+                <td class="number">155.20</td>
+                <td class="number">-720.00</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="data-sql">
+        <div class="data-sql-header">
+          <span>SQL Query</span>
+          <button class="data-sql-run" id="data-sql-run">Run ⌘↵</button>
+        </div>
+        <textarea class="data-sql-editor" id="data-sql-editor" placeholder="SELECT * FROM portfolio WHERE pnl > 1000 ORDER BY pnl DESC"></textarea>
+        <div class="data-sql-results" id="data-sql-results">
+          Press Run or ⌘+Enter to execute query
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const items = document.querySelectorAll('.data-item');
+  const headerTitle = document.querySelector('.data-header-title');
+  const runBtn = document.getElementById('data-sql-run');
+  const editor = document.getElementById('data-sql-editor');
+  const results = document.getElementById('data-sql-results');
+
+  // Handle item clicks
+  items.forEach(item => {
+    item.addEventListener('click', () => {
+      items.forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      headerTitle.textContent = item.querySelector('.data-item-name').textContent;
+    });
+  });
+
+  // Handle run button
+  runBtn.addEventListener('click', () => {
+    runQuery();
+  });
+
+  // Handle Cmd+Enter
+  editor.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+      e.preventDefault();
+      runQuery();
+    }
+  });
+
+  function runQuery() {
+    const query = editor.value.trim();
+    if (!query) {
+      results.innerHTML = '<span class="error">No query to execute</span>';
+      return;
+    }
+
+    results.classList.add('has-results');
+    results.innerHTML = '<span class="success">✓ Query executed successfully</span>\n\nReturned 7 rows in 0.023s';
+  }
+})();
+</script>

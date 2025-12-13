@@ -10,6 +10,22 @@ const OS = {
   STATE_KEY: 'marketbuffer_state',
   PINNED_FILES_KEY: 'marketbuffer_pinned_files',
 
+  // Root state configuration
+  rootStates: {
+    yap: { tabular: false, apps: [] },
+    operate: { tabular: false, apps: [] },
+    deploy: { tabular: false, apps: [] },
+    data: { tabular: false, apps: [] },
+    feed: { tabular: false, apps: [] },
+    author: { tabular: false, apps: [] },
+    code: { tabular: false, apps: [] },
+    git: { tabular: false, apps: [] },
+    simulate: { tabular: false, apps: [] },
+    agents: { tabular: false, apps: [] },
+    work: { tabular: true, apps: ['editor', 'finder', 'about', 'hypercard', 'git', 'settings', 'wallpaper', 'changelog', 'neogotchi', 'trinale', 'stocks', 'simulator'] },
+  },
+  activeRootState: 'work',  // Current root state
+
   // Window state
   initialWindows: [],    // All available window cards
   openWindows: [],       // Currently open windows (for current workspace)
@@ -62,6 +78,7 @@ const OS = {
     renderWorkspaceTabs: null,
     switchWorkspace: null,
     getWindowState: null,  // Get serialized window state for saving
+    onRootStateChange: null,  // Called when root state changes
   },
 
   // Register callbacks from index.html
@@ -121,48 +138,18 @@ const OS = {
     windowEl.style.bottom = win.bottom + 'px';
   },
 
-  // Helper to snap value to grid
+  // Helper to snap value to grid (delegates to SnapGrid)
   snapToGrid(value, gridSize) {
-    return Math.round(value / gridSize) * gridSize;
+    return SnapGrid.snap(value, gridSize);
   },
 
-  // Grid overlay for dragging
+  // Grid overlay for dragging (delegates to SnapGrid)
   showDragGridOverlay(gridSize, excludeWindow) {
-    const desktop = document.getElementById('desktop');
-    let overlay = document.getElementById('grid-overlay');
-    if (!overlay) {
-      overlay = document.createElement('div');
-      overlay.id = 'grid-overlay';
-      overlay.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        pointer-events: none;
-        z-index: 9999;
-      `;
-      desktop.appendChild(overlay);
-    }
-    overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
-    overlay.style.backgroundImage = `
-      linear-gradient(to right, rgba(255,255,255,0.5) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255,255,255,0.5) 1px, transparent 1px)
-    `;
-    overlay.style.backgroundSize = `${gridSize}px ${gridSize}px`;
-    overlay.style.display = 'block';
-
-    // Ensure active window stays above overlay
-    if (excludeWindow) {
-      excludeWindow.style.zIndex = 10000;
-    }
+    SnapGrid.show({ gridSize, excludeElement: excludeWindow });
   },
 
   hideDragGridOverlay() {
-    const overlay = document.getElementById('grid-overlay');
-    if (overlay) {
-      overlay.style.display = 'none';
-    }
+    SnapGrid.hide();
   },
 
   // Create window element HTML
@@ -508,6 +495,54 @@ const OS = {
       this.state.activeWorkspaceId = this.activeWorkspaceId;
       this.saveSystemState();
     }
+  },
+
+  // ============================================
+  // Root State Management
+  // ============================================
+
+  // Get current root state config
+  getRootState() {
+    return this.rootStates[this.activeRootState];
+  },
+
+  // Check if current root state is tabular
+  isTabular() {
+    return this.getRootState()?.tabular ?? false;
+  },
+
+  // Get apps for current root state
+  getAppsForRootState() {
+    const rootState = this.getRootState();
+    if (!rootState) return [];
+    return this.initialWindows.filter(w => rootState.apps.includes(w.id));
+  },
+
+  // Switch root state
+  setRootState(stateName) {
+    if (!this.rootStates[stateName]) return;
+    if (this.activeRootState === stateName) return;
+
+    this.activeRootState = stateName;
+
+    // Save to state
+    if (this.state) {
+      this.state.activeRootState = stateName;
+      this.saveSystemState();
+    }
+
+    // Trigger callback
+    if (this._callbacks.onRootStateChange) {
+      this._callbacks.onRootStateChange(stateName);
+    }
+  },
+
+  // Initialize root state from saved state
+  initRootState() {
+    if (this.state?.activeRootState && this.rootStates[this.state.activeRootState]) {
+      this.activeRootState = this.state.activeRootState;
+    }
+    return this.activeRootState;
   },
 };
 

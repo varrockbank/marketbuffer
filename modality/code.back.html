@@ -1,0 +1,462 @@
+<!-- Code Modality - Algorithm Editor -->
+<style>
+  .code-container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-family: 'Chicago', 'Monaco', 'Courier New', monospace;
+    font-size: 12px;
+  }
+
+  .code-sidebar {
+    width: 200px;
+    flex-shrink: 0;
+    background: #252525;
+    border-right: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .code-sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 0;
+  }
+
+  .code-sidebar-header {
+    padding: 8px 16px;
+    font-weight: bold;
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .code-item {
+    padding: 8px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-left: 3px solid transparent;
+  }
+
+  .code-item:hover {
+    background: #333;
+  }
+
+  .code-item.active {
+    background: #3a3a3a;
+    border-left-color: #e0e0e0;
+  }
+
+  .code-item-icon {
+    color: #888;
+    flex-shrink: 0;
+  }
+
+  .code-item-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+  }
+
+  .code-item-status {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-weight: bold;
+  }
+
+  .code-item-status.draft {
+    background: #555;
+    color: #aaa;
+  }
+
+  .code-item-status.live {
+    background: #2ecc71;
+    color: #fff;
+  }
+
+  .code-item-status.testing {
+    background: #f39c12;
+    color: #fff;
+  }
+
+  .code-sidebar-footer {
+    padding: 12px 16px;
+    border-top: 1px solid #333;
+    display: flex;
+    gap: 8px;
+  }
+
+  .code-footer-btn {
+    flex: 1;
+    padding: 8px 12px;
+    background: #2d2d2d;
+    border: 1px solid #444;
+    color: #888;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .code-footer-btn:hover {
+    background: #3a3a3a;
+    color: #e0e0e0;
+  }
+
+  .code-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    background: #1a1a1a;
+  }
+
+  .code-header {
+    padding: 12px 20px;
+    border-bottom: 1px solid #333;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .code-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .code-header-title {
+    font-weight: bold;
+    font-size: 14px;
+  }
+
+  .code-header-meta {
+    font-size: 11px;
+    color: #888;
+  }
+
+  .code-header-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .code-header-btn {
+    padding: 6px 12px;
+    background: #2d2d2d;
+    border: 1px solid #444;
+    color: #e0e0e0;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+  }
+
+  .code-header-btn:hover {
+    background: #3a3a3a;
+  }
+
+  .code-header-btn.primary {
+    background: #2ecc71;
+    border-color: #2ecc71;
+    color: #fff;
+  }
+
+  .code-header-btn.primary:hover {
+    background: #27ae60;
+  }
+
+  .code-content {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+
+  .code-editor-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-right: 1px solid #333;
+  }
+
+  .code-editor-tabs {
+    display: flex;
+    background: #252525;
+    border-bottom: 1px solid #333;
+    padding: 0 8px;
+  }
+
+  .code-editor-tab {
+    padding: 8px 16px;
+    font-size: 11px;
+    color: #888;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+  }
+
+  .code-editor-tab:hover {
+    color: #e0e0e0;
+  }
+
+  .code-editor-tab.active {
+    color: #e0e0e0;
+    border-bottom-color: #7A68AA;
+  }
+
+  .code-editor {
+    flex: 1;
+    overflow: auto;
+    padding: 16px;
+    font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    background: #1e1e1e;
+  }
+
+  .code-editor pre {
+    margin: 0;
+    white-space: pre-wrap;
+  }
+
+  .code-editor .comment { color: #6a9955; }
+  .code-editor .keyword { color: #c586c0; }
+  .code-editor .function { color: #dcdcaa; }
+  .code-editor .number { color: #b5cea8; }
+  .code-editor .string { color: #ce9178; }
+  .code-editor .variable { color: #9cdcfe; }
+  .code-editor .operator { color: #d4d4d4; }
+
+  .code-output-pane {
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    background: #1e1e1e;
+  }
+
+  .code-output-header {
+    padding: 8px 16px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #888;
+    text-transform: uppercase;
+    border-bottom: 1px solid #333;
+    background: #252525;
+  }
+
+  .code-output {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 16px;
+    font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .code-output-line {
+    margin-bottom: 4px;
+  }
+
+  .code-output-line.info { color: #888; }
+  .code-output-line.success { color: #2ecc71; }
+  .code-output-line.warn { color: #f39c12; }
+  .code-output-line.error { color: #e74c3c; }
+
+  .code-output-stats {
+    padding: 12px 16px;
+    border-top: 1px solid #333;
+    background: #252525;
+  }
+
+  .code-output-stat {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 11px;
+  }
+
+  .code-output-stat-label {
+    color: #888;
+  }
+
+  .code-output-stat-value {
+    font-weight: bold;
+  }
+
+  .code-output-stat-value.positive { color: #2ecc71; }
+  .code-output-stat-value.negative { color: #e74c3c; }
+</style>
+
+<div class="code-container">
+  <div class="code-sidebar">
+    <div class="code-sidebar-content">
+      <div class="code-sidebar-header">Algorithms</div>
+      <div class="code-item active" data-algo="momentum">
+        <svg class="code-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        <span class="code-item-name">momentum.algo</span>
+        <span class="code-item-status live">Live</span>
+      </div>
+      <div class="code-item" data-algo="mean-reversion">
+        <svg class="code-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        <span class="code-item-name">mean-reversion.algo</span>
+        <span class="code-item-status live">Live</span>
+      </div>
+      <div class="code-item" data-algo="pairs-trading">
+        <svg class="code-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        <span class="code-item-name">pairs-trading.algo</span>
+        <span class="code-item-status testing">Test</span>
+      </div>
+      <div class="code-item" data-algo="breakout">
+        <svg class="code-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        <span class="code-item-name">breakout.algo</span>
+        <span class="code-item-status draft">Draft</span>
+      </div>
+      <div class="code-item" data-algo="vwap">
+        <svg class="code-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        <span class="code-item-name">vwap-reversion.algo</span>
+        <span class="code-item-status draft">Draft</span>
+      </div>
+
+      <div class="code-sidebar-header">Libraries</div>
+      <div class="code-item" data-algo="indicators">
+        <svg class="code-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="code-item-name">indicators.lib</span>
+      </div>
+      <div class="code-item" data-algo="risk">
+        <svg class="code-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="code-item-name">risk.lib</span>
+      </div>
+    </div>
+    <div class="code-sidebar-footer">
+      <button class="code-footer-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+      </button>
+      <button class="code-footer-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="code-main">
+    <div class="code-header">
+      <div class="code-header-left">
+        <span class="code-header-title">momentum.algo</span>
+        <span class="code-header-meta">Modified 2 min ago</span>
+      </div>
+      <div class="code-header-actions">
+        <button class="code-header-btn">Backtest</button>
+        <button class="code-header-btn">Deploy</button>
+        <button class="code-header-btn primary">Run</button>
+      </div>
+    </div>
+    <div class="code-content">
+      <div class="code-editor-pane">
+        <div class="code-editor-tabs">
+          <div class="code-editor-tab active">momentum.algo</div>
+          <div class="code-editor-tab">config.json</div>
+        </div>
+        <div class="code-editor">
+          <pre><span class="comment">// 10-day momentum strategy</span>
+<span class="comment">// Buy when price crosses above 10-day SMA with volume confirmation</span>
+
+<span class="keyword">import</span> { <span class="variable">SMA</span>, <span class="variable">avgVol</span> } <span class="keyword">from</span> <span class="string">'indicators.lib'</span>;
+
+<span class="keyword">export</span> <span class="keyword">function</span> <span class="function">evaluate</span>(<span class="variable">candles</span>, <span class="variable">position</span>) {
+  <span class="keyword">const</span> <span class="variable">sma10</span> <span class="operator">=</span> <span class="function">SMA</span>(<span class="variable">candles</span>, <span class="number">10</span>);
+  <span class="keyword">const</span> <span class="variable">sma20</span> <span class="operator">=</span> <span class="function">SMA</span>(<span class="variable">candles</span>, <span class="number">20</span>);
+  <span class="keyword">const</span> <span class="variable">current</span> <span class="operator">=</span> <span class="variable">candles</span>[<span class="variable">candles</span>.<span class="variable">length</span> <span class="operator">-</span> <span class="number">1</span>];
+  <span class="keyword">const</span> <span class="variable">avgVolume</span> <span class="operator">=</span> <span class="function">avgVol</span>(<span class="variable">candles</span>, <span class="number">20</span>);
+
+  <span class="comment">// Entry signal: price crosses above SMA10, SMA10 > SMA20</span>
+  <span class="keyword">if</span> (<span class="operator">!</span><span class="variable">position</span> <span class="operator">&&</span> <span class="variable">current</span>.<span class="variable">close</span> <span class="operator">></span> <span class="variable">sma10</span> <span class="operator">&&</span> <span class="variable">sma10</span> <span class="operator">></span> <span class="variable">sma20</span>) {
+    <span class="keyword">if</span> (<span class="variable">current</span>.<span class="variable">volume</span> <span class="operator">></span> <span class="variable">avgVolume</span> <span class="operator">*</span> <span class="number">1.5</span>) {
+      <span class="keyword">return</span> { <span class="variable">action</span>: <span class="string">'BUY'</span>, <span class="variable">size</span>: <span class="number">100</span> };
+    }
+  }
+
+  <span class="comment">// Exit signal: price falls below SMA10 or stop loss</span>
+  <span class="keyword">if</span> (<span class="variable">position</span>) {
+    <span class="keyword">const</span> <span class="variable">pnlPct</span> <span class="operator">=</span> (<span class="variable">current</span>.<span class="variable">close</span> <span class="operator">-</span> <span class="variable">position</span>.<span class="variable">entry</span>) <span class="operator">/</span> <span class="variable">position</span>.<span class="variable">entry</span>;
+
+    <span class="keyword">if</span> (<span class="variable">current</span>.<span class="variable">close</span> <span class="operator"><</span> <span class="variable">sma10</span> <span class="operator">||</span> <span class="variable">pnlPct</span> <span class="operator"><</span> <span class="operator">-</span><span class="number">0.02</span>) {
+      <span class="keyword">return</span> { <span class="variable">action</span>: <span class="string">'SELL'</span>, <span class="variable">size</span>: <span class="variable">position</span>.<span class="variable">size</span> };
+    }
+
+    <span class="comment">// Take profit at 5%</span>
+    <span class="keyword">if</span> (<span class="variable">pnlPct</span> <span class="operator">></span> <span class="number">0.05</span>) {
+      <span class="keyword">return</span> { <span class="variable">action</span>: <span class="string">'SELL'</span>, <span class="variable">size</span>: <span class="variable">position</span>.<span class="variable">size</span> };
+    }
+  }
+
+  <span class="keyword">return</span> { <span class="variable">action</span>: <span class="string">'HOLD'</span> };
+}</pre>
+        </div>
+      </div>
+      <div class="code-output-pane">
+        <div class="code-output-header">Output</div>
+        <div class="code-output">
+          <div class="code-output-line info">[09:30:01] Strategy initialized</div>
+          <div class="code-output-line info">[09:30:01] Watching: AAPL, MSFT, GOOGL</div>
+          <div class="code-output-line success">[09:31:15] BUY AAPL 100 @ $142.38</div>
+          <div class="code-output-line info">[09:45:22] AAPL P&L: +$112.00 (+0.8%)</div>
+          <div class="code-output-line warn">[10:02:08] MSFT volume spike (2.3x avg)</div>
+          <div class="code-output-line info">[10:15:33] AAPL P&L: +$171.00 (+1.2%)</div>
+          <div class="code-output-line success">[10:30:01] BUY GOOGL 50 @ $138.92</div>
+          <div class="code-output-line error">[11:15:44] SELL GOOGL 50 @ $136.00 (stop)</div>
+          <div class="code-output-line info">[11:45:12] AAPL P&L: +$398.00 (+2.8%)</div>
+          <div class="code-output-line success">[12:30:05] BUY MSFT 200 @ $378.25</div>
+        </div>
+        <div class="code-output-stats">
+          <div class="code-output-stat">
+            <span class="code-output-stat-label">P&L Today</span>
+            <span class="code-output-stat-value positive">+$1,247.50</span>
+          </div>
+          <div class="code-output-stat">
+            <span class="code-output-stat-label">Trades</span>
+            <span class="code-output-stat-value">4</span>
+          </div>
+          <div class="code-output-stat">
+            <span class="code-output-stat-label">Win Rate</span>
+            <span class="code-output-stat-value">75%</span>
+          </div>
+          <div class="code-output-stat">
+            <span class="code-output-stat-label">Status</span>
+            <span class="code-output-stat-value positive">Running</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const items = document.querySelectorAll('.code-item');
+  const headerTitle = document.querySelector('.code-header-title');
+
+  items.forEach(item => {
+    item.addEventListener('click', () => {
+      items.forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      headerTitle.textContent = item.querySelector('.code-item-name').textContent;
+    });
+  });
+
+  const tabs = document.querySelectorAll('.code-editor-tab');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+})();
+</script>
