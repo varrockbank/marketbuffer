@@ -57,8 +57,37 @@
       border-bottom: 1px solid var(--border-color);
       display: flex;
       align-items: center;
+      justify-content: space-between;
       padding: 0 12px;
       flex-shrink: 0;
+    }
+
+    .menu-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .menu-bar-btn {
+      background: none;
+      border: none;
+      padding: 4px;
+      border-radius: 4px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .menu-bar-btn:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .menu-bar-btn svg {
+      width: 16px;
+      height: 16px;
     }
 
     /* Body Area - sidenav + main */
