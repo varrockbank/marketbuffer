@@ -83,6 +83,48 @@
       width: 48px;
     }
 
+    .sidenav-menu {
+      padding: 8px;
+    }
+
+    .sidenav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: all 0.15s ease-out;
+    }
+
+    .sidenav-item:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .sidenav-item.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .sidenav-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    .sidenav-label {
+      white-space: nowrap;
+      overflow: hidden;
+      transition: opacity 0.2s ease-out;
+    }
+
+    .sidenav.collapsed .sidenav-label {
+      opacity: 0;
+      width: 0;
+    }
+
     /* Main Area */
     .main-area {
       flex: 1;

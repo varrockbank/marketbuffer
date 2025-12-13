@@ -10,6 +10,7 @@ export const store = reactive({
   // UI State
   sidenavCollapsed: false,
   terminalExpanded: false,
+  activeMenuItem: 'home',
 });
 
 // ============================================
