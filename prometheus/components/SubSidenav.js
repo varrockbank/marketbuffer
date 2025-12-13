@@ -16,10 +16,14 @@ export const SubSidenav = {
   setup() {
     const title = Vue.computed(() => {
       const titles = {
-        home: 'Home',
-        files: 'Explorer',
-        search: 'Search',
-        settings: 'Settings',
+        yap: 'Yap',
+        deployments: 'Deployments',
+        data: 'Data',
+        stream: 'Stream',
+        code: 'Code',
+        publish: 'Publish',
+        simulate: 'Simulate',
+        agents: 'Agents',
       };
       return titles[store.activeMenuItem] || 'Panel';
     });

@@ -11,7 +11,7 @@ export const store = reactive({
   sidenavCollapsed: false,
   subSidenavCollapsed: false,
   terminalExpanded: false,
-  activeMenuItem: 'home',
+  activeMenuItem: 'yap',
 });
 
 // ============================================
