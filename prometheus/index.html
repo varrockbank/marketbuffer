@@ -365,8 +365,7 @@
     }
 
     .sub-sidenav-header {
-      height: 32px;
-      padding: 0 12px;
+      padding: 18px 8px 18px 8px;
       display: flex;
       align-items: center;
       border-bottom: 1px solid var(--border-color);
@@ -384,6 +383,110 @@
     .sub-sidenav-content {
       flex: 1;
       overflow-y: auto;
+    }
+
+    /* Project Selector */
+    .project-selector {
+      position: relative;
+      flex: 1;
+    }
+
+    .project-selector-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      padding: 8px;
+      margin: -8px;
+      border-radius: 6px;
+    }
+
+    .project-selector-trigger:hover {
+      color: var(--text-primary);
+    }
+
+    .project-selector-name {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      letter-spacing: 0.5px;
+    }
+
+    .project-selector-trigger:hover .project-selector-name {
+      color: var(--text-primary);
+    }
+
+    .project-selector-chevron {
+      width: 14px;
+      height: 14px;
+      color: var(--text-secondary);
+      transition: transform 0.15s ease-out;
+    }
+
+    .project-selector-chevron.open {
+      transform: rotate(180deg);
+    }
+
+    .project-selector-dropdown {
+      position: absolute;
+      top: 100%;
+      left: -10px;
+      right: -10px;
+      margin-top: 8px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 4px;
+      z-index: 100;
+    }
+
+    .project-selector-item {
+      padding: 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .project-selector-check {
+      width: 14px;
+      height: 14px;
+    }
+
+    .project-selector-item:hover {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+
+    .project-selector-item.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .project-selector-separator {
+      height: 1px;
+      background: var(--border-color);
+      margin: 4px 0;
+    }
+
+    .project-selector-new {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: rgb(131, 193, 141);
+    }
+
+    .project-selector-new:hover {
+      background: rgba(131, 193, 141, 0.1);
+      color: rgb(131, 193, 141);
+    }
+
+    .project-selector-new svg {
+      width: 14px;
+      height: 14px;
     }
 
     /* Main Area */

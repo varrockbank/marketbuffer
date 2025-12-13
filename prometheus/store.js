@@ -16,6 +16,7 @@ export const store = reactive({
   subSidenavCollapsed: false,
   terminalExpanded: false,
   activeMenuItem: 'yap',
+  currentProject: 'prometheus',
 });
 
 // ============================================

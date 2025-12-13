@@ -1,10 +1,13 @@
 import { store } from '../store.js';
+import { ProjectSelector } from './ProjectSelector.js';
 
 export const SubSidenav = {
+  components: { ProjectSelector },
   template: `
     <div class="sub-sidenav" :class="{ collapsed: store.subSidenavCollapsed }">
       <div class="sub-sidenav-header">
-        <span class="sub-sidenav-title">{{ title }}</span>
+        <ProjectSelector v-if="store.activeMenuItem === 'code'" />
+        <span v-else class="sub-sidenav-title">{{ title }}</span>
       </div>
       <div class="sub-sidenav-content">
         <div style="padding: 8px; color: var(--text-secondary);">

@@ -42,6 +42,7 @@ prometheus/
     ├── Brand.js        # Logo, name, version
     ├── MenuBar.js      # Top menu bar
     ├── MenuBarButton.js# Reusable button for menu bar
+    ├── ProjectSelector.js # Project dropdown for code tab
     ├── Sidenav.js      # Collapsible sidebar
     ├── SidenavItem.js  # Reusable menu item
     ├── SubSidenav.js   # Context panel (changes based on active menu)
