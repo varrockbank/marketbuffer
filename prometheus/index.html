@@ -140,6 +140,11 @@
 
     .sidenav.collapsed {
       width: 48px;
+      overflow: visible;
+    }
+
+    .sidenav.collapsed .sidenav-menu {
+      overflow: visible;
     }
 
     .sidenav-menu {
@@ -184,6 +189,33 @@
     .sidenav.collapsed .sidenav-label {
       opacity: 0;
       width: 0;
+    }
+
+    .sidenav.collapsed .sidenav-item {
+      position: relative;
+    }
+
+    .sidenav.collapsed .sidenav-item::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: 100%;
+      top: 50%;
+      transform: translateY(-50%);
+      margin-left: 8px;
+      padding: 4px 8px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      white-space: nowrap;
+      font-size: 12px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s ease-out;
+      z-index: 100;
+    }
+
+    .sidenav.collapsed .sidenav-item:hover::after {
+      opacity: 1;
     }
 
     .sidenav-profile {
