@@ -4,6 +4,9 @@ const { reactive } = Vue;
 // GLOBAL STORE
 // ============================================
 export const store = reactive({
+  // App
+  version: '0.1.0',
+
   // Theme
   theme: 'dark', // 'dark' | 'light'
 

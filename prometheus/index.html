@@ -90,6 +90,36 @@
       height: 16px;
     }
 
+    /* Brand */
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--text-secondary);
+      padding-left: 4px;
+      cursor: pointer;
+      transition: color 0.2s ease-out;
+    }
+
+    .brand:hover {
+      color: var(--text-primary);
+    }
+
+    .brand-icon {
+      width: 18px;
+      height: 18px;
+      transition: transform 1s ease-out;
+    }
+
+    .brand:hover .brand-icon {
+      transform: rotate(540deg);
+    }
+
+    .brand-version {
+      opacity: 0.5;
+      font-size: 10px;
+    }
+
     /* Body Area - sidenav + main */
     .body-area {
       flex: 1;

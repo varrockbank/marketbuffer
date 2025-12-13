@@ -1,5 +1,6 @@
 import { store, actions } from '../store.js';
 import { MenuBarButton } from './MenuBarButton.js';
+import { Brand } from './Brand.js';
 
 const icons = {
   sidenav: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/>',
@@ -8,10 +9,10 @@ const icons = {
 };
 
 export const MenuBar = {
-  components: { MenuBarButton },
+  components: { MenuBarButton, Brand },
   template: `
     <div class="menu-bar">
-      <span style="color: var(--text-secondary);">Menu Bar</span>
+      <Brand />
       <div class="menu-bar-right">
         <MenuBarButton :icon="icons.sidenav" title="Toggle Sidenav" @click="actions.toggleSidenav" />
         <MenuBarButton :icon="icons.subSidenav" title="Toggle Panel" @click="actions.toggleSubSidenav" />

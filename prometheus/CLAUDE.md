@@ -39,6 +39,7 @@ prometheus/
 ├── store.js            # Global store + actions
 ├── CLAUDE.md
 └── components/
+    ├── Brand.js        # Logo, name, version
     ├── MenuBar.js      # Top menu bar
     ├── MenuBarButton.js# Reusable button for menu bar
     ├── Sidenav.js      # Collapsible sidebar
