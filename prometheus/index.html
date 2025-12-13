@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Marketbuffer OS - Prometheus</title>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://unpkg.com/vue-router@4/dist/vue-router.global.js"></script>
   <style>
     * {
       margin: 0;
@@ -225,6 +226,7 @@
       cursor: pointer;
       color: var(--text-secondary);
       transition: all 0.15s ease-out;
+      text-decoration: none;
     }
 
     .sidenav-item:hover {
@@ -578,6 +580,33 @@
     import { Terminal } from './components/Terminal.js';
 
     const { createApp } = Vue;
+    const { createRouter, createWebHashHistory } = VueRouter;
+
+    // ============================================
+    // ROUTER
+    // ============================================
+    const routes = [
+      { path: '/', redirect: '/yap' },
+      { path: '/yap', name: 'yap', component: Viewport },
+      { path: '/deployments', name: 'deployments', component: Viewport },
+      { path: '/data', name: 'data', component: Viewport },
+      { path: '/stream', name: 'stream', component: Viewport },
+      { path: '/code', name: 'code', component: Viewport },
+      { path: '/publish', name: 'publish', component: Viewport },
+      { path: '/simulate', name: 'simulate', component: Viewport },
+      { path: '/agents', name: 'agents', component: Viewport },
+    ];
+
+    const router = createRouter({
+      history: createWebHashHistory(),
+      routes,
+    });
+
+    router.afterEach((to) => {
+      if (to.name) {
+        store.activeMenuItem = to.name;
+      }
+    });
 
     // ============================================
     // APP INIT
@@ -591,7 +620,7 @@
             <SubSidenav />
             <div class="main-area">
               <div class="content-area">
-                <Viewport />
+                <router-view />
                 <Terminal />
               </div>
             </div>
@@ -603,6 +632,7 @@
       },
     });
 
+    app.use(router);
     app.component('Sidenav', Sidenav);
     app.component('SubSidenav', SubSidenav);
     app.component('MenuBar', MenuBar);
