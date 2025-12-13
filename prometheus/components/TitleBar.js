@@ -37,7 +37,7 @@ export const TitleBar = {
     let initialY = 0;
 
     let containerHeight = 0;
-    const titleBarHeight = 40; // Approximate title bar height
+    const titleBarHeight = 28; // Same height as menu bar
 
     const startDrag = (e) => {
       if (e.target.closest('.title-bar-close')) return;
