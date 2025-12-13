@@ -572,21 +572,28 @@
     /* Home View */
     .home-view {
       flex: 1;
-      display: flex;
-      gap: 1px;
-      background: var(--border-color);
+      position: relative;
+      background: var(--bg-primary);
       overflow: hidden;
     }
 
-    .home-view > .window {
-      flex: 1;
+    .home-view.show-grid {
+      background-image:
+        linear-gradient(to right, var(--border-color) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--border-color) 1px, transparent 1px);
+      background-size: 40px 40px;
     }
 
     /* Window */
-    .window {
+    .home-view > .window {
+      position: absolute;
       display: flex;
       flex-direction: column;
+      height: 100%;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
       overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 
     .window > .window-viewport {
@@ -602,6 +609,12 @@
       background: var(--bg-secondary);
       border-bottom: 1px solid var(--border-color);
       flex-shrink: 0;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .title-bar:active {
+      cursor: grabbing;
     }
 
     .title-bar-text {
