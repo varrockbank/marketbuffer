@@ -144,6 +144,8 @@
 
     .sidenav-menu {
       padding: 8px;
+      flex: 1;
+      overflow-y: auto;
     }
 
     .sidenav-item {
@@ -182,6 +184,12 @@
     .sidenav.collapsed .sidenav-label {
       opacity: 0;
       width: 0;
+    }
+
+    .sidenav-profile {
+      padding: 8px;
+      border-top: 1px solid var(--border-color);
+      flex-shrink: 0;
     }
 
     /* Sub-Sidenav */

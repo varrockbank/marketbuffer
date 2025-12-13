@@ -45,6 +45,7 @@ prometheus/
     ├── Sidenav.js      # Collapsible sidebar
     ├── SidenavItem.js  # Reusable menu item
     ├── SubSidenav.js   # Context panel (changes based on active menu)
+    ├── UserProfile.js  # User profile in sidenav footer
     ├── Viewport.js     # Main content area
     └── Terminal.js     # Collapsible bottom terminal
 ```

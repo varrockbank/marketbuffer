@@ -1,8 +1,9 @@
 import { store, actions } from '../store.js';
 import { SidenavItem } from './SidenavItem.js';
+import { UserProfile } from './UserProfile.js';
 
 export const Sidenav = {
-  components: { SidenavItem },
+  components: { SidenavItem, UserProfile },
   template: `
     <div class="sidenav" :class="{ collapsed: store.sidenavCollapsed }">
       <div class="sidenav-menu">
@@ -21,6 +22,7 @@ export const Sidenav = {
           :icon="item.icon"
         />
       </div>
+      <UserProfile />
     </div>
   `,
   setup() {
