@@ -63,6 +63,38 @@
       border-top-color: transparent;
     }
 
+    /* Distraction Free Mode */
+    .distraction-free .sidenav {
+      display: none;
+    }
+
+    .distraction-free .window-menu {
+      display: none;
+    }
+
+    .distraction-free .menu-bar {
+      justify-content: flex-end;
+      background: var(--bg-primary);
+      border-bottom-color: var(--bg-primary);
+    }
+
+    .distraction-free .title-bar {
+      background: var(--bg-primary);
+    }
+
+    .distraction-free .title-bar-text {
+      color: var(--text-primary);
+    }
+
+    .distraction-free .title-bar-close {
+      color: var(--text-secondary);
+    }
+
+    .distraction-free .title-bar-close:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
     body {
       font-family: Geneva, Tahoma, sans-serif;
       font-size: 12px;
@@ -761,7 +793,7 @@
     // ============================================
     const app = createApp({
       template: `
-        <div class="app-layout" :class="['theme-' + store.theme, { 'no-contrast': !store.contrast }]">
+        <div class="app-layout" :class="['theme-' + store.theme, { 'no-contrast': !store.contrast, 'distraction-free': store.distractionFree }]">
           <MenuBar />
           <div class="body-area">
             <Sidenav />

@@ -13,20 +13,24 @@ const icons = {
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
   moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
   contrast: '<circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20z"/>',
+  focus: '<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>',
 };
 
 export const MenuBar = {
   components: { MenuBarButton, Brand },
   template: `
     <div class="menu-bar">
-      <Brand />
+      <Brand v-if="!store.distractionFree" />
       <div class="menu-bar-right">
-        <MenuBarButton :icon="icons.home" title="Home" @click="goHome" />
-        <MenuBarButton :icon="themeIcon" :title="themeTitle + ' (' + modKey + '⇧T)'" @click="actions.toggleTheme" />
-        <MenuBarButton :icon="icons.contrast" :title="contrastTitle + ' (' + modKey + '⇧C)'" @click="actions.toggleContrast" />
-        <MenuBarButton :icon="icons.sidenav" :title="'Toggle Sidenav (' + modKey + 'B)'" @click="actions.toggleSidenav" />
-        <MenuBarButton :icon="icons.subSidenav" :title="'Toggle Panel (' + modKey + 'J)'" @click="actions.toggleSubSidenav" />
-        <MenuBarButton :icon="icons.terminal" :title="terminalTitle" @click="actions.toggleTerminal" />
+        <template v-if="!store.distractionFree">
+          <MenuBarButton :icon="icons.home" title="Home" @click="goHome" />
+          <MenuBarButton :icon="themeIcon" :title="themeTitle + ' (' + modKey + '⇧T)'" @click="actions.toggleTheme" />
+          <MenuBarButton :icon="icons.contrast" :title="contrastTitle + ' (' + modKey + '⇧C)'" @click="actions.toggleContrast" />
+          <MenuBarButton :icon="icons.sidenav" :title="'Toggle Sidenav (' + modKey + 'B)'" @click="actions.toggleSidenav" />
+          <MenuBarButton :icon="icons.subSidenav" :title="'Toggle Panel (' + modKey + 'J)'" @click="actions.toggleSubSidenav" />
+          <MenuBarButton :icon="icons.terminal" :title="terminalTitle" @click="actions.toggleTerminal" />
+        </template>
+        <MenuBarButton :icon="icons.focus" :title="focusTitle" @click="actions.toggleDistractionFree" class="focus-btn" />
       </div>
     </div>
   `,
@@ -35,6 +39,7 @@ export const MenuBar = {
     const themeIcon = Vue.computed(() => store.theme === 'dark' ? icons.sun : icons.moon);
     const themeTitle = Vue.computed(() => store.theme === 'dark' ? 'Light mode' : 'Dark mode');
     const contrastTitle = Vue.computed(() => store.contrast ? 'Borderless' : 'Border');
+    const focusTitle = Vue.computed(() => store.distractionFree ? 'Exit Focus (' + modKey + '⇧F)' : 'Focus Mode (' + modKey + '⇧F)');
     const terminalTitle = 'Toggle Terminal (' + modKey + '`)';
 
     const goHome = () => {
@@ -46,7 +51,10 @@ export const MenuBar = {
         const mod = isMac ? e.metaKey : e.ctrlKey;
         if (!mod) return;
 
-        if (e.shiftKey && e.key.toLowerCase() === 't') {
+        if (e.shiftKey && e.key.toLowerCase() === 'f') {
+          e.preventDefault();
+          actions.toggleDistractionFree();
+        } else if (e.shiftKey && e.key.toLowerCase() === 't') {
           e.preventDefault();
           actions.toggleTheme();
         } else if (e.shiftKey && e.key.toLowerCase() === 'c') {
@@ -68,6 +76,6 @@ export const MenuBar = {
       Vue.onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
     });
 
-    return { store, actions, icons, themeIcon, themeTitle, contrastTitle, terminalTitle, modKey, goHome };
+    return { store, actions, icons, themeIcon, themeTitle, contrastTitle, focusTitle, terminalTitle, modKey, goHome };
   },
 };

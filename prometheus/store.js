@@ -30,6 +30,7 @@ export const store = reactive({
   gridSize: 40,
   defaultWindowWidth: 400,
   isDraggingWindow: false,
+  distractionFree: false,
 });
 
 // ============================================
@@ -93,6 +94,10 @@ export const actions = {
       store.topZIndex++;
       store.windowPositions[type].z = store.topZIndex;
     }
+  },
+
+  toggleDistractionFree() {
+    store.distractionFree = !store.distractionFree;
   },
 };
 
