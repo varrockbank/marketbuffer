@@ -136,11 +136,6 @@
       color: var(--window-bg);
     }
 
-    #applications-menu:hover ~ #applications-dropdown-btn {
-      background: var(--text-color);
-      color: var(--window-bg);
-    }
-
     /* Workspace tabs container */
     .workspace-tabs-container {
       display: flex;
@@ -2657,6 +2652,12 @@
               <span class="sidebar-item-label">Command</span>
             </div>
           </div>
+          <div class="sidebar-item" id="apps-btn" data-tooltip="Applications">
+            <div class="sidebar-item-inner">
+              <svg class="sidebar-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D2691E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18"/><path d="M3 12h18"/></svg>
+              <span class="sidebar-item-label">Applications</span>
+            </div>
+          </div>
           <div class="sidebar-separator"></div>
         </div>
         <div class="sidebar-scrollable" id="sidebar-scrollable">
@@ -2760,14 +2761,9 @@
           </div>
           <div class="workspace-add-btn" id="workspace-add-btn" title="Add Workspace">+</div>
         </div>
-        <div class="menu-bar-right">
-          <span class="menu-item" id="applications-menu">Applications</span>
-          <span class="menu-item" id="applications-dropdown-btn" style="position: relative; display: inline-flex; align-items: center;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
-            <div class="menu-dropdown right-align" id="applications-dropdown">
-              <!-- App list rendered dynamically -->
-            </div>
-          </span>
+        <!-- Applications dropdown (positioned by JS) -->
+        <div class="menu-dropdown" id="applications-dropdown" style="z-index: 10001;">
+          <!-- App list rendered dynamically -->
         </div>
         <!-- App Launcher Drawer -->
         <div class="app-launcher" id="app-launcher">
@@ -3483,15 +3479,18 @@
     function renderWorkspaceTabs() {
       const container = document.getElementById('workspace-tabs-container');
       const addBtn = document.getElementById('workspace-add-btn');
+      const menuBar = document.querySelector('.menu-bar');
       container.innerHTML = '';
 
-      // Hide tabs and + button for non-tabular root states
+      // Hide tabs, + button, and menu bar for non-tabular root states
       if (!OS.isTabular()) {
         container.style.display = 'none';
         if (addBtn) addBtn.style.display = 'none';
+        if (menuBar) menuBar.style.display = 'none';
         return;
       }
       container.style.display = 'flex';
+      if (menuBar) menuBar.style.display = '';
 
       OS.workspaces.forEach((workspace, index) => {
         // Add separator before tabs (except first)
@@ -4083,21 +4082,6 @@
     OS.initRootState();
     onRootStateChange(OS.activeRootState);
 
-    // Applications menu event listeners
-    document.getElementById('applications-menu').addEventListener('click', (e) => {
-      e.stopPropagation();
-      closeActiveWindowMenu();
-      closeApplicationsDropdown();
-      toggleApplicationsMenu();
-    });
-
-    // Applications dropdown (... button)
-    document.getElementById('applications-dropdown-btn').addEventListener('click', (e) => {
-      e.stopPropagation();
-      closeActiveWindowMenu();
-      closeApplicationsMenu();
-      toggleApplicationsDropdown();
-    });
 
 
     // Sidebar action buttons
@@ -4119,23 +4103,37 @@
       ChatPanel.toggle();
     });
 
-    function toggleApplicationsDropdown() {
+    document.getElementById('apps-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeActiveWindowMenu();
+      closeApplicationsMenu();
+      toggleApplicationsDropdown('sidebar');
+    });
+
+    function toggleApplicationsDropdown(source) {
       const dropdown = document.getElementById('applications-dropdown');
-      const btn = document.getElementById('applications-dropdown-btn');
       if (dropdown.classList.contains('open')) {
         closeApplicationsDropdown();
       } else {
         renderApplicationsDropdown();
         dropdown.classList.add('open');
-        btn.classList.add('active');
+
+        // Position next to sidebar
+        const sidebar = document.getElementById('sidebar-container');
+        const appsBtn = document.getElementById('apps-btn');
+        const sidebarRect = sidebar.getBoundingClientRect();
+        const btnRect = appsBtn.getBoundingClientRect();
+        dropdown.style.position = 'fixed';
+        dropdown.style.top = btnRect.top + 'px';
+        dropdown.style.left = sidebarRect.right + 'px';
       }
     }
 
     function closeApplicationsDropdown() {
       const dropdown = document.getElementById('applications-dropdown');
-      const btn = document.getElementById('applications-dropdown-btn');
-      if (dropdown) dropdown.classList.remove('open');
-      if (btn) btn.classList.remove('active');
+      if (dropdown) {
+        dropdown.classList.remove('open');
+      }
     }
 
     function renderApplicationsDropdown() {
