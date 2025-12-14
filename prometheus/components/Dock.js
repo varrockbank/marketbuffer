@@ -1,43 +1,37 @@
 import { store, actions, menuItems, type2Apps, type2AppIds, type3Apps } from '../store.js';
-import { SidenavItem } from './SidenavItem.js';
-import { KitNavFooter } from './kit/KitNavFooter.js';
+import { KitSidebar } from './kit/KitSidebar.js';
+import { KitNavItem } from './kit/KitNavItem.js';
+import { KitSidebarFooter } from './kit/KitSidebarFooter.js';
 import { KitDropdownMenu } from './kit/KitDropdownMenu.js';
 import { KitMenuItem } from './kit/KitMenuItem.js';
-import { KitIcon } from './kit/KitIcon.js';
 
 export const Dock = {
-  components: { SidenavItem, KitNavFooter, KitDropdownMenu, KitMenuItem, KitIcon },
+  components: { KitSidebar, KitNavItem, KitSidebarFooter, KitDropdownMenu, KitMenuItem },
   template: `
-    <div class="sidenav" :class="{ collapsed: store.sidenavCollapsed }">
-      <div class="sidenav-menu">
-        <SidenavItem
-          v-for="item in menuItems"
-          :key="item.id"
-          :id="item.id"
-          :label="item.label"
-          :icon="item.icon"
-          :submenu="item.submenu"
+    <KitSidebar class="sidenav" :collapsed="store.sidenavCollapsed">
+      <KitNavItem
+        v-for="item in menuItems"
+        :key="item.id"
+        :icon="item.icon"
+        :label="item.label"
+        :to="getRoute(item.id)"
+        :active="store.activeMenuItem === item.id"
+      />
+      <template v-if="activeApps.length > 0">
+        <div class="sidenav-separator"></div>
+        <KitNavItem
+          v-for="app in activeApps"
+          :key="app.id"
+          :icon="app.icon"
+          :label="app.label"
+          :active="app.isActive"
+          @click="app.onClick"
         />
-        <template v-if="activeApps.length > 0">
-          <div class="sidenav-separator"></div>
-          <SidenavItem
-            v-for="app in activeApps"
-            :key="app.id"
-            :id="app.id"
-            :label="app.label"
-            :icon="app.icon"
-            :active="app.isActive"
-            @click="app.onClick"
-          />
-        </template>
-      </div>
-      <KitNavFooter>
+      </template>
+      <KitSidebarFooter>
         <KitDropdownMenu direction="up">
           <template #trigger>
-            <div class="sidenav-item" data-tooltip="Profile">
-              <KitIcon icon="user" class="sidenav-icon" />
-              <span class="sidenav-label">Profile</span>
-            </div>
+            <KitNavItem icon="user" label="Profile" />
           </template>
           <template #menu="{ close }">
             <div class="dropdown-menu-header">username@foobar.com</div>
@@ -61,14 +55,19 @@ export const Dock = {
             </KitMenuItem>
           </template>
         </KitDropdownMenu>
-      </KitNavFooter>
-    </div>
+      </KitSidebarFooter>
+    </KitSidebar>
   `,
   setup() {
     const router = VueRouter.useRouter();
     const route = VueRouter.useRoute();
 
     const isHome = Vue.computed(() => route.path === '/');
+
+    const getRoute = (id) => {
+      if (id === 'code') return '/code/' + store.currentProject;
+      return '/' + id;
+    };
 
     // Combine type-2 open windows and type-3 active routes
     const activeApps = Vue.computed(() => {
@@ -103,6 +102,6 @@ export const Dock = {
       return apps;
     });
 
-    return { store, actions, menuItems, activeApps, isHome };
+    return { store, menuItems, activeApps, getRoute };
   },
 };

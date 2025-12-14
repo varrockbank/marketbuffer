@@ -22,7 +22,6 @@ Prometheus is a browser-based IDE with a flexible panel layout. Built with Vue 3
 ```
 
 - **Sidenav**: Icon-based navigation for views, plus open apps
-- **Viewport**: Renders HomeView (desktop) or self-contained views
 - **View Menu**: Collapsible panel within each view (via ViewLayout)
 - **View Content**: Main content area within each view
 
@@ -51,18 +50,15 @@ prometheus/
 │           ├── value.py
 │           └── moat.py
 └── components/
-    ├── Toolbar.js      # Top menu bar
+    ├── Topbar.js       # Top menu bar
     ├── Dock.js         # Collapsible sidebar
-    ├── SidenavItem.js  # Reusable menu item
-    ├── Viewport.js     # Routes between HomeView and self-contained views
-    ├── HomeView.js     # Desktop with type-2 app windows
-    ├── Window.js       # Window wrapper using KitPanel, handles store actions
     ├── AppViewport.js  # Content area for windows (sidebar, apps, Terminal)
     ├── Terminal.js     # Terminal component
     ├── apps/           # App components (AppX.js naming)
     │   ├── AppSimulator.js
     │   └── AppWallpaper.js
     ├── kit/            # Reusable, app-agnostic UI components (Kit* prefix)
+    │   ├── KitBar.js
     │   ├── KitBrand.js
     │   ├── KitButton.js
     │   ├── KitDropdownMenu.js
@@ -70,7 +66,8 @@ prometheus/
     │   ├── KitIcon.js
     │   ├── KitMenuBarButton.js
     │   ├── KitMenuItem.js
-    │   ├── KitNavFooter.js
+    │   ├── KitSidebarFooter.js
+    │   ├── KitNavItem.js
     │   ├── KitPanel.js
     │   ├── KitSidebar.js
     │   └── KitViewLayout.js
@@ -80,6 +77,7 @@ prometheus/
         ├── ViewCode.js
         ├── ViewData.js
         ├── ViewDeployments.js
+        ├── ViewHome.js
         ├── ViewPublish.js
         ├── ViewSettings.js
         ├── ViewSimulate.js
@@ -238,14 +236,19 @@ export const ViewData = {
 ```
 
 **Kit components** (`components/kit/`):
-- `KitIcon` - Centralized icon library. Use icon names (e.g., `icon="home"`) instead of raw SVG paths. Warns on invalid icon names.
-- `KitNavFooter` - Bottom section of navs (border-top, flex-shrink: 0, padding: 0.5em). Used by sidenav profile and view menu footers.
+- `KitBar` - Horizontal bar with left/right slots. Props: `draggable`. Slots: `#left`, default (right). Emits: `dragstart`, `drag`, `dragend`.
+- `KitBrand` - Brand logo with icon, name, subtitle. Props: `icon`, `name`, `subtitle`, `to` (optional URL).
 - `KitButton` - Reusable button using `.nav-item` styling (same height/padding as sidenav items).
 - `KitDropdownMenu` - Configurable dropdown with `direction` and `trigger` props.
+- `KitFileTree` - Recursive file tree component with `files`, `depth`, `parentPath`, `activeFilePath` props.
+- `KitIcon` - Centralized icon library. Use icon names (e.g., `icon="home"`) instead of raw SVG paths. Warns on invalid icon names.
 - `KitMenuBarButton` - Icon button for menu bar with tooltip positioning. Uses KitIcon internally.
 - `KitMenuItem` - Dropdown menu item with `icon`, `selected`, `selectable`, `variant` (default/success/danger), `to` props. Shows checkmark when selected. Use `selectable` to reserve icon space for alignment in lists.
+- `KitSidebarFooter` - Footer for KitSidebar. Automatically pushed to bottom via margin-top: auto.
+- `KitNavItem` - Navigation item with icon and label. Props: `icon`, `label`, `to` (optional route), `active`. Renders as router-link if `to` is provided.
+- `KitPanel` - Window panel with draggable title bar. Uses KitBar internally. Props: `title`. Emits: `close`, `dragstart`, `drag`, `dragend`.
+- `KitSidebar` - Collapsible sidebar container. Props: `collapsed`. Use KitSidebarFooter as child for footer.
 - `KitViewLayout` - Layout for views with collapsible menu panel (accepts `collapsed` prop).
-- `KitFileTree` - Recursive file tree component with `files`, `depth`, `parentPath`, `activeFilePath` props.
 
 **Alignment principle:** When aligning UI elements, match the rendered pixel height - not the CSS values. Different internal structures (e.g., sidenav-item vs buttons) require different padding values to achieve the same visual height.
 

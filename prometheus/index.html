@@ -82,7 +82,7 @@
       background: var(--bg-primary);
     }
 
-    .distraction-free .title-bar-text {
+    .distraction-free .title-bar .kit-bar-left {
       color: var(--text-primary);
     }
 
@@ -111,30 +111,43 @@
       height: 100vh;
     }
 
-    /* Menu Bar - spans full width */
-    .menu-bar {
+    /* KitBar - base bar component */
+    .kit-bar {
       height: 28px;
-      background: var(--bg-secondary);
-      border-bottom: 1px solid var(--border-color);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 2px 0 12px;
       flex-shrink: 0;
     }
 
-    .menu-bar-right {
+    .kit-bar-draggable {
+      cursor: grab;
+    }
+
+    .kit-bar-draggable:active {
+      cursor: grabbing;
+    }
+
+    .kit-bar-left,
+    .kit-bar-right {
       display: flex;
       align-items: center;
       gap: 4px;
     }
 
-    .menu-bar-right .dropdown-menu-wrapper {
+    /* Menu Bar - spans full width */
+    .menu-bar {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0 2px 0 12px;
+    }
+
+    .menu-bar .kit-bar-right .dropdown-menu-wrapper {
       width: auto;
       padding: 0;
     }
 
-    .menu-bar-right .dropdown-menu {
+    .menu-bar .kit-bar-right .dropdown-menu {
       left: auto;
       right: 0;
       min-width: 220px;
@@ -243,15 +256,12 @@
       overflow: hidden;
     }
 
-    /* Sidenav */
+    /* Sidenav - Dock styling */
     .sidenav {
       width: 200px;
       background: var(--bg-secondary);
       border-right: 1px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
       transition: width 0.2s ease-out;
-      flex-shrink: 0;
     }
 
     .sidenav.collapsed {
@@ -259,15 +269,16 @@
       overflow: visible;
     }
 
-    .sidenav.collapsed .sidenav-menu {
+    .sidenav.collapsed .kit-sidebar-content {
       overflow: visible;
     }
 
-    .sidenav-menu {
+    .sidenav > .kit-sidebar-content {
       padding: 0.5em;
-      flex: 1;
-      min-height: 0;
-      overflow-y: auto;
+    }
+
+    .sidenav > .kit-sidebar-footer {
+      padding: 0.5em;
     }
 
     .sidenav-item {
@@ -731,25 +742,15 @@
       flex: 1;
     }
 
-    /* Title Bar */
+    /* Title Bar (extends kit-bar) */
     .title-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 28px;
       padding: 0 0 0 8px;
       background: #000;
       border-bottom: 1px solid var(--border-color);
-      flex-shrink: 0;
-      cursor: grab;
       user-select: none;
     }
 
-    .title-bar:active {
-      cursor: grabbing;
-    }
-
-    .title-bar-text {
+    .title-bar .kit-bar-left {
       font-weight: 600;
       font-size: 12px;
       color: #fff;
@@ -1684,8 +1685,8 @@
   <script type="module">
     import { store, actions } from './store.js';
     import { Dock } from './components/Dock.js';
-    import { Viewport } from './components/Viewport.js';
-    import { Toolbar } from './components/Toolbar.js';
+    import { Topbar } from './components/Topbar.js';
+    import { ViewHome } from './components/views/ViewHome.js';
     import { ViewApplications } from './components/views/ViewApplications.js';
     import { ViewYap } from './components/views/ViewYap.js';
     import { ViewDeployments } from './components/views/ViewDeployments.js';
@@ -1701,7 +1702,7 @@
     const { createRouter, createWebHashHistory } = VueRouter;
 
     const routes = [
-      { path: '/', name: 'home', component: {} },
+      { path: '/', name: 'home', component: ViewHome },
       { path: '/applications', name: 'applications', component: ViewApplications },
       { path: '/yap', name: 'yap', component: ViewYap },
       { path: '/deployments', name: 'deployments', component: ViewDeployments },
@@ -1732,7 +1733,7 @@
     const app = createApp({
       template: `
         <div class="app-layout" :class="['theme-' + store.theme, { 'no-contrast': !store.contrast, 'distraction-free': store.distractionFree }]">
-          <Toolbar />
+          <Topbar />
           <div class="body-area">
             <Dock />
             <div class="viewport">
@@ -1748,7 +1749,7 @@
 
     app.use(router);
     app.component('Dock', Dock);
-    app.component('Toolbar', Toolbar);
+    app.component('Topbar', Topbar);
 
     app.mount('#app');
   </script>

@@ -1,6 +1,6 @@
 import { store } from '../../store.js';
 import { KitViewLayout } from '../kit/KitViewLayout.js';
-import { KitNavFooter } from '../kit/KitNavFooter.js';
+import { KitSidebarFooter } from '../kit/KitSidebarFooter.js';
 import { KitButton } from '../kit/KitButton.js';
 import { useStyles } from '../../useStyles.js';
 
@@ -183,7 +183,7 @@ const initialMessages = [
 ];
 
 export const ViewYap = {
-  components: { KitViewLayout, KitNavFooter, KitButton },
+  components: { KitViewLayout, KitSidebarFooter, KitButton },
   template: `
     <KitViewLayout :collapsed="store.subSidenavCollapsed">
       <template #menu>
@@ -224,7 +224,7 @@ export const ViewYap = {
             <span class="view-view-yap-channel-name">{{ channel.name }}</span>
           </div>
         </div>
-        <KitNavFooter>
+        <KitSidebarFooter>
           <KitButton>
             <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
@@ -235,7 +235,7 @@ export const ViewYap = {
               <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
           </KitButton>
-        </KitNavFooter>
+        </KitSidebarFooter>
       </template>
 
       <div class="view-view-yap-main">

@@ -1,4 +1,5 @@
 import { store, actions, type2Apps } from '../store.js';
+import { KitBar } from './kit/KitBar.js';
 import { KitMenuBarButton } from './kit/KitMenuBarButton.js';
 import { KitBrand } from './kit/KitBrand.js';
 import { KitDropdownMenu } from './kit/KitDropdownMenu.js';
@@ -7,44 +8,44 @@ import { KitMenuItem } from './kit/KitMenuItem.js';
 const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 const modKey = isMac ? '⌘' : 'Ctrl';
 
-export const Toolbar = {
-  components: { KitMenuBarButton, KitBrand, KitDropdownMenu, KitMenuItem },
+export const Topbar = {
+  components: { KitBar, KitMenuBarButton, KitBrand, KitDropdownMenu, KitMenuItem },
   template: `
-    <div class="menu-bar">
-      <KitBrand v-if="!store.distractionFree" :icon="store.brandIcon" :name="store.brandName" :subtitle="'v' + store.version" />
-      <div class="menu-bar-right">
-        <template v-if="!store.distractionFree">
-          <KitMenuBarButton icon="home" title="Home" :active="isHome" @click="goHome" />
-          <KitDropdownMenu direction="down" trigger="click">
-            <template #trigger>
-              <KitMenuBarButton icon="apps" title="Applications" />
-            </template>
-            <template #menu="{ close }">
-              <KitMenuItem
-                v-for="app in type2Apps"
-                :key="app.id"
-                :icon="app.icon"
-                :selected="store.openWindows.includes(app.id)"
-                selectable
-                @click="launchApp(app.id, close)"
-              >
-                <span>{{ app.label }}</span>
-              </KitMenuItem>
-              <div class="dropdown-menu-separator"></div>
-              <KitMenuItem icon="ellipsis" @click="goToApps(close)">
-                <span>More Apps</span>
-              </KitMenuItem>
-            </template>
-          </KitDropdownMenu>
-          <KitMenuBarButton :icon="themeIcon" :title="themeTitle + ' (' + modKey + '⇧T)'" @click="actions.toggleTheme" />
-          <KitMenuBarButton icon="contrast" :title="contrastTitle + ' (' + modKey + '⇧C)'" @click="actions.toggleContrast" />
-          <KitMenuBarButton icon="sidenav" :title="'Toggle Sidenav (' + modKey + 'B)'" @click="actions.toggleSidenav" />
-          <KitMenuBarButton icon="subSidenav" :title="'Toggle Panel (' + modKey + 'J)'" @click="actions.toggleSubSidenav" />
-          <KitMenuBarButton icon="terminal" :title="terminalTitle" @click="actions.toggleTerminal" />
-        </template>
-        <KitMenuBarButton icon="focus" :title="focusTitle" @click="actions.toggleDistractionFree" class="focus-btn" />
-      </div>
-    </div>
+    <KitBar class="menu-bar">
+      <template #left>
+        <KitBrand v-if="!store.distractionFree" :icon="store.brandIcon" :name="store.brandName" :subtitle="'v' + store.version" />
+      </template>
+      <template v-if="!store.distractionFree">
+        <KitMenuBarButton icon="home" title="Home" :active="isHome" @click="goHome" />
+        <KitDropdownMenu direction="down" trigger="click">
+          <template #trigger>
+            <KitMenuBarButton icon="apps" title="Applications" />
+          </template>
+          <template #menu="{ close }">
+            <KitMenuItem
+              v-for="app in type2Apps"
+              :key="app.id"
+              :icon="app.icon"
+              :selected="store.openWindows.includes(app.id)"
+              selectable
+              @click="launchApp(app.id, close)"
+            >
+              <span>{{ app.label }}</span>
+            </KitMenuItem>
+            <div class="dropdown-menu-separator"></div>
+            <KitMenuItem icon="ellipsis" @click="goToApps(close)">
+              <span>More Apps</span>
+            </KitMenuItem>
+          </template>
+        </KitDropdownMenu>
+        <KitMenuBarButton :icon="themeIcon" :title="themeTitle + ' (' + modKey + '⇧T)'" @click="actions.toggleTheme" />
+        <KitMenuBarButton icon="contrast" :title="contrastTitle + ' (' + modKey + '⇧C)'" @click="actions.toggleContrast" />
+        <KitMenuBarButton icon="sidenav" :title="'Toggle Sidenav (' + modKey + 'B)'" @click="actions.toggleSidenav" />
+        <KitMenuBarButton icon="subSidenav" :title="'Toggle Panel (' + modKey + 'J)'" @click="actions.toggleSubSidenav" />
+        <KitMenuBarButton icon="terminal" :title="terminalTitle" @click="actions.toggleTerminal" />
+      </template>
+      <KitMenuBarButton icon="focus" :title="focusTitle" @click="actions.toggleDistractionFree" class="focus-btn" />
+    </KitBar>
   `,
   setup() {
     const router = VueRouter.useRouter();

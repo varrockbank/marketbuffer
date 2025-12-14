@@ -1,18 +1,28 @@
+import { useStyles } from '../../useStyles.js';
+
+const styles = `
+.kit-sidebar {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+`;
+
+/**
+ * KitSidebar - Collapsible sidebar container.
+ * Props: collapsed
+ * Use KitSidebarFooter as child for footer (auto-pushed to bottom).
+ */
 export const KitSidebar = {
   props: {
-    title: { type: String, default: 'Panel' },
     collapsed: { type: Boolean, default: false },
   },
   template: `
-    <div class="app-menu" :class="{ collapsed }">
-      <div class="app-menu-header">
-        <slot name="header">
-          <span class="app-menu-title">{{ title }}</span>
-        </slot>
-      </div>
-      <div class="app-menu-content">
-        <slot></slot>
-      </div>
+    <div class="kit-sidebar" :class="{ collapsed }">
+      <slot></slot>
     </div>
   `,
+  setup() {
+    useStyles('kit-sidebar', styles);
+  },
 };

@@ -1,21 +1,32 @@
-import { store, apps } from '../store.js';
-import { Window } from './Window.js';
+import { store, actions, apps } from '../../store.js';
+import { KitPanel } from '../kit/KitPanel.js';
+import { AppViewport } from '../AppViewport.js';
 
-export const HomeView = {
-  components: { Window },
+export const ViewHome = {
+  components: { KitPanel, AppViewport },
   template: `
     <div class="home-view" ref="homeView" :class="[{ 'show-grid': store.isDraggingWindow }, 'wp-' + store.wallpaper]">
-      <Window
+      <KitPanel
         v-for="type in store.openWindows"
         :key="type"
-        :type="type"
         :title="getWindowTitle(type)"
         :style="getWindowStyle(type)"
-      />
+        @close="closeWindow(type)"
+        @dragstart="onDragStart(type, $event)"
+        @drag="onDrag(type, $event)"
+        @dragend="onDragEnd"
+      >
+        <AppViewport :type="type" />
+      </KitPanel>
     </div>
   `,
   setup() {
     const homeView = Vue.ref(null);
+    const titleBarHeight = 28;
+    let initialX = 0;
+    let initialY = 0;
+    let containerHeight = 0;
+    let containerWidth = 0;
 
     const getWindowTitle = (type) => {
       const app = apps.find(a => a.id === type);
@@ -32,11 +43,37 @@ export const HomeView = {
       };
     };
 
+    const closeWindow = (type) => {
+      actions.closeWindow(type);
+    };
+
+    const onDragStart = (type, e) => {
+      containerHeight = homeView.value?.offsetHeight || window.innerHeight;
+      containerWidth = homeView.value?.offsetWidth || window.innerWidth;
+
+      actions.bringToFront(type);
+      store.isDraggingWindow = true;
+
+      const pos = store.windowPositions[type];
+      initialX = pos?.x || 0;
+      initialY = pos?.y || 0;
+    };
+
+    const onDrag = (type, { deltaX, deltaY }) => {
+      const maxY = containerHeight - titleBarHeight;
+      const maxX = containerWidth - store.defaultWindowWidth;
+      actions.moveWindow(type, initialX + deltaX, initialY + deltaY, maxY, maxX);
+    };
+
+    const onDragEnd = () => {
+      store.isDraggingWindow = false;
+    };
+
     const constrainWindows = () => {
       if (!homeView.value) return;
 
       const maxX = homeView.value.offsetWidth - store.defaultWindowWidth;
-      const maxY = homeView.value.offsetHeight - 28; // titleBarHeight
+      const maxY = homeView.value.offsetHeight - titleBarHeight;
 
       for (const type of store.openWindows) {
         const pos = store.windowPositions[type];
@@ -55,7 +92,6 @@ export const HomeView = {
           }
 
           if (changed) {
-            // Snap to grid
             pos.x = Math.round(newX / store.gridSize) * store.gridSize;
             pos.y = Math.round(newY / store.gridSize) * store.gridSize;
           }
@@ -71,6 +107,6 @@ export const HomeView = {
       window.removeEventListener('resize', constrainWindows);
     });
 
-    return { store, getWindowTitle, getWindowStyle, homeView };
+    return { store, getWindowTitle, getWindowStyle, closeWindow, onDragStart, onDrag, onDragEnd, homeView };
   },
 };

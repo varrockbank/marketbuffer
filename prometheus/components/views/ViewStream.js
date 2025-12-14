@@ -1,6 +1,6 @@
 import { store } from '../../store.js';
 import { KitViewLayout } from '../kit/KitViewLayout.js';
-import { KitNavFooter } from '../kit/KitNavFooter.js';
+import { KitSidebarFooter } from '../kit/KitSidebarFooter.js';
 import { KitButton } from '../kit/KitButton.js';
 import { useStyles } from '../../useStyles.js';
 
@@ -244,7 +244,7 @@ const entries = [
 ];
 
 export const ViewStream = {
-  components: { KitViewLayout, KitNavFooter, KitButton },
+  components: { KitViewLayout, KitSidebarFooter, KitButton },
   template: `
     <KitViewLayout :collapsed="store.subSidenavCollapsed">
       <template #menu>
@@ -301,14 +301,14 @@ export const ViewStream = {
             <span v-if="item.badge" class="view-view-stream-item-badge">{{ item.badge }}</span>
           </div>
         </div>
-        <KitNavFooter>
+        <KitSidebarFooter>
           <KitButton>
             <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="icons.settings"></svg>
           </KitButton>
           <KitButton>
             <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="icons.plus"></svg>
           </KitButton>
-        </KitNavFooter>
+        </KitSidebarFooter>
       </template>
 
       <div class="view-view-stream-main">
