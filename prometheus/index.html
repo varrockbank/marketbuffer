@@ -126,6 +126,17 @@
       gap: 4px;
     }
 
+    .menu-bar-right .dropdown-menu-wrapper {
+      width: auto;
+      padding: 0;
+    }
+
+    .menu-bar-right .dropdown-menu {
+      left: auto;
+      right: 0;
+      min-width: 220px;
+    }
+
     .menu-bar-btn {
       background: none;
       border: none;
@@ -238,7 +249,6 @@
       flex-direction: column;
       transition: width 0.2s ease-out;
       flex-shrink: 0;
-      overflow: visible;
     }
 
     .sidenav.collapsed {
@@ -253,7 +263,8 @@
     .sidenav-menu {
       padding: 0.5em;
       flex: 1;
-      overflow: visible;
+      min-height: 0;
+      overflow-y: auto;
     }
 
     .sidenav-item {
@@ -459,6 +470,11 @@
       left: calc(100% + 6px);
       right: auto;
       min-width: 220px;
+    }
+
+    .dropdown-menu-teleported {
+      min-width: 220px;
+      z-index: 1000;
     }
 
     .dropdown-menu-item {

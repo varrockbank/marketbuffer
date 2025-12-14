@@ -1,6 +1,7 @@
 import { store, actions } from '../store.js';
 import { MenuBarButton } from './MenuBarButton.js';
 import { Brand } from './Brand.js';
+import { DropdownMenu } from './DropdownMenu.js';
 
 const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 const modKey = isMac ? '⌘' : 'Ctrl';
@@ -14,16 +15,40 @@ const icons = {
   moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
   contrast: '<circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20z"/>',
   focus: '<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>',
+  apps: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>',
 };
 
+// Type-2 apps available in Applications menu
+const appSubmenu = [
+  { id: 'simulator', label: 'Perfect Liquidity Simulator', icon: '<path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>' },
+  { id: 'wallpaper', label: 'Desktop Wallpaper', icon: '<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>' },
+];
+
 export const MenuBar = {
-  components: { MenuBarButton, Brand },
+  components: { MenuBarButton, Brand, DropdownMenu },
   template: `
     <div class="menu-bar">
       <Brand v-if="!store.distractionFree" />
       <div class="menu-bar-right">
         <template v-if="!store.distractionFree">
           <MenuBarButton :icon="icons.home" title="Home" :active="isHome" @click="goHome" />
+          <DropdownMenu direction="down" trigger="click">
+            <template #trigger>
+              <MenuBarButton :icon="icons.apps" title="Applications" />
+            </template>
+            <template #menu="{ close }">
+              <div
+                v-for="app in appSubmenu"
+                :key="app.id"
+                class="dropdown-menu-item"
+                @click="launchApp(app.id, close)"
+              >
+                <svg v-if="store.openWindows.includes(app.id)" class="dropdown-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                <svg v-else class="dropdown-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="app.icon"></svg>
+                <span>{{ app.label }}</span>
+              </div>
+            </template>
+          </DropdownMenu>
           <MenuBarButton :icon="themeIcon" :title="themeTitle + ' (' + modKey + '⇧T)'" @click="actions.toggleTheme" />
           <MenuBarButton :icon="icons.contrast" :title="contrastTitle + ' (' + modKey + '⇧C)'" @click="actions.toggleContrast" />
           <MenuBarButton :icon="icons.sidenav" :title="'Toggle Sidenav (' + modKey + 'B)'" @click="actions.toggleSidenav" />
@@ -46,6 +71,12 @@ export const MenuBar = {
 
     const goHome = () => {
       router.push('/');
+    };
+
+    const launchApp = (appId, closeMenu) => {
+      actions.openWindow(appId);
+      router.push('/');
+      closeMenu();
     };
 
     Vue.onMounted(() => {
@@ -78,6 +109,6 @@ export const MenuBar = {
       Vue.onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
     });
 
-    return { store, actions, icons, themeIcon, themeTitle, contrastTitle, focusTitle, terminalTitle, modKey, goHome, isHome };
+    return { store, actions, icons, themeIcon, themeTitle, contrastTitle, focusTitle, terminalTitle, modKey, goHome, isHome, appSubmenu, launchApp };
   },
 };
