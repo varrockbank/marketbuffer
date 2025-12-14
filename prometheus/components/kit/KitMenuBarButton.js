@@ -1,9 +1,9 @@
-import { DesignIcon } from './DesignIcon.js';
+import { KitIcon } from './KitIcon.js';
 
 // Todo: rename toolbarbutton
 
-export const DesignMenuBarButton = {
-  components: { DesignIcon },
+export const KitMenuBarButton = {
+  components: { KitIcon },
   props: ['icon', 'title', 'active'],
   emits: ['click'],
   template: `
@@ -15,7 +15,7 @@ export const DesignMenuBarButton = {
       @click="$emit('click')"
       @mouseenter="checkPosition"
     >
-      <DesignIcon :icon="icon" />
+      <KitIcon :icon="icon" />
     </button>
   `,
   setup() {

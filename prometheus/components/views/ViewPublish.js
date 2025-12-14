@@ -1,7 +1,7 @@
 import { store } from '../../store.js';
-import { DesignViewLayout } from '../design/DesignViewLayout.js';
-import { DesignNavFooter } from '../design/DesignNavFooter.js';
-import { DesignButton } from '../design/DesignButton.js';
+import { KitViewLayout } from '../kit/KitViewLayout.js';
+import { KitNavFooter } from '../kit/KitNavFooter.js';
+import { KitButton } from '../kit/KitButton.js';
 import { useStyles } from '../../useStyles.js';
 
 const styles = `
@@ -229,9 +229,9 @@ Portfolio Positioning:
 - Cash reserves for opportunistic deployment`;
 
 export const ViewPublish = {
-  components: { DesignViewLayout, DesignNavFooter, DesignButton },
+  components: { KitViewLayout, KitNavFooter, KitButton },
   template: `
-    <DesignViewLayout :collapsed="store.subSidenavCollapsed">
+    <KitViewLayout :collapsed="store.subSidenavCollapsed">
       <template #menu>
         <div class="view-view-publish-sidebar-content">
           <div class="view-view-publish-sidebar-header">Drafts</div>
@@ -260,14 +260,14 @@ export const ViewPublish = {
             <span class="view-view-publish-item-status published">Live</span>
           </div>
         </div>
-        <DesignNavFooter>
-          <DesignButton>
+        <KitNavFooter>
+          <KitButton>
             <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="icons.trash"></svg>
-          </DesignButton>
-          <DesignButton>
+          </KitButton>
+          <KitButton>
             <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="icons.plus"></svg>
-          </DesignButton>
-        </DesignNavFooter>
+          </KitButton>
+        </KitNavFooter>
       </template>
 
       <div class="view-view-publish-main">
@@ -299,7 +299,7 @@ export const ViewPublish = {
           </div>
         </div>
       </div>
-    </DesignViewLayout>
+    </KitViewLayout>
   `,
   setup() {
     useStyles('view-publish-styles', styles);

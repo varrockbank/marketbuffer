@@ -1,26 +1,26 @@
 import { store, actions, type2Apps } from '../store.js';
-import { DesignMenuBarButton } from './design/DesignMenuBarButton.js';
-import { DesignBrand } from './design/DesignBrand.js';
-import { DesignDropdownMenu } from './design/DesignDropdownMenu.js';
-import { DesignMenuItem } from './design/DesignMenuItem.js';
+import { KitMenuBarButton } from './kit/KitMenuBarButton.js';
+import { KitBrand } from './kit/KitBrand.js';
+import { KitDropdownMenu } from './kit/KitDropdownMenu.js';
+import { KitMenuItem } from './kit/KitMenuItem.js';
 
 const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 const modKey = isMac ? '⌘' : 'Ctrl';
 
 export const Toolbar = {
-  components: { DesignMenuBarButton, DesignBrand, DesignDropdownMenu, DesignMenuItem },
+  components: { KitMenuBarButton, KitBrand, KitDropdownMenu, KitMenuItem },
   template: `
     <div class="menu-bar">
-      <DesignBrand v-if="!store.distractionFree" :icon="store.brandIcon" :name="store.brandName" :subtitle="'v' + store.version" />
+      <KitBrand v-if="!store.distractionFree" :icon="store.brandIcon" :name="store.brandName" :subtitle="'v' + store.version" />
       <div class="menu-bar-right">
         <template v-if="!store.distractionFree">
-          <DesignMenuBarButton icon="home" title="Home" :active="isHome" @click="goHome" />
-          <DesignDropdownMenu direction="down" trigger="click">
+          <KitMenuBarButton icon="home" title="Home" :active="isHome" @click="goHome" />
+          <KitDropdownMenu direction="down" trigger="click">
             <template #trigger>
-              <DesignMenuBarButton icon="apps" title="Applications" />
+              <KitMenuBarButton icon="apps" title="Applications" />
             </template>
             <template #menu="{ close }">
-              <DesignMenuItem
+              <KitMenuItem
                 v-for="app in type2Apps"
                 :key="app.id"
                 :icon="app.icon"
@@ -29,20 +29,20 @@ export const Toolbar = {
                 @click="launchApp(app.id, close)"
               >
                 <span>{{ app.label }}</span>
-              </DesignMenuItem>
+              </KitMenuItem>
               <div class="dropdown-menu-separator"></div>
-              <DesignMenuItem icon="ellipsis" @click="goToApps(close)">
+              <KitMenuItem icon="ellipsis" @click="goToApps(close)">
                 <span>More Apps</span>
-              </DesignMenuItem>
+              </KitMenuItem>
             </template>
-          </DesignDropdownMenu>
-          <DesignMenuBarButton :icon="themeIcon" :title="themeTitle + ' (' + modKey + '⇧T)'" @click="actions.toggleTheme" />
-          <DesignMenuBarButton icon="contrast" :title="contrastTitle + ' (' + modKey + '⇧C)'" @click="actions.toggleContrast" />
-          <DesignMenuBarButton icon="sidenav" :title="'Toggle Sidenav (' + modKey + 'B)'" @click="actions.toggleSidenav" />
-          <DesignMenuBarButton icon="subSidenav" :title="'Toggle Panel (' + modKey + 'J)'" @click="actions.toggleSubSidenav" />
-          <DesignMenuBarButton icon="terminal" :title="terminalTitle" @click="actions.toggleTerminal" />
+          </KitDropdownMenu>
+          <KitMenuBarButton :icon="themeIcon" :title="themeTitle + ' (' + modKey + '⇧T)'" @click="actions.toggleTheme" />
+          <KitMenuBarButton icon="contrast" :title="contrastTitle + ' (' + modKey + '⇧C)'" @click="actions.toggleContrast" />
+          <KitMenuBarButton icon="sidenav" :title="'Toggle Sidenav (' + modKey + 'B)'" @click="actions.toggleSidenav" />
+          <KitMenuBarButton icon="subSidenav" :title="'Toggle Panel (' + modKey + 'J)'" @click="actions.toggleSubSidenav" />
+          <KitMenuBarButton icon="terminal" :title="terminalTitle" @click="actions.toggleTerminal" />
         </template>
-        <DesignMenuBarButton icon="focus" :title="focusTitle" @click="actions.toggleDistractionFree" class="focus-btn" />
+        <KitMenuBarButton icon="focus" :title="focusTitle" @click="actions.toggleDistractionFree" class="focus-btn" />
       </div>
     </div>
   `,

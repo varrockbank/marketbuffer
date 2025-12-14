@@ -1,11 +1,11 @@
 import { store, actions, type2Apps } from '../../store.js';
-import { DesignViewLayout } from '../design/DesignViewLayout.js';
-import { DesignIcon } from '../design/DesignIcon.js';
+import { KitViewLayout } from '../kit/KitViewLayout.js';
+import { KitIcon } from '../kit/KitIcon.js';
 
 export const ViewApplications = {
-  components: { DesignViewLayout, DesignIcon },
+  components: { KitViewLayout, KitIcon },
   template: `
-    <DesignViewLayout :collapsed="store.subSidenavCollapsed">
+    <KitViewLayout :collapsed="store.subSidenavCollapsed">
       <template #menu>
         <div class="app-list">
           <div
@@ -15,14 +15,14 @@ export const ViewApplications = {
             :class="{ selected: selectedApp?.id === app.id }"
             @click="selectApp(app)"
           >
-            <DesignIcon :icon="app.icon" class="app-list-icon" />
+            <KitIcon :icon="app.icon" class="app-list-icon" />
             <span class="app-list-label">{{ app.label }}</span>
           </div>
         </div>
       </template>
       <div class="view-content-inner" v-if="selectedApp">
         <div class="app-detail-header">
-          <DesignIcon :icon="selectedApp.icon" :size="48" class="app-detail-icon" />
+          <KitIcon :icon="selectedApp.icon" :size="48" class="app-detail-icon" />
           <div class="app-detail-title">
             <h1 class="view-content-title">{{ selectedApp.label }}</h1>
             <span class="app-detail-version">v{{ selectedApp.version }}</span>
@@ -38,7 +38,7 @@ export const ViewApplications = {
       <div class="view-content-inner view-content-empty" v-else>
         <p>Select an application to view details</p>
       </div>
-    </DesignViewLayout>
+    </KitViewLayout>
   `,
   setup() {
     const router = VueRouter.useRouter();

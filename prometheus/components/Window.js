@@ -1,15 +1,15 @@
 import { store, actions } from '../store.js';
-import { DesignPanel } from './design/DesignPanel.js';
+import { KitPanel } from './kit/KitPanel.js';
 import { AppViewport } from './AppViewport.js';
 
 export const Window = {
-  components: { DesignPanel, AppViewport },
+  components: { KitPanel, AppViewport },
   props: {
     type: { type: String, required: true },
     title: { type: String, default: 'Window' },
   },
   template: `
-    <DesignPanel
+    <KitPanel
       :title="title"
       @close="close"
       @dragstart="onDragStart"
@@ -17,7 +17,7 @@ export const Window = {
       @dragend="onDragEnd"
     >
       <AppViewport :type="type" />
-    </DesignPanel>
+    </KitPanel>
   `,
   setup(props) {
     let initialX = 0;

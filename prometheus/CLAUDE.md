@@ -56,24 +56,24 @@ prometheus/
     ├── SidenavItem.js  # Reusable menu item
     ├── Viewport.js     # Routes between HomeView and self-contained views
     ├── HomeView.js     # Desktop with type-2 app windows
-    ├── Window.js       # Window wrapper using DesignPanel, handles store actions
+    ├── Window.js       # Window wrapper using KitPanel, handles store actions
     ├── AppViewport.js  # Content area for windows (sidebar, apps, Terminal)
     ├── Terminal.js     # Terminal component
     ├── apps/           # App components (AppX.js naming)
     │   ├── AppSimulator.js
     │   └── AppWallpaper.js
-    ├── design/         # Reusable, app-agnostic UI components (Design* prefix)
-    │   ├── DesignBrand.js
-    │   ├── DesignButton.js
-    │   ├── DesignDropdownMenu.js
-    │   ├── DesignFileTree.js
-    │   ├── DesignIcon.js
-    │   ├── DesignMenuBarButton.js
-    │   ├── DesignMenuItem.js
-    │   ├── DesignNavFooter.js
-    │   ├── DesignPanel.js
-    │   ├── DesignSidebar.js
-    │   └── DesignViewLayout.js
+    ├── kit/            # Reusable, app-agnostic UI components (Kit* prefix)
+    │   ├── KitBrand.js
+    │   ├── KitButton.js
+    │   ├── KitDropdownMenu.js
+    │   ├── KitFileTree.js
+    │   ├── KitIcon.js
+    │   ├── KitMenuBarButton.js
+    │   ├── KitMenuItem.js
+    │   ├── KitNavFooter.js
+    │   ├── KitPanel.js
+    │   ├── KitSidebar.js
+    │   └── KitViewLayout.js
     └── views/          # View components (ViewX.js naming)
         ├── ViewAgents.js
         ├── ViewApplications.js
@@ -131,28 +131,28 @@ All app types are defined in the unified `apps` array in `store.js` with a `type
 
 Type-1 and Type-3 are **self-contained views**. Each view:
 - Lives in `components/views/` directory (e.g., `ViewApplications.js`)
-- Uses the `DesignViewLayout` component for consistent structure
+- Uses the `KitViewLayout` component for consistent structure
 - Manages its own local state
 - Is registered directly in the router
 
-### DesignViewLayout Component
+### KitViewLayout Component
 
-All views use `DesignViewLayout` (`components/design/DesignViewLayout.js`) which provides:
+All views use `KitViewLayout` (`components/kit/KitViewLayout.js`) which provides:
 - Collapsible menu panel (accepts `collapsed` prop)
 - Slots for customization: `#header`, `#menu`, and default slot for content
 
 ```javascript
 import { store } from '../../store.js';
-import { DesignViewLayout } from '../design/DesignViewLayout.js';
+import { KitViewLayout } from '../kit/KitViewLayout.js';
 
 export const ViewExample = {
-  components: { DesignViewLayout },
+  components: { KitViewLayout },
   template: `
-    <DesignViewLayout :collapsed="store.subSidenavCollapsed">
+    <KitViewLayout :collapsed="store.subSidenavCollapsed">
       <template #header><!-- Optional: custom header --></template>
       <template #menu><!-- Menu panel content --></template>
       <div class="view-content-inner"><!-- Main content --></div>
-    </DesignViewLayout>
+    </KitViewLayout>
   `,
   setup() {
     return { store };
@@ -237,15 +237,15 @@ export const ViewData = {
 }
 ```
 
-**Design components** (`components/design/`):
-- `DesignIcon` - Centralized icon library. Use icon names (e.g., `icon="home"`) instead of raw SVG paths. Warns on invalid icon names.
-- `DesignNavFooter` - Bottom section of navs (border-top, flex-shrink: 0, padding: 0.5em). Used by sidenav profile and view menu footers.
-- `DesignButton` - Reusable button using `.nav-item` styling (same height/padding as sidenav items).
-- `DesignDropdownMenu` - Configurable dropdown with `direction` and `trigger` props.
-- `DesignMenuBarButton` - Icon button for menu bar with tooltip positioning. Uses DesignIcon internally.
-- `DesignMenuItem` - Dropdown menu item with `icon`, `selected`, `selectable`, `variant` (default/success/danger), `to` props. Shows checkmark when selected. Use `selectable` to reserve icon space for alignment in lists.
-- `DesignViewLayout` - Layout for views with collapsible menu panel (accepts `collapsed` prop).
-- `DesignFileTree` - Recursive file tree component with `files`, `depth`, `parentPath`, `activeFilePath` props.
+**Kit components** (`components/kit/`):
+- `KitIcon` - Centralized icon library. Use icon names (e.g., `icon="home"`) instead of raw SVG paths. Warns on invalid icon names.
+- `KitNavFooter` - Bottom section of navs (border-top, flex-shrink: 0, padding: 0.5em). Used by sidenav profile and view menu footers.
+- `KitButton` - Reusable button using `.nav-item` styling (same height/padding as sidenav items).
+- `KitDropdownMenu` - Configurable dropdown with `direction` and `trigger` props.
+- `KitMenuBarButton` - Icon button for menu bar with tooltip positioning. Uses KitIcon internally.
+- `KitMenuItem` - Dropdown menu item with `icon`, `selected`, `selectable`, `variant` (default/success/danger), `to` props. Shows checkmark when selected. Use `selectable` to reserve icon space for alignment in lists.
+- `KitViewLayout` - Layout for views with collapsible menu panel (accepts `collapsed` prop).
+- `KitFileTree` - Recursive file tree component with `files`, `depth`, `parentPath`, `activeFilePath` props.
 
 **Alignment principle:** When aligning UI elements, match the rendered pixel height - not the CSS values. Different internal structures (e.g., sidenav-item vs buttons) require different padding values to achieve the same visual height.
 

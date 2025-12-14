@@ -1,4 +1,4 @@
-export const DesignSidebar = {
+export const KitSidebar = {
   props: {
     title: { type: String, default: 'Panel' },
     collapsed: { type: Boolean, default: false },

@@ -1,10 +1,10 @@
 import { store } from '../../store.js';
-import { DesignViewLayout } from '../design/DesignViewLayout.js';
+import { KitViewLayout } from '../kit/KitViewLayout.js';
 
 export const ViewSettings = {
-  components: { DesignViewLayout },
+  components: { KitViewLayout },
   template: `
-    <DesignViewLayout :collapsed="store.subSidenavCollapsed">
+    <KitViewLayout :collapsed="store.subSidenavCollapsed">
       <template #menu>
         <div style="padding: 8px; color: var(--text-secondary);">
           Categories
@@ -14,7 +14,7 @@ export const ViewSettings = {
         <h1 class="view-content-title">Settings</h1>
         <p class="view-content-text">Configure your preferences and account settings here.</p>
       </div>
-    </DesignViewLayout>
+    </KitViewLayout>
   `,
   setup() {
     return { store };

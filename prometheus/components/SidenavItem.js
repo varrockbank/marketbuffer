@@ -1,10 +1,10 @@
 import { store, actions } from '../store.js';
-import { DesignDropdownMenu } from './design/DesignDropdownMenu.js';
-import { DesignMenuItem } from './design/DesignMenuItem.js';
-import { DesignIcon } from './design/DesignIcon.js';
+import { KitDropdownMenu } from './kit/KitDropdownMenu.js';
+import { KitMenuItem } from './kit/KitMenuItem.js';
+import { KitIcon } from './kit/KitIcon.js';
 
 export const SidenavItem = {
-  components: { DesignDropdownMenu, DesignMenuItem, DesignIcon },
+  components: { KitDropdownMenu, KitMenuItem, KitIcon },
   props: {
     id: { type: String, required: true },
     label: { type: String, required: true },
@@ -16,19 +16,19 @@ export const SidenavItem = {
   emits: ['click'],
   template: `
     <div class="sidenav-item-container">
-      <DesignDropdownMenu v-if="submenu" direction="right" trigger="click">
+      <KitDropdownMenu v-if="submenu" direction="right" trigger="click">
         <template #trigger>
           <div
             class="sidenav-item"
             :class="{ active: isActive }"
             :data-tooltip="label"
           >
-            <DesignIcon :icon="icon" class="sidenav-icon" />
+            <KitIcon :icon="icon" class="sidenav-icon" />
             <span class="sidenav-label">{{ label }}</span>
           </div>
         </template>
         <template #menu="{ close }">
-          <DesignMenuItem
+          <KitMenuItem
             v-for="item in submenu"
             :key="item.id"
             :icon="item.icon"
@@ -37,13 +37,13 @@ export const SidenavItem = {
             @click="launchApp(item.id, close)"
           >
             <span>{{ item.label }}</span>
-          </DesignMenuItem>
+          </KitMenuItem>
           <div class="dropdown-menu-separator"></div>
-          <DesignMenuItem icon="plus" variant="success" to="/applications" @click="close">
+          <KitMenuItem icon="plus" variant="success" to="/applications" @click="close">
             <span>Add more</span>
-          </DesignMenuItem>
+          </KitMenuItem>
         </template>
-      </DesignDropdownMenu>
+      </KitDropdownMenu>
       <component
         v-else
         :is="to || active === null ? 'router-link' : 'div'"
@@ -53,7 +53,7 @@ export const SidenavItem = {
         :data-tooltip="label"
         @click="$emit('click', $event)"
       >
-        <DesignIcon :icon="icon" class="sidenav-icon" />
+        <KitIcon :icon="icon" class="sidenav-icon" />
         <span class="sidenav-label">{{ label }}</span>
       </component>
     </div>

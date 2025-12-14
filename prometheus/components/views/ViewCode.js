@@ -1,8 +1,8 @@
-import { DesignViewLayout } from '../design/DesignViewLayout.js';
-import { DesignDropdownMenu } from '../design/DesignDropdownMenu.js';
-import { DesignMenuItem } from '../design/DesignMenuItem.js';
-import { DesignIcon } from '../design/DesignIcon.js';
-import { DesignFileTree } from '../design/DesignFileTree.js';
+import { KitViewLayout } from '../kit/KitViewLayout.js';
+import { KitDropdownMenu } from '../kit/KitDropdownMenu.js';
+import { KitMenuItem } from '../kit/KitMenuItem.js';
+import { KitIcon } from '../kit/KitIcon.js';
+import { KitFileTree } from '../kit/KitFileTree.js';
 import { store, actions } from '../../store.js';
 import { useStyles } from '../../useStyles.js';
 import { listProjects, listFiles, loadFile } from '../../projectService.js';
@@ -94,19 +94,19 @@ const icons = {
 };
 
 export const ViewCode = {
-  components: { DesignViewLayout, DesignDropdownMenu, DesignMenuItem, DesignIcon, DesignFileTree },
+  components: { KitViewLayout, KitDropdownMenu, KitMenuItem, KitIcon, KitFileTree },
   template: `
-    <DesignViewLayout :collapsed="store.subSidenavCollapsed">
+    <KitViewLayout :collapsed="store.subSidenavCollapsed">
       <template #header>
-        <DesignDropdownMenu direction="down">
+        <KitDropdownMenu direction="down">
           <template #trigger>
             <div class="project-selector-trigger">
               <span class="project-selector-name">{{ store.currentProject }}</span>
-              <DesignIcon icon="chevronDown" class="project-selector-chevron" />
+              <KitIcon icon="chevronDown" class="project-selector-chevron" />
             </div>
           </template>
           <template #menu="{ close }">
-            <DesignMenuItem
+            <KitMenuItem
               v-for="project in projects"
               :key="project"
               :to="'/code/' + project"
@@ -115,17 +115,17 @@ export const ViewCode = {
               @click="close"
             >
               <span>{{ project }}</span>
-            </DesignMenuItem>
+            </KitMenuItem>
             <div class="dropdown-menu-separator"></div>
-            <DesignMenuItem icon="plus" variant="success" @click="newProject(close)">
+            <KitMenuItem icon="plus" variant="success" @click="newProject(close)">
               <span>New project</span>
-            </DesignMenuItem>
+            </KitMenuItem>
           </template>
-        </DesignDropdownMenu>
+        </KitDropdownMenu>
       </template>
       <template #menu>
         <div class="file-tree-container">
-          <DesignFileTree
+          <KitFileTree
             :files="files"
             :activeFilePath="store.activeFilePath"
             @select="onFileSelect"
@@ -159,7 +159,7 @@ export const ViewCode = {
           <div class="view-view-code-empty-text">Select a file from the tree to view its contents</div>
         </div>
       </div>
-    </DesignViewLayout>
+    </KitViewLayout>
   `,
   setup() {
     useStyles('view-code-styles', styles);

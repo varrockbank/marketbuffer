@@ -2,21 +2,21 @@ import { store, apps, type2AppIds } from '../store.js';
 import { AppSimulator } from './apps/AppSimulator.js';
 import { AppWallpaper } from './apps/AppWallpaper.js';
 import { Terminal } from './Terminal.js';
-import { DesignSidebar } from './design/DesignSidebar.js';
+import { KitSidebar } from './kit/KitSidebar.js';
 
 export const AppViewport = {
-  components: { AppSimulator, AppWallpaper, Terminal, DesignSidebar },
+  components: { AppSimulator, AppWallpaper, Terminal, KitSidebar },
   props: {
     type: { type: String, default: null },
   },
   template: `
     <div class="window-viewport">
       <div v-if="!isType2App">
-         <DesignSidebar :title="title" :collapsed="store.subSidenavCollapsed">
+         <KitSidebar :title="title" :collapsed="store.subSidenavCollapsed">
           <div style="padding: 8px; color: var(--text-secondary);">
             {{ activeType }} panel
           </div>
-        </DesignSidebar>
+        </KitSidebar>
       </div>
       <div class="window-main">
         <AppSimulator v-if="type === 'simulator'" />

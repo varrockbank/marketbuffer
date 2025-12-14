@@ -1,7 +1,7 @@
-import { DesignIcon } from './DesignIcon.js';
+import { KitIcon } from './KitIcon.js';
 
-export const DesignBrand = {
-  components: { DesignIcon },
+export const KitBrand = {
+  components: { KitIcon },
   props: {
     icon: { type: String, required: true },
     name: { type: String, required: true },
@@ -17,7 +17,7 @@ export const DesignBrand = {
       class="brand"
       :class="{ active: isActive }"
     >
-      <DesignIcon :icon="icon" class="brand-icon" />
+      <KitIcon :icon="icon" class="brand-icon" />
       <span class="brand-name">{{ name }}</span>
       <span v-if="subtitle" class="brand-version">{{ subtitle }}</span>
     </component>

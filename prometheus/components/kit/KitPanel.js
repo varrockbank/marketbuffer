@@ -1,7 +1,7 @@
-import { DesignIcon } from './DesignIcon.js';
+import { KitIcon } from './KitIcon.js';
 
-export const DesignPanel = {
-  components: { DesignIcon },
+export const KitPanel = {
+  components: { KitIcon },
   props: {
     title: { type: String, default: 'Window' },
   },
@@ -14,7 +14,7 @@ export const DesignPanel = {
       >
         <span class="title-bar-text">{{ title }}</span>
         <button class="title-bar-close" @click.stop="$emit('close')">
-          <DesignIcon icon="x" :size="16" />
+          <KitIcon icon="x" :size="16" />
         </button>
       </div>
       <slot></slot>

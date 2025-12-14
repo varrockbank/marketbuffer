@@ -1,6 +1,6 @@
 // TODO: rename PopupMenu
 
-export const DesignDropdownMenu = {
+export const KitDropdownMenu = {
   props: {
     direction: { type: String, default: 'down' }, // 'up', 'down', or 'right'
     trigger: { type: String, default: 'click' }, // 'click' or 'hover'

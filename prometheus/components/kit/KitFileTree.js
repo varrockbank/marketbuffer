@@ -5,8 +5,8 @@ const icons = {
   chevron: '<path d="m9 18 6-6-6-6"/>',
 };
 
-export const DesignFileTree = {
-  name: 'DesignFileTree',
+export const KitFileTree = {
+  name: 'KitFileTree',
   props: {
     files: { type: Array, default: () => [] },
     depth: { type: Number, default: 0 },
@@ -48,7 +48,7 @@ export const DesignFileTree = {
           ></svg>
           <span class="file-tree-name">{{ file.name }}</span>
         </div>
-        <DesignFileTree
+        <KitFileTree
           v-if="file.type === 'folder' && isOpen(file.name)"
           :files="file.children"
           :depth="depth + 1"

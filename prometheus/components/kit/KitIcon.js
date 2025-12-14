@@ -56,7 +56,7 @@ export const icons = {
   agents: '<path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>',
 };
 
-export const DesignIcon = {
+export const KitIcon = {
   props: {
     icon: { type: String, required: true },
     size: { type: [Number, String], default: 24 },
@@ -65,7 +65,7 @@ export const DesignIcon = {
     iconPath() {
       const path = icons[this.icon];
       if (!path) {
-        console.warn(`[DesignIcon] Unknown icon: "${this.icon}". Available icons: ${Object.keys(icons).join(', ')}`);
+        console.warn(`[KitIcon] Unknown icon: "${this.icon}". Available icons: ${Object.keys(icons).join(', ')}`);
         return '';
       }
       return path;

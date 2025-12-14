@@ -1,6 +1,6 @@
 // TODO: rename Sidebarfooter
 
-export const DesignNavFooter = {
+export const KitNavFooter = {
   template: `
     <div class="nav-footer">
       <slot></slot>

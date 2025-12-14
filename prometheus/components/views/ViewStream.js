@@ -1,7 +1,7 @@
 import { store } from '../../store.js';
-import { DesignViewLayout } from '../design/DesignViewLayout.js';
-import { DesignNavFooter } from '../design/DesignNavFooter.js';
-import { DesignButton } from '../design/DesignButton.js';
+import { KitViewLayout } from '../kit/KitViewLayout.js';
+import { KitNavFooter } from '../kit/KitNavFooter.js';
+import { KitButton } from '../kit/KitButton.js';
 import { useStyles } from '../../useStyles.js';
 
 const styles = `
@@ -244,9 +244,9 @@ const entries = [
 ];
 
 export const ViewStream = {
-  components: { DesignViewLayout, DesignNavFooter, DesignButton },
+  components: { KitViewLayout, KitNavFooter, KitButton },
   template: `
-    <DesignViewLayout :collapsed="store.subSidenavCollapsed">
+    <KitViewLayout :collapsed="store.subSidenavCollapsed">
       <template #menu>
         <div class="view-view-stream-sidebar-content">
           <div class="view-view-stream-sidebar-header">News</div>
@@ -301,14 +301,14 @@ export const ViewStream = {
             <span v-if="item.badge" class="view-view-stream-item-badge">{{ item.badge }}</span>
           </div>
         </div>
-        <DesignNavFooter>
-          <DesignButton>
+        <KitNavFooter>
+          <KitButton>
             <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="icons.settings"></svg>
-          </DesignButton>
-          <DesignButton>
+          </KitButton>
+          <KitButton>
             <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="icons.plus"></svg>
-          </DesignButton>
-        </DesignNavFooter>
+          </KitButton>
+        </KitNavFooter>
       </template>
 
       <div class="view-view-stream-main">
@@ -346,7 +346,7 @@ export const ViewStream = {
           </div>
         </div>
       </div>
-    </DesignViewLayout>
+    </KitViewLayout>
   `,
   setup() {
     useStyles('view-stream-styles', styles);

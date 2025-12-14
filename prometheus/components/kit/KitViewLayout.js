@@ -1,4 +1,4 @@
-export const DesignViewLayout = {
+export const KitViewLayout = {
   props: {
     collapsed: { type: Boolean, default: false },
   },

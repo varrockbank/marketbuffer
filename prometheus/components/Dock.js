@@ -1,12 +1,12 @@
 import { store, actions, menuItems, type2Apps, type2AppIds, type3Apps } from '../store.js';
 import { SidenavItem } from './SidenavItem.js';
-import { DesignNavFooter } from './design/DesignNavFooter.js';
-import { DesignDropdownMenu } from './design/DesignDropdownMenu.js';
-import { DesignMenuItem } from './design/DesignMenuItem.js';
-import { DesignIcon } from './design/DesignIcon.js';
+import { KitNavFooter } from './kit/KitNavFooter.js';
+import { KitDropdownMenu } from './kit/KitDropdownMenu.js';
+import { KitMenuItem } from './kit/KitMenuItem.js';
+import { KitIcon } from './kit/KitIcon.js';
 
 export const Dock = {
-  components: { SidenavItem, DesignNavFooter, DesignDropdownMenu, DesignMenuItem, DesignIcon },
+  components: { SidenavItem, KitNavFooter, KitDropdownMenu, KitMenuItem, KitIcon },
   template: `
     <div class="sidenav" :class="{ collapsed: store.sidenavCollapsed }">
       <div class="sidenav-menu">
@@ -31,37 +31,37 @@ export const Dock = {
           />
         </template>
       </div>
-      <DesignNavFooter>
-        <DesignDropdownMenu direction="up">
+      <KitNavFooter>
+        <KitDropdownMenu direction="up">
           <template #trigger>
             <div class="sidenav-item" data-tooltip="Profile">
-              <DesignIcon icon="user" class="sidenav-icon" />
+              <KitIcon icon="user" class="sidenav-icon" />
               <span class="sidenav-label">Profile</span>
             </div>
           </template>
           <template #menu="{ close }">
             <div class="dropdown-menu-header">username@foobar.com</div>
             <div class="dropdown-menu-separator"></div>
-            <DesignMenuItem icon="settings" to="/settings" @click="close">
+            <KitMenuItem icon="settings" to="/settings" @click="close">
               <span>Settings</span>
-            </DesignMenuItem>
-            <DesignMenuItem icon="globe">
+            </KitMenuItem>
+            <KitMenuItem icon="globe">
               <span>Language</span>
-            </DesignMenuItem>
-            <DesignMenuItem icon="help">
+            </KitMenuItem>
+            <KitMenuItem icon="help">
               <span>Get help</span>
-            </DesignMenuItem>
+            </KitMenuItem>
             <div class="dropdown-menu-separator"></div>
-            <DesignMenuItem icon="book">
+            <KitMenuItem icon="book">
               <span>Learn more</span>
-            </DesignMenuItem>
+            </KitMenuItem>
             <div class="dropdown-menu-separator"></div>
-            <DesignMenuItem icon="logout" variant="danger">
+            <KitMenuItem icon="logout" variant="danger">
               <span>Log out</span>
-            </DesignMenuItem>
+            </KitMenuItem>
           </template>
-        </DesignDropdownMenu>
-      </DesignNavFooter>
+        </KitDropdownMenu>
+      </KitNavFooter>
     </div>
   `,
   setup() {
