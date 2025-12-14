@@ -1,61 +1,73 @@
 import { store, actions } from '../store.js';
 import { DesignDropdownMenu } from './design/DesignDropdownMenu.js';
+import { DesignMenuItem } from './design/DesignMenuItem.js';
+import { DesignIcon } from './design/DesignIcon.js';
 
 export const SidenavItem = {
-  components: { DesignDropdownMenu },
-  props: ['id', 'label', 'icon', 'submenu'],
+  components: { DesignDropdownMenu, DesignMenuItem, DesignIcon },
+  props: {
+    id: { type: String, required: true },
+    label: { type: String, required: true },
+    icon: { type: String, required: true },
+    submenu: { type: Array, default: null },
+    to: { type: String, default: null },
+    active: { type: Boolean, default: null },
+  },
+  emits: ['click'],
   template: `
     <div class="sidenav-item-container">
       <DesignDropdownMenu v-if="submenu" direction="right" trigger="click">
         <template #trigger>
           <div
             class="sidenav-item"
-            :class="{ active: store.activeMenuItem === id }"
+            :class="{ active: isActive }"
             :data-tooltip="label"
           >
-            <svg class="sidenav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="icon"></svg>
+            <DesignIcon :icon="icon" class="sidenav-icon" />
             <span class="sidenav-label">{{ label }}</span>
           </div>
         </template>
         <template #menu="{ close }">
-          <div
+          <DesignMenuItem
             v-for="item in submenu"
             :key="item.id"
-            class="dropdown-menu-item"
-            :class="{ active: store.openWindows.includes(item.id) }"
+            :icon="item.icon"
+            :selected="store.openWindows.includes(item.id)"
+            selectable
             @click="launchApp(item.id, close)"
           >
-            <svg v-if="store.openWindows.includes(item.id)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 6 9 17l-5-5"/>
-            </svg>
-            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="item.icon"></svg>
             <span>{{ item.label }}</span>
-          </div>
+          </DesignMenuItem>
           <div class="dropdown-menu-separator"></div>
-          <router-link to="/applications" class="dropdown-menu-item success" @click="close">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M5 12h14"/><path d="M12 5v14"/>
-            </svg>
+          <DesignMenuItem icon="plus" variant="success" to="/applications" @click="close">
             <span>Add more</span>
-          </router-link>
+          </DesignMenuItem>
         </template>
       </DesignDropdownMenu>
-      <router-link
+      <component
         v-else
-        :to="getRoute()"
+        :is="to || active === null ? 'router-link' : 'div'"
+        :to="to || getRoute()"
         class="sidenav-item"
-        :class="{ active: store.activeMenuItem === id }"
+        :class="{ active: isActive }"
         :data-tooltip="label"
+        @click="$emit('click', $event)"
       >
-        <svg class="sidenav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="icon"></svg>
+        <DesignIcon :icon="icon" class="sidenav-icon" />
         <span class="sidenav-label">{{ label }}</span>
-      </router-link>
+      </component>
     </div>
   `,
   setup(props) {
     const router = VueRouter.useRouter();
 
+    const isActive = Vue.computed(() => {
+      if (props.active !== null) return props.active;
+      return store.activeMenuItem === props.id;
+    });
+
     const getRoute = () => {
+      if (props.to) return props.to;
       if (props.id === 'code') {
         return '/code/' + store.currentProject;
       }
@@ -68,6 +80,6 @@ export const SidenavItem = {
       close();
     };
 
-    return { store, getRoute, launchApp };
+    return { store, isActive, getRoute, launchApp };
   },
 };

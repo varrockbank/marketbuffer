@@ -51,26 +51,27 @@ prometheus/
 │           ├── value.py
 │           └── moat.py
 └── components/
-    ├── Brand.js        # Logo, name, version
     ├── MenuBar.js      # Top menu bar
-    ├── ProjectSelector.js # Project dropdown for code tab
     ├── Sidenav.js      # Collapsible sidebar
     ├── SidenavItem.js  # Reusable menu item
-    ├── UserProfile.js  # User profile in sidenav footer
-    ├── UserProfileMenu.js # Dropdown menu for user profile
     ├── Viewport.js     # Routes between HomeView and self-contained views
-    ├── HomeView.js     # Desktop with type-2 app windows
-    ├── Window.js       # Window container for type-2 apps
+    ├── Window.js       # Window wrapper using DesignWindow, handles store actions
+    ├── WindowViewport.js # Content area for windows (AppMenu, apps, Terminal)
     ├── apps/           # App components (AppX.js naming)
     │   ├── AppSimulator.js
     │   └── AppWallpaper.js
     ├── design/         # Reusable, app-agnostic UI components (Design* prefix)
+    │   ├── DesignBrand.js
     │   ├── DesignButton.js
     │   ├── DesignDropdownMenu.js
     │   ├── DesignFileTree.js
+    │   ├── DesignIcon.js
     │   ├── DesignMenuBarButton.js
+    │   ├── DesignMenuItem.js
     │   ├── DesignNavFooter.js
-    │   └── DesignViewLayout.js
+    │   ├── DesignPanelMenu.js
+    │   ├── DesignViewLayout.js
+    │   └── DesignWindow.js
     └── views/          # View components (ViewX.js naming)
         ├── ViewAgents.js
         ├── ViewApplications.js
@@ -101,13 +102,14 @@ python -m http.server 8080
 
 ## App Types
 
+All app types are defined in the unified `apps` array in `store.js` with a `type` property (1, 2, or 3). Derived arrays (`menuItems`, `type2Apps`, `type3Apps`, `type2AppIds`) are exported for convenience.
+
 ### Type-1 (Views)
 - Permanent items in the **sidenav**
 - Navigate to routes/views
 - Do NOT appear in the Applications menu
 - Examples: Yap, Deployments, Data, Stream, Code, Publish, Simulate, Agents
 - Components: `components/views/ViewX.js` (e.g., `ViewYap.js`)
-- Defined in `menuItems` array in `Sidenav.js`
 
 ### Type-2 (Apps)
 - Available in the **Applications menu** (dropdown in menu bar)
@@ -115,7 +117,6 @@ python -m http.server 8080
 - When open, also appear in sidenav below type-1 items (with separator)
 - Components: `components/apps/AppX.js` (e.g., `AppSimulator.js`)
 - Examples: Perfect Liquidity Simulator, Desktop Wallpaper
-- Defined in `appSubmenu` array in `MenuBar.js`
 
 ### Type-3 (Views)
 - Have a route but are NOT listed in the Applications menu
@@ -235,10 +236,12 @@ export const ViewData = {
 ```
 
 **Design components** (`components/design/`):
+- `DesignIcon` - Centralized icon library. Use icon names (e.g., `icon="home"`) instead of raw SVG paths. Warns on invalid icon names.
 - `DesignNavFooter` - Bottom section of navs (border-top, flex-shrink: 0, padding: 0.5em). Used by sidenav profile and view menu footers.
 - `DesignButton` - Reusable button using `.nav-item` styling (same height/padding as sidenav items).
 - `DesignDropdownMenu` - Configurable dropdown with `direction` and `trigger` props.
-- `DesignMenuBarButton` - Icon button for menu bar with tooltip positioning.
+- `DesignMenuBarButton` - Icon button for menu bar with tooltip positioning. Uses DesignIcon internally.
+- `DesignMenuItem` - Dropdown menu item with `icon`, `selected`, `selectable`, `variant` (default/success/danger), `to` props. Shows checkmark when selected. Use `selectable` to reserve icon space for alignment in lists.
 - `DesignViewLayout` - Layout for views with collapsible menu panel (accepts `collapsed` prop).
 - `DesignFileTree` - Recursive file tree component with `files`, `depth`, `parentPath`, `activeFilePath` props.
 

@@ -1,9 +1,11 @@
 import { DesignViewLayout } from '../design/DesignViewLayout.js';
-import { ProjectSelector } from '../ProjectSelector.js';
+import { DesignDropdownMenu } from '../design/DesignDropdownMenu.js';
+import { DesignMenuItem } from '../design/DesignMenuItem.js';
+import { DesignIcon } from '../design/DesignIcon.js';
 import { DesignFileTree } from '../design/DesignFileTree.js';
 import { store, actions } from '../../store.js';
 import { useStyles } from '../../useStyles.js';
-import { listFiles, loadFile } from '../../projectService.js';
+import { listProjects, listFiles, loadFile } from '../../projectService.js';
 
 const styles = `
 .view-view-code-main {
@@ -92,11 +94,34 @@ const icons = {
 };
 
 export const ViewCode = {
-  components: { DesignViewLayout, ProjectSelector, DesignFileTree },
+  components: { DesignViewLayout, DesignDropdownMenu, DesignMenuItem, DesignIcon, DesignFileTree },
   template: `
     <DesignViewLayout :collapsed="store.subSidenavCollapsed">
       <template #header>
-        <ProjectSelector />
+        <DesignDropdownMenu direction="down">
+          <template #trigger>
+            <div class="project-selector-trigger">
+              <span class="project-selector-name">{{ store.currentProject }}</span>
+              <DesignIcon icon="chevronDown" class="project-selector-chevron" />
+            </div>
+          </template>
+          <template #menu="{ close }">
+            <DesignMenuItem
+              v-for="project in projects"
+              :key="project"
+              :to="'/code/' + project"
+              :selected="store.currentProject === project"
+              selectable
+              @click="close"
+            >
+              <span>{{ project }}</span>
+            </DesignMenuItem>
+            <div class="dropdown-menu-separator"></div>
+            <DesignMenuItem icon="plus" variant="success" @click="newProject(close)">
+              <span>New project</span>
+            </DesignMenuItem>
+          </template>
+        </DesignDropdownMenu>
       </template>
       <template #menu>
         <div class="file-tree-container">
@@ -141,6 +166,12 @@ export const ViewCode = {
 
     const route = VueRouter.useRoute();
     const files = Vue.ref([]);
+    const projects = Vue.ref([]);
+
+    // Load projects list
+    Vue.onMounted(async () => {
+      projects.value = await listProjects();
+    });
 
     // Load files for current project
     const loadProjectFiles = async (project) => {
@@ -180,6 +211,11 @@ export const ViewCode = {
       }
     };
 
+    const newProject = (close) => {
+      close();
+      // TODO: Open new project dialog
+    };
+
     const lineCount = Vue.computed(() => {
       if (!store.activeFileContent) return 0;
       return store.activeFileContent.split('\n').length;
@@ -189,8 +225,10 @@ export const ViewCode = {
       store,
       icons,
       files,
+      projects,
       lineCount,
       onFileSelect,
+      newProject,
     };
   },
 };

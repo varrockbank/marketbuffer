@@ -1,10 +1,58 @@
 const { reactive } = Vue;
 
 // ============================================
+// APP CONFIGURATION
+// ============================================
+
+// All apps in one place with type property
+// Type 1: Permanent sidenav items (views)
+// Type 2: Apps available in Applications menu (open as windows)
+// Type 3: Have routes but not in Applications menu
+export const apps = [
+  // Type 1: Views
+  { id: 'yap', label: 'Yap', icon: 'yap', type: 1 },
+  { id: 'deployments', label: 'Deployments', icon: 'deployments', type: 1 },
+  { id: 'data', label: 'Data', icon: 'data', type: 1 },
+  { id: 'stream', label: 'Stream', icon: 'stream', type: 1 },
+  { id: 'code', label: 'Code', icon: 'code', type: 1 },
+  { id: 'publish', label: 'Publish', icon: 'publish', type: 1 },
+  { id: 'simulate', label: 'Simulate', icon: 'simulate', type: 1 },
+  { id: 'agents', label: 'Agents', icon: 'agents', type: 1 },
+  // Type 2: Window apps
+  {
+    id: 'simulator',
+    label: 'Perfect Liquidity Simulator',
+    icon: 'chart',
+    type: 2,
+    description: 'Practice trading with simulated market data. Test your strategies without risking real money.',
+    version: '1.0.0',
+  },
+  {
+    id: 'wallpaper',
+    label: 'Desktop Wallpaper',
+    icon: 'image',
+    type: 2,
+    description: 'Customize your desktop background with various wallpapers and themes.',
+    version: '1.0.0',
+  },
+  // Type 3: Routes not in Applications menu
+  { id: 'applications', route: '/applications', label: 'Applications', icon: 'apps', type: 3 },
+  { id: 'settings', route: '/settings', label: 'Settings', icon: 'settings', type: 3 },
+];
+
+// Derived lists by type
+export const menuItems = apps.filter(a => a.type === 1);
+export const type2Apps = apps.filter(a => a.type === 2);
+export const type3Apps = apps.filter(a => a.type === 3);
+export const type2AppIds = type2Apps.map(a => a.id);
+
+// ============================================
 // GLOBAL STORE
 // ============================================
 export const store = reactive({
   // App
+  brandName: 'Marketbuffer',
+  brandIcon: 'sparkle',
   version: '0.1.0',
 
   // Theme

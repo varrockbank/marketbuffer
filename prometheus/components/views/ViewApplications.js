@@ -1,45 +1,28 @@
-import { store, actions } from '../../store.js';
+import { store, actions, type2Apps } from '../../store.js';
 import { DesignViewLayout } from '../design/DesignViewLayout.js';
-
-// Type-2 apps
-const apps = [
-  {
-    id: 'simulator',
-    label: 'Perfect Liquidity Simulator',
-    icon: '<path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>',
-    description: 'Practice trading with simulated market data. Test your strategies without risking real money.',
-    version: '1.0.0',
-  },
-  {
-    id: 'wallpaper',
-    label: 'Desktop Wallpaper',
-    icon: '<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>',
-    description: 'Customize your desktop background with various wallpapers and themes.',
-    version: '1.0.0',
-  },
-];
+import { DesignIcon } from '../design/DesignIcon.js';
 
 export const ViewApplications = {
-  components: { DesignViewLayout },
+  components: { DesignViewLayout, DesignIcon },
   template: `
     <DesignViewLayout :collapsed="store.subSidenavCollapsed">
       <template #menu>
         <div class="app-list">
           <div
-            v-for="app in apps"
+            v-for="app in type2Apps"
             :key="app.id"
             class="app-list-item"
             :class="{ selected: selectedApp?.id === app.id }"
             @click="selectApp(app)"
           >
-            <svg class="app-list-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="app.icon"></svg>
+            <DesignIcon :icon="app.icon" class="app-list-icon" />
             <span class="app-list-label">{{ app.label }}</span>
           </div>
         </div>
       </template>
       <div class="view-content-inner" v-if="selectedApp">
         <div class="app-detail-header">
-          <svg class="app-detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" v-html="selectedApp.icon"></svg>
+          <DesignIcon :icon="selectedApp.icon" :size="48" class="app-detail-icon" />
           <div class="app-detail-title">
             <h1 class="view-content-title">{{ selectedApp.label }}</h1>
             <span class="app-detail-version">v{{ selectedApp.version }}</span>
@@ -59,7 +42,7 @@ export const ViewApplications = {
   `,
   setup() {
     const router = VueRouter.useRouter();
-    const selectedApp = Vue.ref(apps[0]);
+    const selectedApp = Vue.ref(type2Apps[0]);
 
     const selectApp = (app) => {
       selectedApp.value = app;
@@ -76,6 +59,6 @@ export const ViewApplications = {
       }
     };
 
-    return { apps, selectedApp, selectApp, isAppOpen, launchApp };
+    return { store, type2Apps, selectedApp, selectApp, isAppOpen, launchApp };
   },
 };

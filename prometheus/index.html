@@ -50,13 +50,13 @@
       border-right-color: transparent;
     }
 
-    .no-contrast .window-menu,
+    .no-contrast .app-menu,
     .no-contrast .view-menu {
       background: var(--bg-primary);
       border-right-color: transparent;
     }
 
-    .no-contrast .window-menu-header,
+    .no-contrast .app-menu-header,
     .no-contrast .view-menu-header {
       border-bottom-color: transparent;
     }
@@ -67,7 +67,7 @@
       display: none;
     }
 
-    .distraction-free .window-menu,
+    .distraction-free .app-menu,
     .distraction-free .view-menu {
       display: none;
     }
@@ -415,7 +415,7 @@
     }
 
     /* Window Menu */
-    .window-menu {
+    .app-menu {
       width: 240px;
       min-width: 0;
       background: var(--bg-secondary);
@@ -427,27 +427,27 @@
       overflow: hidden;
     }
 
-    .window-menu > * {
+    .app-menu > * {
       min-width: 240px;
     }
 
-    .window-menu.collapsed {
+    .app-menu.collapsed {
       width: 0;
       border-right: none;
     }
 
-    .window-menu-header {
+    .app-menu-header {
       display: flex;
       align-items: center;
       border-bottom: 1px solid var(--border-color);
       flex-shrink: 0;
     }
 
-    .window-menu-header > .dropdown-menu-wrapper {
+    .app-menu-header > .dropdown-menu-wrapper {
       flex: 1;
     }
 
-    .window-menu-title {
+    .app-menu-title {
       font-size: 11px;
       font-weight: 600;
       text-transform: uppercase;
@@ -456,7 +456,7 @@
       padding: 1.167em 0.667em;
     }
 
-    .window-menu-content {
+    .app-menu-content {
       flex: 1;
       overflow-y: auto;
     }
@@ -1684,9 +1684,9 @@
   <script type="module">
     import { store, actions } from './store.js';
     import { Sidenav } from './components/Sidenav.js';
-    import { Viewport } from './components/Viewport.js';
     import { MenuBar } from './components/MenuBar.js';
 
+    import { ViewHome } from './components/views/ViewHome.js';
     import { ViewApplications } from './components/views/ViewApplications.js';
     import { ViewYap } from './components/views/ViewYap.js';
     import { ViewDeployments } from './components/views/ViewDeployments.js';
@@ -1702,7 +1702,7 @@
     const { createRouter, createWebHashHistory } = VueRouter;
 
     const routes = [
-      { path: '/', name: 'home', component: {} },
+      { path: '/', name: 'home', component: ViewHome },
       { path: '/applications', name: 'applications', component: ViewApplications },
       { path: '/yap', name: 'yap', component: ViewYap },
       { path: '/deployments', name: 'deployments', component: ViewDeployments },
@@ -1736,7 +1736,9 @@
           <MenuBar />
           <div class="body-area">
             <Sidenav />
-            <Viewport />
+            <div class="viewport">
+              <router-view />
+            </div>
           </div>
         </div>
       `,
@@ -1747,7 +1749,6 @@
 
     app.use(router);
     app.component('Sidenav', Sidenav);
-    app.component('Viewport', Viewport);
     app.component('MenuBar', MenuBar);
 
     app.mount('#app');

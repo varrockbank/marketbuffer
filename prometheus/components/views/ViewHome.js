@@ -1,7 +1,7 @@
-import { store } from '../store.js';
-import { Window } from './Window.js';
+import { store, apps } from '../../store.js';
+import { Window } from '../Window.js';
 
-export const HomeView = {
+export const ViewHome = {
   components: { Window },
   template: `
     <div class="home-view" ref="homeView" :class="[{ 'show-grid': store.isDraggingWindow }, 'wp-' + store.wallpaper]">
@@ -9,12 +9,18 @@ export const HomeView = {
         v-for="type in store.openWindows"
         :key="type"
         :type="type"
+        :title="getWindowTitle(type)"
         :style="getWindowStyle(type)"
       />
     </div>
   `,
   setup() {
     const homeView = Vue.ref(null);
+
+    const getWindowTitle = (type) => {
+      const app = apps.find(a => a.id === type);
+      return app?.label || 'Window';
+    };
 
     const getWindowStyle = (type) => {
       const pos = store.windowPositions[type] || { x: 0, y: 0, z: 1 };
@@ -65,6 +71,6 @@ export const HomeView = {
       window.removeEventListener('resize', constrainWindows);
     });
 
-    return { store, getWindowStyle, homeView };
+    return { store, getWindowTitle, getWindowStyle, homeView };
   },
 };

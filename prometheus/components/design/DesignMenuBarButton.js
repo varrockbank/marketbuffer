@@ -1,4 +1,9 @@
+import { DesignIcon } from './DesignIcon.js';
+
+// Todo: rename toolbarbutton
+
 export const DesignMenuBarButton = {
+  components: { DesignIcon },
   props: ['icon', 'title', 'active'],
   emits: ['click'],
   template: `
@@ -10,7 +15,7 @@ export const DesignMenuBarButton = {
       @click="$emit('click')"
       @mouseenter="checkPosition"
     >
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="icon"></svg>
+      <DesignIcon :icon="icon" />
     </button>
   `,
   setup() {
