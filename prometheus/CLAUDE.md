@@ -36,16 +36,19 @@ Prometheus is a browser-based IDE with a flexible panel layout. Built with Vue 3
 
 ```
 prometheus/
-├── index.html          # App shell, styles, mounts Vue
+├── index.html          # App shell, global styles, mounts Vue
 ├── store.js            # Global store + actions
 ├── CLAUDE.md
 └── components/
     ├── Brand.js        # Logo, name, version
+    ├── Button.js       # Reusable button (uses .nav-item styling)
     ├── MenuBar.js      # Top menu bar
     ├── MenuBarButton.js# Reusable button for menu bar
+    ├── NavFooter.js    # Bottom section of navs
     ├── ProjectSelector.js # Project dropdown for code tab
     ├── Sidenav.js      # Collapsible sidebar
     ├── SidenavItem.js  # Reusable menu item
+    ├── useStyles.js    # Helper to inject component styles
     ├── UserProfile.js  # User profile in sidenav footer
     ├── UserProfileMenu.js # Dropdown menu for user profile
     ├── Viewport.js     # Routes between HomeView and self-contained views
@@ -171,21 +174,31 @@ export const ViewExample = {
 
 ## CSS Guidelines
 
+**Where to put styles:**
+- `index.html` - Global styles, shared components, theme variables
+- Component files - View-specific styles using `useStyles` helper
+
+**View-specific styles** should be co-located with the component using `useStyles`:
+
+```javascript
+import { useStyles } from '../useStyles.js';
+
+const styles = `
+.view-view-data-header { }
+.view-view-data-table { }
+`;
+
+export const ViewData = {
+  setup() {
+    useStyles('view-data-styles', styles);
+    // ...
+  },
+};
+```
+
 **CSS prefix conventions:**
 - `view-*` - Shared ViewLayout component styles (e.g., `view-layout`, `view-menu`, `view-content`)
 - `view-view-{viewname}-*` - View-specific styles (e.g., `view-view-data-*`, `view-view-code-*`)
-
-```css
-/* Shared layout (ViewLayout.js) */
-.view-layout { }
-.view-menu { }
-.view-content { }
-
-/* View-specific (ViewData.js) */
-.view-view-data-header { }
-.view-view-data-table { }
-.view-view-data-sidebar-content { }
-```
 
 **Always use explicit text colors** - Do not rely on color inheritance. Every text element must have an explicit `color` property using CSS variables:
 
@@ -206,6 +219,7 @@ export const ViewExample = {
 
 **Shared components:**
 - `NavFooter` - Bottom section of navs (border-top, flex-shrink: 0, padding: 0.5em). Used by sidenav profile and view menu footers.
+- `Button` - Reusable button using `.nav-item` styling (same height/padding as sidenav items).
 
 **Alignment principle:** When aligning UI elements, match the rendered pixel height - not the CSS values. Different internal structures (e.g., sidenav-item vs buttons) require different padding values to achieve the same visual height.
 
