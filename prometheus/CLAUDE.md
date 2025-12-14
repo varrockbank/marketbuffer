@@ -62,6 +62,23 @@ python -m http.server 8080
 # Open http://localhost:8080
 ```
 
+## App Types
+
+There are two types of apps:
+
+### Type-1 Apps
+- Appear in the **sidenav** as navigation items
+- Do NOT appear in the Applications menu
+- Examples: Yap, Deployments, Data, Stream, Code, Publish, Simulate, Agents
+- Defined in `menuItems` array in `Sidenav.js`
+
+### Type-2 Apps
+- Appear ONLY in the **Applications menu** (flyout from Applications sidenav item)
+- Do NOT appear as sidenav items
+- Open as windows in the home view
+- Examples: Perfect Liquidity Simulator
+- Defined in `appSubmenu` array in `Sidenav.js`
+
 ## Component Guidelines
 
 **Create a separate component when:**
