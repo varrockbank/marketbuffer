@@ -11,19 +11,20 @@ Prometheus is a browser-based IDE with a flexible panel layout. Built with Vue 3
 ```
 ┌─────────────────────────────────────────────────────┐
 │                    Menu Bar                         │
-├────────┬──────────┬─────────────────────────────────┤
-│        │          │                                 │
-│Sidenav │Sub-Sidenav│         Viewport               │
-│ (icons)│ (panel)  │                                 │
-│        │          ├─────────────────────────────────┤
-│        │          │  Terminal (collapsible)         │
-└────────┴──────────┴─────────────────────────────────┘
+├────────┬────────────────────────────────────────────┤
+│        │                                            │
+│Sidenav │              Viewport                      │
+│ (icons)│  ┌──────────┬─────────────────────────┐   │
+│        │  │ View Menu│     View Content        │   │
+│        │  │ (panel)  │                         │   │
+│        │  └──────────┴─────────────────────────┘   │
+└────────┴────────────────────────────────────────────┘
 ```
 
-- **Sidenav**: Icon-based navigation (files, search, settings, etc.)
-- **Sub-Sidenav**: Context panel that changes based on active sidenav item
-- **Viewport**: Main editor/content area
-- **Terminal**: Collapsible bottom panel
+- **Sidenav**: Icon-based navigation for type-1 apps, plus open type-2/type-3 apps
+- **Viewport**: Renders HomeView (desktop) or self-contained views
+- **View Menu**: Collapsible panel within each view (via ViewLayout)
+- **View Content**: Main content area within each view
 
 ## Architecture
 
@@ -45,11 +46,26 @@ prometheus/
     ├── ProjectSelector.js # Project dropdown for code tab
     ├── Sidenav.js      # Collapsible sidebar
     ├── SidenavItem.js  # Reusable menu item
-    ├── SubSidenav.js   # Context panel (changes based on active menu)
     ├── UserProfile.js  # User profile in sidenav footer
     ├── UserProfileMenu.js # Dropdown menu for user profile
-    ├── Viewport.js     # Main content area
-    └── Terminal.js     # Collapsible bottom terminal
+    ├── Viewport.js     # Routes between HomeView and self-contained views
+    ├── ViewLayout.js   # Reusable layout for self-contained views
+    ├── HomeView.js     # Desktop with type-2 app windows
+    ├── Window.js       # Window container for type-2 apps
+    ├── apps/           # Type-2 app components
+    │   ├── SimulatorWindow.js
+    │   └── WallpaperWindow.js
+    └── views/          # Self-contained views (type-1, type-3)
+        ├── ApplicationsView.js
+        ├── YapView.js
+        ├── DeploymentsView.js
+        ├── DataView.js
+        ├── StreamView.js
+        ├── CodeView.js
+        ├── PublishView.js
+        ├── SimulateView.js
+        ├── AgentsView.js
+        └── SettingsView.js
 ```
 
 ## Development
@@ -74,12 +90,47 @@ When we say "app", we mean type-2 apps.
 - Defined in `menuItems` array in `Sidenav.js`
 
 ### Type-2 (Apps)
-- Available in the **Applications menu** (flyout from Applications sidenav item)
+- Available in the **Applications menu** (dropdown in menu bar)
 - Open as windows in the home view
 - When open, also appear in sidenav below type-1 items (with separator)
 - Components live in `components/apps/` directory
 - Examples: Perfect Liquidity Simulator, Desktop Wallpaper
-- Defined in `appSubmenu` array in `Sidenav.js`
+- Defined in `appSubmenu` array in `MenuBar.js`
+
+### Type-3 (Route Apps)
+- Have a route but are NOT listed in the Applications menu
+- Appear in sidenav active apps section when navigated to
+- Navigate via direct links or "More Apps" button
+- Examples: Applications (/applications), Settings (/settings)
+
+## View Architecture
+
+Type-1 and Type-3 apps are **self-contained views**. Each view:
+- Lives in `components/views/` directory (e.g., `ApplicationsView.js`)
+- Uses the `ViewLayout` component for consistent structure
+- Manages its own local state
+- Is registered directly in the router
+
+### ViewLayout Component
+
+All views use `ViewLayout` (`components/ViewLayout.js`) which provides:
+- Collapsible menu panel (responds to `store.subSidenavCollapsed`)
+- Slots for customization: `#header`, `#menu`, and default slot for content
+
+```javascript
+import { ViewLayout } from '../ViewLayout.js';
+
+export const MyView = {
+  components: { ViewLayout },
+  template: `
+    <ViewLayout title="My View">
+      <template #header><!-- Optional: custom header --></template>
+      <template #menu><!-- Menu panel content --></template>
+      <div class="view-content-inner"><!-- Main content --></div>
+    </ViewLayout>
+  `,
+};
+```
 
 ### Active Window
 - The **active window** is the app that receives keyboard shortcuts

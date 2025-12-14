@@ -47,6 +47,11 @@ export const MenuBar = {
                 <svg v-else class="dropdown-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="app.icon"></svg>
                 <span>{{ app.label }}</span>
               </div>
+              <div class="dropdown-menu-separator"></div>
+              <div class="dropdown-menu-item" @click="goToApps(close)">
+                <svg class="dropdown-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+                <span>More Apps</span>
+              </div>
             </template>
           </DropdownMenu>
           <MenuBarButton :icon="themeIcon" :title="themeTitle + ' (' + modKey + '⇧T)'" @click="actions.toggleTheme" />
@@ -76,6 +81,11 @@ export const MenuBar = {
     const launchApp = (appId, closeMenu) => {
       actions.openWindow(appId);
       router.push('/');
+      closeMenu();
+    };
+
+    const goToApps = (closeMenu) => {
+      router.push('/applications');
       closeMenu();
     };
 
@@ -109,6 +119,6 @@ export const MenuBar = {
       Vue.onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
     });
 
-    return { store, actions, icons, themeIcon, themeTitle, contrastTitle, focusTitle, terminalTitle, modKey, goHome, isHome, appSubmenu, launchApp };
+    return { store, actions, icons, themeIcon, themeTitle, contrastTitle, focusTitle, terminalTitle, modKey, goHome, isHome, appSubmenu, launchApp, goToApps };
   },
 };

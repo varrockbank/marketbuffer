@@ -3,13 +3,19 @@ import { SidenavItem } from './SidenavItem.js';
 import { UserProfile } from './UserProfile.js';
 
 // Type-2 apps: Available in Applications menu
-const appSubmenu = [
+const type2Apps = [
   { id: 'simulator', label: 'Perfect Liquidity Simulator', icon: '<path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>' },
   { id: 'wallpaper', label: 'Desktop Wallpaper', icon: '<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>' },
 ];
 
-// Map of app IDs for quick lookup
-const appIds = appSubmenu.map(a => a.id);
+// Type-3 apps: Have routes but not in Applications menu
+const type3Apps = [
+  { id: 'applications', route: '/applications', label: 'Applications', icon: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>' },
+  { id: 'settings', route: '/settings', label: 'Settings', icon: '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>' },
+];
+
+// Map of type-2 app IDs for quick lookup
+const type2AppIds = type2Apps.map(a => a.id);
 
 export const Sidenav = {
   components: { SidenavItem, UserProfile },
@@ -24,15 +30,15 @@ export const Sidenav = {
           :icon="item.icon"
           :submenu="item.submenu"
         />
-        <template v-if="openApps.length > 0">
+        <template v-if="activeApps.length > 0">
           <div class="sidenav-separator"></div>
           <div
-            v-for="app in openApps"
+            v-for="app in activeApps"
             :key="app.id"
             class="sidenav-item app-item"
-            :class="{ active: isHome && store.activeWindow === app.id }"
+            :class="{ active: app.isActive }"
             :data-tooltip="app.label"
-            @click="focusApp(app.id)"
+            @click="app.onClick"
           >
             <svg class="sidenav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="app.icon"></svg>
             <span class="sidenav-label">{{ app.label }}</span>
@@ -59,17 +65,39 @@ export const Sidenav = {
       { id: 'agents', label: 'Agents', icon: '<path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>' },
     ];
 
-    const openApps = Vue.computed(() => {
-      return store.openWindows
-        .filter(id => appIds.includes(id))
-        .map(id => appSubmenu.find(a => a.id === id));
+    // Combine type-2 open windows and type-3 active routes
+    const activeApps = Vue.computed(() => {
+      const apps = [];
+
+      // Type-2: open windows
+      store.openWindows
+        .filter(id => type2AppIds.includes(id))
+        .forEach(id => {
+          const app = type2Apps.find(a => a.id === id);
+          apps.push({
+            ...app,
+            isActive: isHome.value && store.activeWindow === id,
+            onClick: () => {
+              actions.bringToFront(id);
+              router.push('/');
+            },
+          });
+        });
+
+      // Type-3: active routes
+      type3Apps.forEach(app => {
+        if (route.path === app.route) {
+          apps.push({
+            ...app,
+            isActive: true,
+            onClick: () => router.push(app.route),
+          });
+        }
+      });
+
+      return apps;
     });
 
-    const focusApp = (appId) => {
-      actions.bringToFront(appId);
-      router.push('/');
-    };
-
-    return { store, actions, menuItems, openApps, focusApp, isHome };
+    return { store, actions, menuItems, activeApps, isHome };
   },
 };
