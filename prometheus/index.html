@@ -345,6 +345,7 @@
       border-radius: 4px;
       cursor: pointer;
       color: var(--text-secondary);
+      text-decoration: none;
     }
 
     .user-profile-menu-item:hover {
@@ -463,7 +464,6 @@
       align-items: center;
       justify-content: space-between;
       padding: 0.667em;
-      margin: -0.5em;
       border-radius: 6px;
     }
 
@@ -783,6 +783,7 @@
       { path: '/publish', name: 'publish', component: WindowContent },
       { path: '/simulate', name: 'simulate', component: WindowContent },
       { path: '/agents', name: 'agents', component: WindowContent },
+      { path: '/settings', name: 'settings', component: WindowContent },
     ];
 
     const router = createRouter({

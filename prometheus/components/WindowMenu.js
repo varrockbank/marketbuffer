@@ -34,6 +34,7 @@ export const WindowMenu = {
         publish: 'Publish',
         simulate: 'Simulate',
         agents: 'Agents',
+        settings: 'Settings',
       };
       return titles[activeType.value] || 'Panel';
     });

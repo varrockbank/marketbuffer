@@ -9,6 +9,7 @@ const titles = {
   publish: 'Publish',
   simulate: 'Simulate',
   agents: 'Agents',
+  settings: 'Settings',
 };
 
 export const TitleBar = {

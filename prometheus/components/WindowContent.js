@@ -33,6 +33,10 @@ const content = {
     title: 'Agents',
     text: 'Morbi luctus, wisi viverra faucibus pretium, nibh est placerat odio, nec commodo wisi enim eget quam. Quisque libero justo, consectetuer a feugiat vitae nisl.',
   },
+  settings: {
+    title: 'Settings',
+    text: 'Configure your preferences and account settings here.',
+  },
 };
 
 export const WindowContent = {
