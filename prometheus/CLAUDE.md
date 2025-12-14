@@ -169,6 +169,55 @@ export const ViewExample = {
 - Use props for configuration, emits for events
 - Keep templates readable - extract sub-components if too long
 
+## CSS Guidelines
+
+**CSS prefix conventions:**
+- `view-*` - Shared ViewLayout component styles (e.g., `view-layout`, `view-menu`, `view-content`)
+- `view-view-{viewname}-*` - View-specific styles (e.g., `view-view-data-*`, `view-view-code-*`)
+
+```css
+/* Shared layout (ViewLayout.js) */
+.view-layout { }
+.view-menu { }
+.view-content { }
+
+/* View-specific (ViewData.js) */
+.view-view-data-header { }
+.view-view-data-table { }
+.view-view-data-sidebar-content { }
+```
+
+**Always use explicit text colors** - Do not rely on color inheritance. Every text element must have an explicit `color` property using CSS variables:
+
+```css
+/* WRONG - relies on inheritance, breaks in dark/light mode */
+.my-title {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+/* CORRECT - explicit color */
+.my-title {
+  font-weight: bold;
+  font-size: 16px;
+  color: var(--text-primary);
+}
+```
+
+**Shared components:**
+- `NavFooter` - Bottom section of navs (border-top, flex-shrink: 0, padding: 0.5em). Used by sidenav profile and view menu footers.
+
+**Alignment principle:** When aligning UI elements, match the rendered pixel height - not the CSS values. Different internal structures (e.g., sidenav-item vs buttons) require different padding values to achieve the same visual height.
+
+**Available CSS variables:**
+- `--text-primary` - Main text color (use for titles, labels, content)
+- `--text-secondary` - Muted text (use for metadata, hints, secondary info)
+- `--bg-primary` - Main background
+- `--bg-secondary` - Secondary background (sidebars, panels)
+- `--bg-tertiary` - Tertiary background (hover states, inputs)
+- `--border-color` - Border color
+- `--accent` - Accent color (highlights, active states)
+
 ## Console Commands
 
 ```js
