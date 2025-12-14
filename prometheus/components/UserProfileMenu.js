@@ -1,6 +1,6 @@
 export const UserProfileMenu = {
   template: `
-    <div class="user-profile-menu">
+    <div class="user-profile-menu-content">
       <div class="user-profile-menu-email">username@foobar.com</div>
       <div class="user-profile-menu-separator"></div>
       <div class="user-profile-menu-item">
