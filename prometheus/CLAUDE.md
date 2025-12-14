@@ -38,6 +38,7 @@ Prometheus is a browser-based IDE with a flexible panel layout. Built with Vue 3
 prometheus/
 ├── index.html          # App shell, global styles, mounts Vue
 ├── store.js            # Global store + actions
+├── useStyles.js        # Helper to inject component styles
 ├── CLAUDE.md
 └── components/
     ├── Brand.js        # Logo, name, version
@@ -48,7 +49,6 @@ prometheus/
     ├── ProjectSelector.js # Project dropdown for code tab
     ├── Sidenav.js      # Collapsible sidebar
     ├── SidenavItem.js  # Reusable menu item
-    ├── useStyles.js    # Helper to inject component styles
     ├── UserProfile.js  # User profile in sidenav footer
     ├── UserProfileMenu.js # Dropdown menu for user profile
     ├── Viewport.js     # Routes between HomeView and self-contained views
@@ -181,7 +181,7 @@ export const ViewExample = {
 **View-specific styles** should be co-located with the component using `useStyles`:
 
 ```javascript
-import { useStyles } from '../useStyles.js';
+import { useStyles } from '../../useStyles.js';
 
 const styles = `
 .view-view-data-header { }
