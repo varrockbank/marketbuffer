@@ -11,6 +11,7 @@ const titles = {
   simulate: 'Simulate',
   agents: 'Agents',
   settings: 'Settings',
+  simulator: 'Perfect Liquidity Simulator',
 };
 
 export const TitleBar = {

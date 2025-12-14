@@ -11,6 +11,7 @@ const appSubmenu = [
   { id: 'publish', label: 'Publish', route: '/publish', icon: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/>' },
   { id: 'simulate', label: 'Simulate', route: '/simulate', icon: '<polygon points="6 3 20 12 6 21 6 3"/>' },
   { id: 'agents', label: 'Agents', route: '/agents', icon: '<path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>' },
+  { id: 'simulator', label: 'Perfect Liquidity Simulator', icon: '<path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>' },
 ];
 
 export const Sidenav = {

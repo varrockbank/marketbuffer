@@ -20,9 +20,11 @@ export const store = reactive({
   activeFile: null,
 
   // Windows
-  openWindows: [],
-  windowPositions: {},
-  topZIndex: 0,
+  openWindows: ['simulator'],
+  windowPositions: {
+    simulator: { x: 0, y: 0, z: 1 },
+  },
+  topZIndex: 1,
   gridSize: 40,
   defaultWindowWidth: 400,
   isDraggingWindow: false,
