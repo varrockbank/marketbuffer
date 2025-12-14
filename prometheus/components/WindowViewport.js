@@ -1,15 +1,15 @@
 import { store } from '../store.js';
 import { WindowMenu } from './WindowMenu.js';
 import { WindowContent } from './WindowContent.js';
-import { SimulatorWindow } from './apps/SimulatorWindow.js';
-import { WallpaperWindow } from './apps/WallpaperWindow.js';
+import { AppSimulator } from './apps/AppSimulator.js';
+import { AppWallpaper } from './apps/AppWallpaper.js';
 import { Terminal } from './Terminal.js';
 
 // Type-2 apps don't show WindowMenu or Terminal
 const type2Apps = ['simulator', 'wallpaper'];
 
 export const WindowViewport = {
-  components: { WindowMenu, WindowContent, SimulatorWindow, WallpaperWindow, Terminal },
+  components: { WindowMenu, WindowContent, AppSimulator, AppWallpaper, Terminal },
   props: {
     type: { type: String, default: null },
   },
@@ -17,8 +17,8 @@ export const WindowViewport = {
     <div class="window-viewport">
       <WindowMenu v-if="!isType2App" :type="type" />
       <div class="window-main">
-        <SimulatorWindow v-if="type === 'simulator'" />
-        <WallpaperWindow v-else-if="type === 'wallpaper'" />
+        <AppSimulator v-if="type === 'simulator'" />
+        <AppWallpaper v-else-if="type === 'wallpaper'" />
         <WindowContent v-else-if="type" :type="type" />
         <router-view v-else />
         <Terminal v-if="!isType2App" />

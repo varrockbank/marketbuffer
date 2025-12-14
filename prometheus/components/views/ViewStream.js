@@ -1,6 +1,6 @@
 import { ViewLayout } from '../ViewLayout.js';
 
-export const StreamView = {
+export const ViewStream = {
   components: { ViewLayout },
   template: `
     <ViewLayout>

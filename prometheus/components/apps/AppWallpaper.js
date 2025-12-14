@@ -13,7 +13,7 @@ const wallpapers = [
   { id: 'mac-ii', label: 'Mac II Dither' },
 ];
 
-export const WallpaperWindow = {
+export const AppWallpaper = {
   template: `
     <div class="wallpaper-content">
       <div class="wallpaper-grid">

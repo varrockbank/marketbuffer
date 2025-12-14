@@ -2,7 +2,7 @@ import { ViewLayout } from '../ViewLayout.js';
 import { ProjectSelector } from '../ProjectSelector.js';
 import { FileTreeContainer } from '../FileTree.js';
 
-export const CodeView = {
+export const ViewCode = {
   components: { ViewLayout, ProjectSelector, FileTreeContainer },
   template: `
     <ViewLayout>

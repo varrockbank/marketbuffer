@@ -21,7 +21,7 @@ Prometheus is a browser-based IDE with a flexible panel layout. Built with Vue 3
 └────────┴────────────────────────────────────────────┘
 ```
 
-- **Sidenav**: Icon-based navigation for type-1 apps, plus open type-2/type-3 apps
+- **Sidenav**: Icon-based navigation for views, plus open apps
 - **Viewport**: Renders HomeView (desktop) or self-contained views
 - **View Menu**: Collapsible panel within each view (via ViewLayout)
 - **View Content**: Main content area within each view
@@ -52,20 +52,20 @@ prometheus/
     ├── ViewLayout.js   # Reusable layout for self-contained views
     ├── HomeView.js     # Desktop with type-2 app windows
     ├── Window.js       # Window container for type-2 apps
-    ├── apps/           # Type-2 app components
-    │   ├── SimulatorWindow.js
-    │   └── WallpaperWindow.js
-    └── views/          # Self-contained views (type-1, type-3)
-        ├── ApplicationsView.js
-        ├── YapView.js
-        ├── DeploymentsView.js
-        ├── DataView.js
-        ├── StreamView.js
-        ├── CodeView.js
-        ├── PublishView.js
-        ├── SimulateView.js
-        ├── AgentsView.js
-        └── SettingsView.js
+    ├── apps/           # App components (AppX.js naming)
+    │   ├── AppSimulator.js
+    │   └── AppWallpaper.js
+    └── views/          # View components (ViewX.js naming)
+        ├── ViewAgents.js
+        ├── ViewApplications.js
+        ├── ViewCode.js
+        ├── ViewData.js
+        ├── ViewDeployments.js
+        ├── ViewPublish.js
+        ├── ViewSettings.js
+        ├── ViewSimulate.js
+        ├── ViewStream.js
+        └── ViewYap.js
 ```
 
 ## Development
@@ -78,35 +78,40 @@ python -m http.server 8080
 # Open http://localhost:8080
 ```
 
+## Terminology
+
+- **Apps**: Type-2 components that open as windows on the desktop
+- **Views**: Type-1 and Type-3 components that render as full-page routes
+
 ## App Types
 
-When we say "app", we mean type-2 apps.
-
-### Type-1 (Sidenav Items)
+### Type-1 (Views)
 - Permanent items in the **sidenav**
 - Navigate to routes/views
 - Do NOT appear in the Applications menu
 - Examples: Yap, Deployments, Data, Stream, Code, Publish, Simulate, Agents
+- Components: `components/views/ViewX.js` (e.g., `ViewYap.js`)
 - Defined in `menuItems` array in `Sidenav.js`
 
 ### Type-2 (Apps)
 - Available in the **Applications menu** (dropdown in menu bar)
-- Open as windows in the home view
+- Open as windows on the home view desktop
 - When open, also appear in sidenav below type-1 items (with separator)
-- Components live in `components/apps/` directory
+- Components: `components/apps/AppX.js` (e.g., `AppSimulator.js`)
 - Examples: Perfect Liquidity Simulator, Desktop Wallpaper
 - Defined in `appSubmenu` array in `MenuBar.js`
 
-### Type-3 (Route Apps)
+### Type-3 (Views)
 - Have a route but are NOT listed in the Applications menu
 - Appear in sidenav active apps section when navigated to
 - Navigate via direct links or "More Apps" button
+- Components: `components/views/ViewX.js` (e.g., `ViewSettings.js`)
 - Examples: Applications (/applications), Settings (/settings)
 
 ## View Architecture
 
-Type-1 and Type-3 apps are **self-contained views**. Each view:
-- Lives in `components/views/` directory (e.g., `ApplicationsView.js`)
+Type-1 and Type-3 are **self-contained views**. Each view:
+- Lives in `components/views/` directory (e.g., `ViewApplications.js`)
 - Uses the `ViewLayout` component for consistent structure
 - Manages its own local state
 - Is registered directly in the router
@@ -120,10 +125,10 @@ All views use `ViewLayout` (`components/ViewLayout.js`) which provides:
 ```javascript
 import { ViewLayout } from '../ViewLayout.js';
 
-export const MyView = {
+export const ViewExample = {
   components: { ViewLayout },
   template: `
-    <ViewLayout title="My View">
+    <ViewLayout>
       <template #header><!-- Optional: custom header --></template>
       <template #menu><!-- Menu panel content --></template>
       <div class="view-content-inner"><!-- Main content --></div>

@@ -1,6 +1,6 @@
 import { ViewLayout } from '../ViewLayout.js';
 
-export const DeploymentsView = {
+export const ViewDeployments = {
   components: { ViewLayout },
   template: `
     <ViewLayout>

@@ -19,7 +19,7 @@ const apps = [
   },
 ];
 
-export const ApplicationsView = {
+export const ViewApplications = {
   components: { ViewLayout },
   template: `
     <ViewLayout>

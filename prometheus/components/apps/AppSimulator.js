@@ -51,7 +51,7 @@ const generatePriceData = (ticker, dateKey) => {
   };
 };
 
-export const SimulatorWindow = {
+export const AppSimulator = {
   template: `
     <div class="simulator-content">
       <div class="sim-main">

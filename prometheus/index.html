@@ -1636,16 +1636,16 @@
     import { MenuBar } from './components/MenuBar.js';
 
     // Self-contained views
-    import { ApplicationsView } from './components/views/ApplicationsView.js';
-    import { YapView } from './components/views/YapView.js';
-    import { DeploymentsView } from './components/views/DeploymentsView.js';
-    import { DataView } from './components/views/DataView.js';
-    import { StreamView } from './components/views/StreamView.js';
-    import { CodeView } from './components/views/CodeView.js';
-    import { PublishView } from './components/views/PublishView.js';
-    import { SimulateView } from './components/views/SimulateView.js';
-    import { AgentsView } from './components/views/AgentsView.js';
-    import { SettingsView } from './components/views/SettingsView.js';
+    import { ViewApplications } from './components/views/ViewApplications.js';
+    import { ViewYap } from './components/views/ViewYap.js';
+    import { ViewDeployments } from './components/views/ViewDeployments.js';
+    import { ViewData } from './components/views/ViewData.js';
+    import { ViewStream } from './components/views/ViewStream.js';
+    import { ViewCode } from './components/views/ViewCode.js';
+    import { ViewPublish } from './components/views/ViewPublish.js';
+    import { ViewSimulate } from './components/views/ViewSimulate.js';
+    import { ViewAgents } from './components/views/ViewAgents.js';
+    import { ViewSettings } from './components/views/ViewSettings.js';
 
     const { createApp } = Vue;
     const { createRouter, createWebHashHistory } = VueRouter;
@@ -1655,17 +1655,17 @@
     // ============================================
     const routes = [
       { path: '/', name: 'home', component: {} },
-      { path: '/applications', name: 'applications', component: ApplicationsView },
-      { path: '/yap', name: 'yap', component: YapView },
-      { path: '/deployments', name: 'deployments', component: DeploymentsView },
-      { path: '/data', name: 'data', component: DataView },
-      { path: '/stream', name: 'stream', component: StreamView },
+      { path: '/applications', name: 'applications', component: ViewApplications },
+      { path: '/yap', name: 'yap', component: ViewYap },
+      { path: '/deployments', name: 'deployments', component: ViewDeployments },
+      { path: '/data', name: 'data', component: ViewData },
+      { path: '/stream', name: 'stream', component: ViewStream },
       { path: '/code', redirect: '/code/prometheus' },
-      { path: '/code/:project', name: 'code', component: CodeView },
-      { path: '/publish', name: 'publish', component: PublishView },
-      { path: '/simulate', name: 'simulate', component: SimulateView },
-      { path: '/agents', name: 'agents', component: AgentsView },
-      { path: '/settings', name: 'settings', component: SettingsView },
+      { path: '/code/:project', name: 'code', component: ViewCode },
+      { path: '/publish', name: 'publish', component: ViewPublish },
+      { path: '/simulate', name: 'simulate', component: ViewSimulate },
+      { path: '/agents', name: 'agents', component: ViewAgents },
+      { path: '/settings', name: 'settings', component: ViewSettings },
     ];
 
     const router = createRouter({
