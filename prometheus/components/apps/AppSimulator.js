@@ -1,4 +1,534 @@
 import { store } from '../../store.js';
+import { useStyles } from '../../useStyles.js';
+
+const styles = `
+/* Simulator Window - not full height, auto width */
+.home-view > .window:has(.simulator-content) {
+  height: auto;
+  width: auto !important;
+}
+
+/* Simulator Styles */
+.simulator-content {
+  display: flex;
+  overflow: hidden;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.sim-main {
+  padding: 12px;
+  font-size: 11px;
+  width: 380px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  background: var(--bg-primary);
+}
+
+.sim-details {
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--border-color);
+  flex-shrink: 0;
+  width: 0;
+  overflow: hidden;
+  animation: sim-slide-out 0.5s ease forwards;
+}
+
+@keyframes sim-slide-out {
+  from { width: 0; }
+  to { width: 280px; }
+}
+
+.sim-details-no-anim {
+  animation: none;
+  width: 280px;
+}
+
+.sim-details-closing {
+  animation: sim-slide-in 0.5s ease forwards;
+}
+
+@keyframes sim-slide-in {
+  from { width: 280px; }
+  to { width: 0; }
+}
+
+.sim-details-top {
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--border-color);
+  height: 150px;
+  background: var(--bg-secondary);
+  width: 280px;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+}
+
+.sim-details-bottom {
+  flex: 1;
+  min-height: 0;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-secondary);
+  width: 280px;
+  min-width: 280px;
+}
+
+.sim-status {
+  margin-bottom: 8px;
+}
+
+.sim-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.sim-date {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.sim-portfolio-label {
+  margin-top: 8px;
+  margin-bottom: 4px;
+  font-weight: bold;
+}
+
+.sim-portfolio-grid {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 2px 12px;
+}
+
+.sim-portfolio-row {
+  display: contents;
+}
+
+.sim-portfolio-row span:last-child {
+  text-align: right;
+}
+
+.sim-total {
+  border-top: 1px solid var(--border-color);
+  font-weight: bold;
+}
+
+.sim-total span {
+  padding-top: 4px;
+}
+
+.sim-label {
+  color: var(--text-primary);
+  opacity: 0.7;
+  margin-right: 4px;
+}
+
+.sim-delta-up {
+  color: #00c853;
+}
+
+.sim-delta-down {
+  color: #ff1744;
+}
+
+.sim-delta-none {
+  color: transparent;
+}
+
+.sim-divider {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 8px 0;
+}
+
+.sim-inquiry-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.sim-select {
+  flex: 1;
+  font-family: inherit;
+  font-size: 11px;
+  padding: 4px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border-radius: 4px;
+}
+
+.sim-ohlc {
+  padding: 8px 0;
+}
+
+.sim-ohlc-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+  color: var(--text-primary);
+}
+
+.sim-ohlc-row span:first-child {
+  opacity: 0.7;
+}
+
+.sim-midpoint {
+  border-top: 1px solid var(--border-color);
+  margin-top: 4px;
+  padding-top: 4px;
+  font-weight: bold;
+}
+
+.sim-action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.sim-btn {
+  flex: 1;
+  font-family: inherit;
+  font-size: 11px;
+  padding: 6px 12px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.sim-btn:hover:not(:disabled) {
+  background: var(--bg-tertiary);
+}
+
+.sim-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sim-btn-secondary {
+  background: var(--bg-tertiary);
+}
+
+.sim-btn-buy {
+  background: #00c853;
+  color: white;
+  border-color: #00a844;
+}
+
+.sim-btn-buy:hover:not(:disabled) {
+  background: #00b848;
+}
+
+.sim-btn-sell {
+  background: #ff1744;
+  color: white;
+  border-color: #e0153c;
+}
+
+.sim-btn-sell:hover:not(:disabled) {
+  background: #e6143d;
+}
+
+.sim-btn kbd {
+  font-family: inherit;
+  font-size: 9px;
+  padding: 1px 4px;
+  margin-left: 6px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  opacity: 0.8;
+}
+
+.sim-end {
+  text-align: center;
+  color: var(--text-primary);
+  opacity: 0.7;
+  padding: 8px;
+}
+
+.sim-fastforward {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.sim-fastforward-header {
+  margin-bottom: 6px;
+  font-weight: bold;
+  font-size: 10px;
+  color: var(--text-primary);
+  opacity: 0.7;
+}
+
+.sim-fastforward-list {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+}
+
+.sim-ff-date {
+  font-family: inherit;
+  font-size: 10px;
+  padding: 4px 2px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.sim-ff-date:hover {
+  background: var(--bg-tertiary);
+}
+
+.sim-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color);
+}
+
+.sim-btn-link {
+  font-family: inherit;
+  font-size: 10px;
+  padding: 2px 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.sim-btn-link:hover:not(:disabled) {
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+}
+
+.sim-btn-link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sim-timeline-header {
+  font-weight: bold;
+  font-size: 11px;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.sim-timeline {
+  flex: 1;
+  overflow-x: auto;
+  display: flex;
+  align-items: flex-end;
+  padding-top: 10px;
+}
+
+.sim-timeline-segments {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 100%;
+}
+
+.sim-timeline-segment {
+  width: 8px;
+  height: 80px;
+  position: relative;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: height 0.1s ease;
+}
+
+.sim-timeline-segment:hover {
+  height: 90px;
+}
+
+.sim-timeline-up {
+  background: #00c853;
+}
+
+.sim-timeline-down {
+  background: #ff1744;
+}
+
+.sim-timeline-neutral {
+  background: #666;
+}
+
+.sim-timeline-arrow {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: var(--text-primary);
+}
+
+.sim-timeline-empty {
+  color: var(--text-primary);
+  opacity: 0.6;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.sim-timeline-info {
+  height: 20px;
+  font-size: 10px;
+  padding: 4px 0 0 0;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sim-timeline-info-date {
+  color: var(--text-primary);
+  flex: 1;
+  text-align: left;
+}
+
+.sim-timeline-info-ticker {
+  color: var(--text-primary);
+  font-weight: bold;
+  flex: 1;
+  text-align: center;
+}
+
+.sim-timeline-info-pnl {
+  flex: 1;
+  text-align: right;
+}
+
+.sim-timeline-info-pnl.up {
+  color: #00c853;
+}
+
+.sim-timeline-info-pnl.down {
+  color: #ff1744;
+}
+
+.sim-ledger-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.sim-ledger-header {
+  font-weight: bold;
+  font-size: 11px;
+}
+
+.sim-ledger-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.sim-ledger-empty {
+  color: var(--text-primary);
+  opacity: 0.6;
+  font-size: 11px;
+  text-align: center;
+  padding: 20px;
+}
+
+.sim-trade-row {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sim-trade-row:last-child {
+  border-bottom: none;
+}
+
+.sim-trade-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+  cursor: pointer;
+  font-size: 10px;
+  list-style: none;
+  color: var(--text-primary);
+}
+
+.sim-trade-header::-webkit-details-marker {
+  display: none;
+}
+
+.sim-trade-header::before {
+  content: '>';
+  font-size: 8px;
+  width: 10px;
+  flex-shrink: 0;
+}
+
+.sim-trade-row[open] .sim-trade-header::before {
+  content: 'v';
+}
+
+.sim-trade-header:hover {
+  background: var(--bg-tertiary);
+}
+
+.sim-trade-date {
+  color: var(--text-primary);
+  opacity: 0.7;
+}
+
+.sim-trade-ticker {
+  font-weight: bold;
+  color: var(--text-primary);
+}
+
+.sim-trade-status {
+  margin-left: auto;
+  font-size: 9px;
+  color: var(--text-primary);
+  opacity: 0.7;
+}
+
+.sim-trade-open {
+  color: #00c853;
+}
+
+.sim-trade-details {
+  padding: 4px 8px 8px 22px;
+  font-size: 10px;
+  color: var(--text-primary);
+}
+
+.sim-trade-detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+}
+
+.sim-trade-detail-row span:first-child {
+  color: var(--text-primary);
+  opacity: 0.7;
+}
+
+.sim-trade-pnl {
+  border-top: 1px solid var(--border-color);
+  margin-top: 4px;
+  padding-top: 4px;
+  font-weight: bold;
+}
+`;
 
 // Mock data for the simulator
 const mockTickers = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA'];
@@ -193,6 +723,8 @@ export const AppSimulator = {
     </div>
   `,
   setup() {
+    useStyles('app-simulator', styles);
+
     const dates = generateDates();
     const tickers = mockTickers;
 

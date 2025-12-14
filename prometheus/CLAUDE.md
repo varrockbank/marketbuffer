@@ -1,37 +1,33 @@
 # Prometheus
 
-A web-based IDE built with Vue 3.
+Prometheus is a UI rework of Marketbuffer's original desktop-oriented environment. 
+The main QF modalities: research, develop, observe are first-class applications.
 
-## Overview
-
-Prometheus is a browser-based IDE with a flexible panel layout. Built with Vue 3 via CDN (no build step required).
+It adopts Vue 3, via CDN and without buildstep. The benefit of Vue 3 over VanillaJS
+it that is forces claude to think about components. It defines CSS isolation. 
+It forces strict boundaries between components. It forces us to think about 
+app-agnostic components vs app-specific tweaks. Vue's state container also helps to this end.
 
 ### Layout
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                    Menu Bar                         │
+│                Topbar (a variant of KitBar)         │
 ├────────┬────────────────────────────────────────────┤
 │        │                                            │
-│Sidenav │              Viewport                      │
-│ (icons)│  ┌──────────┬─────────────────────────┐   │
-│        │  │ View Menu│     View Content        │   │
-│        │  │ (panel)  │                         │   │
-│        │  └──────────┴─────────────────────────┘   │
+| Dock   │              Viewport                      │
+│        │  ┌──────────┬─────────────────────────┐    │
+│        │  │ View Menu│     View Content        │    │
+│        │  │ (panel)  │                         │    │
+│        │  └──────────┴─────────────────────────┘    │
 └────────┴────────────────────────────────────────────┘
 ```
 
-- **Sidenav**: Icon-based navigation for views, plus open apps
+- **Dock**: App selection
 - **View Menu**: Collapsible panel within each view (via ViewLayout)
 - **View Content**: Main content area within each view
 
 ## Architecture
-
-- **Framework**: Vue 3 (CDN, no build step)
-- **State**: Global reactive store (`store.js`)
-- **Components**: ES modules in `components/` directory
-
-### File Structure
 
 ```
 prometheus/
@@ -59,17 +55,17 @@ prometheus/
     │   └── AppWallpaper.js
     ├── kit/            # Reusable, app-agnostic UI components (Kit* prefix)
     │   ├── KitBar.js
+    │   ├── KitBarButton.js
     │   ├── KitBrand.js
     │   ├── KitButton.js
-    │   ├── KitDropdownMenu.js
     │   ├── KitFileTree.js
     │   ├── KitIcon.js
-    │   ├── KitMenuBarButton.js
+    │   ├── KitMenu.js
     │   ├── KitMenuItem.js
-    │   ├── KitSidebarFooter.js
-    │   ├── KitNavItem.js
     │   ├── KitPanel.js
     │   ├── KitSidebar.js
+    │   ├── KitSidebarFooter.js
+    │   ├── KitSidebarItem.js
     │   └── KitViewLayout.js
     └── views/          # View components (ViewX.js naming)
         ├── ViewAgents.js
@@ -83,16 +79,6 @@ prometheus/
         ├── ViewSimulate.js
         ├── ViewStream.js
         └── ViewYap.js
-```
-
-## Development
-
-Requires a local server (ES modules don't work with `file://`):
-
-```bash
-cd prometheus
-python -m http.server 8080
-# Open http://localhost:8080
 ```
 
 ## Terminology
@@ -239,13 +225,13 @@ export const ViewData = {
 - `KitBar` - Horizontal bar with left/right slots. Props: `draggable`. Slots: `#left`, default (right). Emits: `dragstart`, `drag`, `dragend`.
 - `KitBrand` - Brand logo with icon, name, subtitle. Props: `icon`, `name`, `subtitle`, `to` (optional URL).
 - `KitButton` - Reusable button using `.nav-item` styling (same height/padding as sidenav items).
-- `KitDropdownMenu` - Configurable dropdown with `direction` and `trigger` props.
+- `KitBarButton` - Icon button for bars/toolbars with tooltip positioning. Uses KitIcon internally.
 - `KitFileTree` - Recursive file tree component with `files`, `depth`, `parentPath`, `activeFilePath` props.
 - `KitIcon` - Centralized icon library. Use icon names (e.g., `icon="home"`) instead of raw SVG paths. Warns on invalid icon names.
-- `KitMenuBarButton` - Icon button for menu bar with tooltip positioning. Uses KitIcon internally.
+- `KitMenu` - Configurable dropdown menu with `direction` and `trigger` props.
 - `KitMenuItem` - Dropdown menu item with `icon`, `selected`, `selectable`, `variant` (default/success/danger), `to` props. Shows checkmark when selected. Use `selectable` to reserve icon space for alignment in lists.
 - `KitSidebarFooter` - Footer for KitSidebar. Automatically pushed to bottom via margin-top: auto.
-- `KitNavItem` - Navigation item with icon and label. Props: `icon`, `label`, `to` (optional route), `active`. Renders as router-link if `to` is provided.
+- `KitSidebarItem` - Navigation item with icon and label for sidebars. Props: `icon`, `label`, `to` (optional route), `active`. Renders as router-link if `to` is provided.
 - `KitPanel` - Window panel with draggable title bar. Uses KitBar internally. Props: `title`. Emits: `close`, `dragstart`, `drag`, `dragend`.
 - `KitSidebar` - Collapsible sidebar container. Props: `collapsed`. Use KitSidebarFooter as child for footer.
 - `KitViewLayout` - Layout for views with collapsible menu panel (accepts `collapsed` prop).
@@ -286,12 +272,3 @@ const nestedContent = await loadFile('WarrenBuffer', 'strategies/value.py');
 - `store.activeFilePath` - Full path for loading (e.g., `strategies/value.py`)
 - `store.activeFileContent` - Content of the open file
 - `store.fileLoading` - Loading state
-
-## Console Commands
-
-```js
-store.theme = "light"    // switch theme
-store.theme = "dark"
-actions.toggleSidenav()  // toggle sidenav
-actions.toggleTerminal() // toggle terminal
-```

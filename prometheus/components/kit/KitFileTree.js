@@ -1,12 +1,64 @@
-const icons = {
-  file: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/>',
-  folder: '<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>',
-  folderOpen: '<path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/>',
-  chevron: '<path d="m9 18 6-6-6-6"/>',
-};
+import { KitIcon } from './KitIcon.js';
+import { useStyles } from '../../useStyles.js';
+
+const styles = `
+.file-tree-container {
+  padding: 4px 0;
+}
+
+.file-tree-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  border-radius: 4px;
+  margin: 0 4px;
+}
+
+.file-tree-item:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.file-tree-item.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.file-tree-chevron {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  transition: transform 0.15s ease-out;
+}
+
+.file-tree-chevron.open {
+  transform: rotate(90deg);
+}
+
+.file-tree-chevron-spacer {
+  width: 12px;
+  flex-shrink: 0;
+}
+
+.file-tree-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.file-tree-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+`;
 
 export const KitFileTree = {
   name: 'KitFileTree',
+  components: { KitIcon },
   props: {
     files: { type: Array, default: () => [] },
     depth: { type: Number, default: 0 },
@@ -27,25 +79,19 @@ export const KitFileTree = {
           :style="{ paddingLeft: (depth * 12 + 8) + 'px' }"
           @click="handleClick(file)"
         >
-          <svg
+          <KitIcon
             v-if="file.type === 'folder'"
+            icon="chevronRight"
+            :size="16"
             class="file-tree-chevron"
             :class="{ open: isOpen(file.name) }"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            v-html="icons.chevron"
-          ></svg>
+          />
           <span v-else class="file-tree-chevron-spacer"></span>
-          <svg
+          <KitIcon
+            :icon="getIcon(file)"
+            :size="16"
             class="file-tree-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            v-html="getIcon(file)"
-          ></svg>
+          />
           <span class="file-tree-name">{{ file.name }}</span>
         </div>
         <KitFileTree
@@ -60,6 +106,7 @@ export const KitFileTree = {
     </div>
   `,
   setup(props, { emit }) {
+    useStyles('kit-file-tree', styles);
     const openFolders = Vue.ref({});
 
     const isOpen = (name) => openFolders.value[name];
@@ -84,11 +131,11 @@ export const KitFileTree = {
 
     const getIcon = (file) => {
       if (file.type === 'folder') {
-        return isOpen(file.name) ? icons.folderOpen : icons.folder;
+        return isOpen(file.name) ? 'folderOpen' : 'folder';
       }
-      return icons.file;
+      return 'file';
     };
 
-    return { icons, isOpen, handleClick, getIcon, getFilePath };
+    return { isOpen, handleClick, getIcon, getFilePath };
   },
 };

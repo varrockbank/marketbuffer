@@ -1,3 +1,5 @@
+import { useStyles } from '../../useStyles.js';
+
 /**
  * KitBar - Horizontal bar with left and right slots.
  *
@@ -11,6 +13,32 @@
  * Events:
  *   dragstart, drag, dragend - Emitted when draggable is true
  */
+
+const styles = `
+.kit-bar {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.kit-bar-draggable {
+  cursor: grab;
+}
+
+.kit-bar-draggable:active {
+  cursor: grabbing;
+}
+
+.kit-bar-left,
+.kit-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+`;
+
 export const KitBar = {
   props: {
     draggable: { type: Boolean, default: false },
@@ -31,6 +59,7 @@ export const KitBar = {
     </div>
   `,
   setup(props, { emit }) {
+    useStyles('kit-bar', styles);
     let isDragging = false;
     let startX = 0;
     let startY = 0;

@@ -6,12 +6,21 @@ const styles = `
   flex-direction: column;
   flex-shrink: 0;
 }
+
+.kit-sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
 `;
 
 /**
  * KitSidebar - Collapsible sidebar container.
  * Props: collapsed
- * Use KitSidebarFooter as child for footer (auto-pushed to bottom).
+ * Slots:
+ *   default - Main content (wrapped in .kit-sidebar-content)
+ *   footer  - Footer content (use KitSidebarFooter)
  */
 export const KitSidebar = {
   props: {
@@ -19,7 +28,10 @@ export const KitSidebar = {
   },
   template: `
     <div class="kit-sidebar" :class="{ collapsed }">
-      <slot></slot>
+      <div class="kit-sidebar-content">
+        <slot></slot>
+      </div>
+      <slot name="footer"></slot>
     </div>
   `,
   setup() {

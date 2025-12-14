@@ -1,13 +1,50 @@
 import { KitViewLayout } from '../kit/KitViewLayout.js';
-import { KitDropdownMenu } from '../kit/KitDropdownMenu.js';
+import { KitMenu } from '../kit/KitMenu.js';
 import { KitMenuItem } from '../kit/KitMenuItem.js';
 import { KitIcon } from '../kit/KitIcon.js';
 import { KitFileTree } from '../kit/KitFileTree.js';
+import { KitTerminal } from '../kit/KitTerminal.js';
 import { store, actions } from '../../store.js';
 import { useStyles } from '../../useStyles.js';
 import { listProjects, listFiles, loadFile } from '../../projectService.js';
 
 const styles = `
+.project-selector-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  color: var(--text-primary);
+  width: 100%;
+}
+
+.project-selector-trigger:hover {
+  background: var(--bg-tertiary);
+}
+
+.project-selector-name {
+  font-weight: 500;
+}
+
+.project-selector-chevron {
+  width: 14px;
+  height: 14px;
+  color: var(--text-secondary);
+}
+
+.file-tree-container {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.view-view-code-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .view-view-code-main {
   flex: 1;
   display: flex;
@@ -94,11 +131,12 @@ const icons = {
 };
 
 export const ViewCode = {
-  components: { KitViewLayout, KitDropdownMenu, KitMenuItem, KitIcon, KitFileTree },
+  components: { KitViewLayout, KitMenu, KitMenuItem, KitIcon, KitFileTree, KitTerminal },
   template: `
+    <div class="view-view-code-wrapper">
     <KitViewLayout :collapsed="store.subSidenavCollapsed">
       <template #header>
-        <KitDropdownMenu direction="down">
+        <KitMenu direction="down">
           <template #trigger>
             <div class="project-selector-trigger">
               <span class="project-selector-name">{{ store.currentProject }}</span>
@@ -121,7 +159,7 @@ export const ViewCode = {
               <span>New project</span>
             </KitMenuItem>
           </template>
-        </KitDropdownMenu>
+        </KitMenu>
       </template>
       <template #menu>
         <div class="file-tree-container">
@@ -160,6 +198,8 @@ export const ViewCode = {
         </div>
       </div>
     </KitViewLayout>
+    <KitTerminal />
+    </div>
   `,
   setup() {
     useStyles('view-code-styles', styles);
