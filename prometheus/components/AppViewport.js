@@ -2,23 +2,21 @@ import { store, apps, type2AppIds } from '../store.js';
 import { AppSimulator } from './apps/AppSimulator.js';
 import { AppWallpaper } from './apps/AppWallpaper.js';
 import { Terminal } from './Terminal.js';
-import { DesignPanelMenu } from './design/DesignPanelMenu.js';
+import { DesignSidebar } from './design/DesignSidebar.js';
 
-// Todo: rename: AppViewport 
-
-export const WindowViewport = {
-  components: { AppSimulator, AppWallpaper, Terminal, DesignPanelMenu },
+export const AppViewport = {
+  components: { AppSimulator, AppWallpaper, Terminal, DesignSidebar },
   props: {
     type: { type: String, default: null },
   },
   template: `
     <div class="window-viewport">
       <div v-if="!isType2App">
-         <DesignPanelMenu :title="title" :collapsed="store.subSidenavCollapsed">
+         <DesignSidebar :title="title" :collapsed="store.subSidenavCollapsed">
           <div style="padding: 8px; color: var(--text-secondary);">
             {{ activeType }} panel
           </div>
-        </DesignPanelMenu>
+        </DesignSidebar>
       </div>
       <div class="window-main">
         <AppSimulator v-if="type === 'simulator'" />

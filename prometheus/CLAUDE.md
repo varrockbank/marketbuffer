@@ -51,12 +51,14 @@ prometheus/
 │           ├── value.py
 │           └── moat.py
 └── components/
-    ├── MenuBar.js      # Top menu bar
-    ├── Sidenav.js      # Collapsible sidebar
+    ├── Toolbar.js      # Top menu bar
+    ├── Dock.js         # Collapsible sidebar
     ├── SidenavItem.js  # Reusable menu item
     ├── Viewport.js     # Routes between HomeView and self-contained views
-    ├── Window.js       # Window wrapper using DesignWindow, handles store actions
-    ├── WindowViewport.js # Content area for windows (AppMenu, apps, Terminal)
+    ├── HomeView.js     # Desktop with type-2 app windows
+    ├── Window.js       # Window wrapper using DesignPanel, handles store actions
+    ├── AppViewport.js  # Content area for windows (sidebar, apps, Terminal)
+    ├── Terminal.js     # Terminal component
     ├── apps/           # App components (AppX.js naming)
     │   ├── AppSimulator.js
     │   └── AppWallpaper.js
@@ -69,9 +71,9 @@ prometheus/
     │   ├── DesignMenuBarButton.js
     │   ├── DesignMenuItem.js
     │   ├── DesignNavFooter.js
-    │   ├── DesignPanelMenu.js
-    │   ├── DesignViewLayout.js
-    │   └── DesignWindow.js
+    │   ├── DesignPanel.js
+    │   ├── DesignSidebar.js
+    │   └── DesignViewLayout.js
     └── views/          # View components (ViewX.js naming)
         ├── ViewAgents.js
         ├── ViewApplications.js

@@ -1,7 +1,7 @@
-import { store, apps } from '../../store.js';
-import { Window } from '../Window.js';
+import { store, apps } from '../store.js';
+import { Window } from './Window.js';
 
-export const ViewHome = {
+export const HomeView = {
   components: { Window },
   template: `
     <div class="home-view" ref="homeView" :class="[{ 'show-grid': store.isDraggingWindow }, 'wp-' + store.wallpaper]">

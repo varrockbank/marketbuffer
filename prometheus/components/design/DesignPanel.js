@@ -1,7 +1,6 @@
 import { DesignIcon } from './DesignIcon.js';
 
-// Rename Panel
-export const DesignWindow = {
+export const DesignPanel = {
   components: { DesignIcon },
   props: {
     title: { type: String, default: 'Window' },

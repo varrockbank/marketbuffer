@@ -1683,10 +1683,9 @@
 
   <script type="module">
     import { store, actions } from './store.js';
-    import { Sidenav } from './components/Sidenav.js';
-    import { MenuBar } from './components/MenuBar.js';
-
-    import { ViewHome } from './components/views/ViewHome.js';
+    import { Dock } from './components/Dock.js';
+    import { Viewport } from './components/Viewport.js';
+    import { Toolbar } from './components/Toolbar.js';
     import { ViewApplications } from './components/views/ViewApplications.js';
     import { ViewYap } from './components/views/ViewYap.js';
     import { ViewDeployments } from './components/views/ViewDeployments.js';
@@ -1702,7 +1701,7 @@
     const { createRouter, createWebHashHistory } = VueRouter;
 
     const routes = [
-      { path: '/', name: 'home', component: ViewHome },
+      { path: '/', name: 'home', component: {} },
       { path: '/applications', name: 'applications', component: ViewApplications },
       { path: '/yap', name: 'yap', component: ViewYap },
       { path: '/deployments', name: 'deployments', component: ViewDeployments },
@@ -1733,9 +1732,9 @@
     const app = createApp({
       template: `
         <div class="app-layout" :class="['theme-' + store.theme, { 'no-contrast': !store.contrast, 'distraction-free': store.distractionFree }]">
-          <MenuBar />
+          <Toolbar />
           <div class="body-area">
-            <Sidenav />
+            <Dock />
             <div class="viewport">
               <router-view />
             </div>
@@ -1748,8 +1747,8 @@
     });
 
     app.use(router);
-    app.component('Sidenav', Sidenav);
-    app.component('MenuBar', MenuBar);
+    app.component('Dock', Dock);
+    app.component('Toolbar', Toolbar);
 
     app.mount('#app');
   </script>

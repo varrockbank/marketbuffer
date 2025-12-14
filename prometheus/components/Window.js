@@ -1,23 +1,23 @@
 import { store, actions } from '../store.js';
-import { DesignWindow } from './design/DesignWindow.js';
-import { WindowViewport } from './WindowViewport.js';
+import { DesignPanel } from './design/DesignPanel.js';
+import { AppViewport } from './AppViewport.js';
 
 export const Window = {
-  components: { DesignWindow, WindowViewport },
+  components: { DesignPanel, AppViewport },
   props: {
     type: { type: String, required: true },
     title: { type: String, default: 'Window' },
   },
   template: `
-    <DesignWindow
+    <DesignPanel
       :title="title"
       @close="close"
       @dragstart="onDragStart"
       @drag="onDrag"
       @dragend="onDragEnd"
     >
-      <WindowViewport :type="type" />
-    </DesignWindow>
+      <AppViewport :type="type" />
+    </DesignPanel>
   `,
   setup(props) {
     let initialX = 0;

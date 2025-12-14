@@ -5,9 +5,7 @@ import { DesignDropdownMenu } from './design/DesignDropdownMenu.js';
 import { DesignMenuItem } from './design/DesignMenuItem.js';
 import { DesignIcon } from './design/DesignIcon.js';
 
-// TODO: rename to Dock 
-
-export const Sidenav = {
+export const Dock = {
   components: { SidenavItem, DesignNavFooter, DesignDropdownMenu, DesignMenuItem, DesignIcon },
   template: `
     <div class="sidenav" :class="{ collapsed: store.sidenavCollapsed }">

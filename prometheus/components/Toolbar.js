@@ -7,9 +7,7 @@ import { DesignMenuItem } from './design/DesignMenuItem.js';
 const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 const modKey = isMac ? '⌘' : 'Ctrl';
 
-// TODO: rename toolbar
-
-export const MenuBar = {
+export const Toolbar = {
   components: { DesignMenuBarButton, DesignBrand, DesignDropdownMenu, DesignMenuItem },
   template: `
     <div class="menu-bar">

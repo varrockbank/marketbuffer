@@ -1,7 +1,5 @@
 import { DesignIcon } from './DesignIcon.js';
 
-// TODO: css should be scoped here?
-
 export const DesignBrand = {
   components: { DesignIcon },
   props: {

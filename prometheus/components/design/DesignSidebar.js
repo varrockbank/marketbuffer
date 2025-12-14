@@ -1,6 +1,4 @@
-// TODO: Rename AppSidebar
-
-export const DesignPanelMenu = {
+export const DesignSidebar = {
   props: {
     title: { type: String, default: 'Panel' },
     collapsed: { type: Boolean, default: false },
