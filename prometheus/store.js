@@ -10,6 +10,7 @@ export const store = reactive({
   // Theme
   theme: 'dark', // 'dark' | 'light'
   contrast: true, // contrast mode for sidenavs
+  wallpaper: 'hokusai', // desktop wallpaper
 
   // UI State
   sidenavCollapsed: false,

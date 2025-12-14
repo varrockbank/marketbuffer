@@ -4,7 +4,7 @@ import { Window } from './Window.js';
 export const HomeView = {
   components: { Window },
   template: `
-    <div class="home-view" ref="homeView" :class="{ 'show-grid': store.isDraggingWindow }">
+    <div class="home-view" ref="homeView" :class="[{ 'show-grid': store.isDraggingWindow }, 'wp-' + store.wallpaper]">
       <Window
         v-for="type in store.openWindows"
         :key="type"

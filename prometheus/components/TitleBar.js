@@ -12,6 +12,7 @@ const titles = {
   agents: 'Agents',
   settings: 'Settings',
   simulator: 'Perfect Liquidity Simulator',
+  wallpaper: 'Desktop Wallpaper',
 };
 
 export const TitleBar = {

@@ -5,6 +5,7 @@ import { UserProfile } from './UserProfile.js';
 // Type-2 apps: Only shown in Applications menu, not in sidenav
 const appSubmenu = [
   { id: 'simulator', label: 'Perfect Liquidity Simulator', icon: '<path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>' },
+  { id: 'wallpaper', label: 'Desktop Wallpaper', icon: '<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>' },
 ];
 
 export const Sidenav = {

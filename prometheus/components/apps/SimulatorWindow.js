@@ -1,4 +1,4 @@
-import { store } from '../store.js';
+import { store } from '../../store.js';
 
 // Mock data for the simulator
 const mockTickers = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA'];
