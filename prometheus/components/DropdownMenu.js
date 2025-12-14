@@ -1,10 +1,15 @@
 export const DropdownMenu = {
   props: {
-    direction: { type: String, default: 'down' }, // 'up' or 'down'
+    direction: { type: String, default: 'down' }, // 'up', 'down', or 'right'
+    trigger: { type: String, default: 'click' }, // 'click' or 'hover'
   },
   template: `
-    <div class="dropdown-menu-wrapper">
-      <div class="dropdown-menu-trigger" @click="open = !open">
+    <div
+      class="dropdown-menu-wrapper"
+      @mouseenter="trigger === 'hover' && (open = true)"
+      @mouseleave="trigger === 'hover' && (open = false)"
+    >
+      <div class="dropdown-menu-trigger" @click="trigger === 'click' && (open = !open)">
         <slot name="trigger"></slot>
       </div>
       <div

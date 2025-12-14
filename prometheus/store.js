@@ -20,13 +20,9 @@ export const store = reactive({
   activeFile: null,
 
   // Windows
-  openWindows: ['data', 'stream', 'code'],
-  windowPositions: {
-    data: { x: 0, y: 0, z: 1 },
-    stream: { x: 440, y: 0, z: 2 },
-    code: { x: 880, y: 0, z: 3 },
-  },
-  topZIndex: 3,
+  openWindows: [],
+  windowPositions: {},
+  topZIndex: 0,
   gridSize: 40,
   defaultWindowWidth: 400,
   isDraggingWindow: false,
@@ -68,20 +64,71 @@ export const actions = {
     if (!store.openWindows.includes(type)) {
       store.openWindows.push(type);
       store.topZIndex++;
+
+      // Get occupied positions
+      const occupied = new Set();
+      for (const w of store.openWindows) {
+        if (w !== type && store.windowPositions[w]) {
+          const pos = store.windowPositions[w];
+          occupied.add(`${pos.x},${pos.y}`);
+        }
+      }
+
+      // Try positions in a row first, then cascade down
+      const windowWidth = store.defaultWindowWidth + store.gridSize; // Account for spacing
+      let found = false;
+      let bestX = 0;
+      let bestY = 0;
+
+      // Estimate max columns (assume ~1600px viewport, minus sidenav ~200px)
+      const maxCols = Math.floor(1400 / windowWidth);
+
+      // Try rows of windows
+      for (let row = 0; row < 10 && !found; row++) {
+        const y = row * store.gridSize * 2;
+        for (let col = 0; col < maxCols && !found; col++) {
+          const x = col * windowWidth;
+          const snappedX = Math.round(x / store.gridSize) * store.gridSize;
+
+          // Check if this position overlaps with any existing window
+          let overlaps = false;
+          for (const w of store.openWindows) {
+            if (w !== type && store.windowPositions[w]) {
+              const pos = store.windowPositions[w];
+              // Check if windows would overlap (within window width)
+              if (Math.abs(snappedX - pos.x) < store.defaultWindowWidth &&
+                  Math.abs(y - pos.y) < store.gridSize * 2) {
+                overlaps = true;
+                break;
+              }
+            }
+          }
+
+          if (!overlaps) {
+            bestX = snappedX;
+            bestY = y;
+            found = true;
+          }
+        }
+      }
+
       store.windowPositions[type] = {
-        x: store.gridSize * 2,
-        y: store.gridSize * 2,
+        x: bestX,
+        y: bestY,
         z: store.topZIndex,
       };
+    } else {
+      // Window already open, just bring to front
+      this.bringToFront(type);
     }
   },
 
-  moveWindow(type, x, y, maxY = Infinity) {
+  moveWindow(type, x, y, maxY = Infinity, maxX = Infinity) {
     // Snap to grid
     const snappedX = Math.round(x / store.gridSize) * store.gridSize;
     const snappedY = Math.round(y / store.gridSize) * store.gridSize;
-    // Constrain to viewport (can't drag off left, top, or below bottom)
-    const constrainedX = Math.max(0, snappedX);
+    // Constrain to viewport (can't drag off left, top, right, or below bottom)
+    const constrainedX = Math.min(Math.max(0, snappedX), maxX);
     const constrainedY = Math.min(Math.max(0, snappedY), maxY);
     if (store.windowPositions[type]) {
       store.windowPositions[type].x = constrainedX;

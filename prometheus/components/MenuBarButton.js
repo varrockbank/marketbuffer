@@ -1,11 +1,11 @@
 export const MenuBarButton = {
-  props: ['icon', 'title'],
+  props: ['icon', 'title', 'active'],
   emits: ['click'],
   template: `
     <button
       ref="btn"
       class="menu-bar-btn"
-      :class="{ 'tooltip-right': alignRight }"
+      :class="{ 'tooltip-right': alignRight, 'active': active }"
       :data-tooltip="title"
       @click="$emit('click')"
       @mouseenter="checkPosition"

@@ -1,6 +1,7 @@
 import { store, actions } from '../store.js';
 
 const titles = {
+  applications: 'Applications',
   yap: 'Yap',
   deployments: 'Deployments',
   data: 'Data',
@@ -38,14 +39,16 @@ export const TitleBar = {
     let initialY = 0;
 
     let containerHeight = 0;
+    let containerWidth = 0;
     const titleBarHeight = 28; // Same height as menu bar
 
     const startDrag = (e) => {
       if (e.target.closest('.title-bar-close')) return;
 
-      // Get container height for constraining
+      // Get container dimensions for constraining
       const homeView = e.target.closest('.home-view');
       containerHeight = homeView ? homeView.offsetHeight : window.innerHeight;
+      containerWidth = homeView ? homeView.offsetWidth : window.innerWidth;
 
       actions.bringToFront(props.type);
       isDragging = true;
@@ -65,7 +68,8 @@ export const TitleBar = {
       const deltaX = e.clientX - startX;
       const deltaY = e.clientY - startY;
       const maxY = containerHeight - titleBarHeight;
-      actions.moveWindow(props.type, initialX + deltaX, initialY + deltaY, maxY);
+      const maxX = containerWidth - store.defaultWindowWidth;
+      actions.moveWindow(props.type, initialX + deltaX, initialY + deltaY, maxY, maxX);
     };
 
     const stopDrag = () => {

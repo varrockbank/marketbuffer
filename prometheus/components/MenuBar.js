@@ -23,7 +23,7 @@ export const MenuBar = {
       <Brand v-if="!store.distractionFree" />
       <div class="menu-bar-right">
         <template v-if="!store.distractionFree">
-          <MenuBarButton :icon="icons.home" title="Home" @click="goHome" />
+          <MenuBarButton :icon="icons.home" title="Home" :active="isHome" @click="goHome" />
           <MenuBarButton :icon="themeIcon" :title="themeTitle + ' (' + modKey + '⇧T)'" @click="actions.toggleTheme" />
           <MenuBarButton :icon="icons.contrast" :title="contrastTitle + ' (' + modKey + '⇧C)'" @click="actions.toggleContrast" />
           <MenuBarButton :icon="icons.sidenav" :title="'Toggle Sidenav (' + modKey + 'B)'" @click="actions.toggleSidenav" />
@@ -36,11 +36,13 @@ export const MenuBar = {
   `,
   setup() {
     const router = VueRouter.useRouter();
+    const route = VueRouter.useRoute();
     const themeIcon = Vue.computed(() => store.theme === 'dark' ? icons.sun : icons.moon);
     const themeTitle = Vue.computed(() => store.theme === 'dark' ? 'Light mode' : 'Dark mode');
     const contrastTitle = Vue.computed(() => store.contrast ? 'Borderless' : 'Border');
     const focusTitle = Vue.computed(() => store.distractionFree ? 'Exit Focus (' + modKey + '⇧F)' : 'Focus Mode (' + modKey + '⇧F)');
     const terminalTitle = 'Toggle Terminal (' + modKey + '`)';
+    const isHome = Vue.computed(() => route.path === '/');
 
     const goHome = () => {
       router.push('/');
@@ -76,6 +78,6 @@ export const MenuBar = {
       Vue.onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
     });
 
-    return { store, actions, icons, themeIcon, themeTitle, contrastTitle, focusTitle, terminalTitle, modKey, goHome };
+    return { store, actions, icons, themeIcon, themeTitle, contrastTitle, focusTitle, terminalTitle, modKey, goHome, isHome };
   },
 };

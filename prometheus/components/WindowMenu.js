@@ -26,6 +26,7 @@ export const WindowMenu = {
 
     const title = Vue.computed(() => {
       const titles = {
+        applications: 'Applications',
         yap: 'Yap',
         deployments: 'Deployments',
         data: 'Data',
