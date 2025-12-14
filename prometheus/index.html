@@ -336,49 +336,6 @@
       right: 0.5em;
     }
 
-
-    .user-profile-menu-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px;
-      border-radius: 4px;
-      cursor: pointer;
-      color: var(--text-secondary);
-      text-decoration: none;
-    }
-
-    .user-profile-menu-item:hover {
-      background: var(--bg-secondary);
-      color: var(--text-primary);
-    }
-
-    .user-profile-menu-item svg {
-      width: 16px;
-      height: 16px;
-    }
-
-    .user-profile-menu-email {
-      padding: 8px;
-      color: var(--text-primary);
-      font-weight: 500;
-    }
-
-    .user-profile-menu-separator {
-      height: 1px;
-      background: var(--border-color);
-      margin: 4px 0;
-    }
-
-    .user-profile-menu-logout {
-      color: #e55;
-    }
-
-    .user-profile-menu-logout:hover {
-      background: rgba(238, 85, 85, 0.1);
-      color: #e55;
-    }
-
     /* Window Menu */
     .window-menu {
       width: 240px;
@@ -458,6 +415,65 @@
       margin-bottom: 6px;
     }
 
+    .dropdown-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      text-decoration: none;
+    }
+
+    .dropdown-menu-item:hover {
+      background: #000;
+      color: #fff;
+    }
+
+    .dropdown-menu-item.active {
+      color: var(--text-primary);
+    }
+
+    .dropdown-menu-item.active:hover {
+      color: #fff;
+    }
+
+    .dropdown-menu-item svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .dropdown-menu-separator {
+      height: 1px;
+      background: var(--border-color);
+      margin: 4px 0;
+    }
+
+    .dropdown-menu-header {
+      padding: 8px;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .dropdown-menu-item.danger {
+      color: #e55;
+    }
+
+    .dropdown-menu-item.danger:hover {
+      background: rgba(238, 85, 85, 0.1);
+      color: #e55;
+    }
+
+    .dropdown-menu-item.success {
+      color: rgb(131, 193, 141);
+    }
+
+    .dropdown-menu-item.success:hover {
+      background: rgba(131, 193, 141, 0.1);
+      color: rgb(131, 193, 141);
+    }
+
     /* Project Selector */
     .project-selector-trigger {
       display: flex;
@@ -492,55 +508,6 @@
 
     .project-selector-chevron.open {
       transform: rotate(180deg);
-    }
-
-    .project-selector-item {
-      padding: 8px;
-      border-radius: 4px;
-      cursor: pointer;
-      color: var(--text-secondary);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      text-decoration: none;
-    }
-
-    .project-selector-check {
-      width: 14px;
-      height: 14px;
-    }
-
-    .project-selector-item:hover {
-      background: var(--bg-secondary);
-      color: var(--text-primary);
-    }
-
-    .project-selector-item.active {
-      background: var(--accent);
-      color: #fff;
-    }
-
-    .project-selector-separator {
-      height: 1px;
-      background: var(--border-color);
-      margin: 4px 0;
-    }
-
-    .project-selector-new {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: rgb(131, 193, 141);
-    }
-
-    .project-selector-new:hover {
-      background: rgba(131, 193, 141, 0.1);
-      color: rgb(131, 193, 141);
-    }
-
-    .project-selector-new svg {
-      width: 14px;
-      height: 14px;
     }
 
     /* File Tree */
