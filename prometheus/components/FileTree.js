@@ -1,55 +1,5 @@
 import { store } from '../store.js';
 
-const projectFiles = {
-  'prometheus': [
-    { name: 'index.html', type: 'file' },
-    { name: 'store.js', type: 'file' },
-    { name: 'CLAUDE.md', type: 'file' },
-    { name: 'components', type: 'folder', children: [
-      { name: 'Brand.js', type: 'file' },
-      { name: 'MenuBar.js', type: 'file' },
-      { name: 'Sidenav.js', type: 'file' },
-      { name: 'Viewport.js', type: 'file' },
-      { name: 'Terminal.js', type: 'file' },
-    ]},
-  ],
-  'marketbuffer-api': [
-    { name: 'main.go', type: 'file' },
-    { name: 'go.mod', type: 'file' },
-    { name: 'handlers', type: 'folder', children: [
-      { name: 'auth.go', type: 'file' },
-      { name: 'users.go', type: 'file' },
-      { name: 'projects.go', type: 'file' },
-    ]},
-    { name: 'models', type: 'folder', children: [
-      { name: 'user.go', type: 'file' },
-      { name: 'project.go', type: 'file' },
-    ]},
-  ],
-  'marketbuffer-web': [
-    { name: 'package.json', type: 'file' },
-    { name: 'index.html', type: 'file' },
-    { name: 'src', type: 'folder', children: [
-      { name: 'App.vue', type: 'file' },
-      { name: 'main.js', type: 'file' },
-      { name: 'components', type: 'folder', children: [
-        { name: 'Header.vue', type: 'file' },
-        { name: 'Sidebar.vue', type: 'file' },
-      ]},
-    ]},
-  ],
-  'data-pipeline': [
-    { name: 'pipeline.py', type: 'file' },
-    { name: 'requirements.txt', type: 'file' },
-    { name: 'config.yaml', type: 'file' },
-    { name: 'tasks', type: 'folder', children: [
-      { name: 'extract.py', type: 'file' },
-      { name: 'transform.py', type: 'file' },
-      { name: 'load.py', type: 'file' },
-    ]},
-  ],
-};
-
 const icons = {
   file: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/>',
   folder: '<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>',
@@ -137,7 +87,7 @@ export const FileTreeContainer = {
     </div>
   `,
   setup() {
-    const files = Vue.computed(() => projectFiles[store.currentProject] || []);
+    const files = Vue.computed(() => store.projectFiles[store.currentProject] || []);
     return { files };
   },
 };

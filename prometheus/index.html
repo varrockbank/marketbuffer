@@ -1635,7 +1635,6 @@
     import { Viewport } from './components/Viewport.js';
     import { MenuBar } from './components/MenuBar.js';
 
-    // Self-contained views
     import { ViewApplications } from './components/views/ViewApplications.js';
     import { ViewYap } from './components/views/ViewYap.js';
     import { ViewDeployments } from './components/views/ViewDeployments.js';
@@ -1650,9 +1649,6 @@
     const { createApp } = Vue;
     const { createRouter, createWebHashHistory } = VueRouter;
 
-    // ============================================
-    // ROUTER
-    // ============================================
     const routes = [
       { path: '/', name: 'home', component: {} },
       { path: '/applications', name: 'applications', component: ViewApplications },
@@ -1682,9 +1678,6 @@
       }
     });
 
-    // ============================================
-    // APP INIT
-    // ============================================
     const app = createApp({
       template: `
         <div class="app-layout" :class="['theme-' + store.theme, { 'no-contrast': !store.contrast, 'distraction-free': store.distractionFree }]">
@@ -1706,14 +1699,6 @@
     app.component('MenuBar', MenuBar);
 
     app.mount('#app');
-
-    // Console instructions
-    console.log('Prometheus Dev Console');
-    console.log('----------------------');
-    console.log('store.theme = "light"   // switch to light theme');
-    console.log('store.theme = "dark"    // switch to dark theme');
-    console.log('actions.toggleSidenav() // toggle sidenav');
-    console.log('actions.toggleTerminal()// toggle terminal (0 <-> 200px)');
   </script>
 </body>
 </html>
