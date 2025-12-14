@@ -1,12 +1,12 @@
 import { store, actions } from '../store.js';
-import { DropdownMenu } from './DropdownMenu.js';
+import { DesignDropdownMenu } from './design/DesignDropdownMenu.js';
 
 export const SidenavItem = {
-  components: { DropdownMenu },
+  components: { DesignDropdownMenu },
   props: ['id', 'label', 'icon', 'submenu'],
   template: `
     <div class="sidenav-item-container">
-      <DropdownMenu v-if="submenu" direction="right" trigger="click">
+      <DesignDropdownMenu v-if="submenu" direction="right" trigger="click">
         <template #trigger>
           <div
             class="sidenav-item"
@@ -39,7 +39,7 @@ export const SidenavItem = {
             <span>Add more</span>
           </router-link>
         </template>
-      </DropdownMenu>
+      </DesignDropdownMenu>
       <router-link
         v-else
         :to="getRoute()"

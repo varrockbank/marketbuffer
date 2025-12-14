@@ -1,4 +1,4 @@
-export const MenuBarButton = {
+export const DesignMenuBarButton = {
   props: ['icon', 'title', 'active'],
   emits: ['click'],
   template: `

@@ -1,5 +1,5 @@
 import { store, actions } from '../../store.js';
-import { ViewLayout } from '../ViewLayout.js';
+import { DesignViewLayout } from '../design/DesignViewLayout.js';
 
 // Type-2 apps
 const apps = [
@@ -20,9 +20,9 @@ const apps = [
 ];
 
 export const ViewApplications = {
-  components: { ViewLayout },
+  components: { DesignViewLayout },
   template: `
-    <ViewLayout>
+    <DesignViewLayout :collapsed="store.subSidenavCollapsed">
       <template #menu>
         <div class="app-list">
           <div
@@ -55,7 +55,7 @@ export const ViewApplications = {
       <div class="view-content-inner view-content-empty" v-else>
         <p>Select an application to view details</p>
       </div>
-    </ViewLayout>
+    </DesignViewLayout>
   `,
   setup() {
     const router = VueRouter.useRouter();

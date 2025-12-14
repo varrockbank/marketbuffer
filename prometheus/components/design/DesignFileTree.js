@@ -1,5 +1,3 @@
-import { store } from '../store.js';
-
 const icons = {
   file: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/>',
   folder: '<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>',
@@ -7,12 +5,15 @@ const icons = {
   chevron: '<path d="m9 18 6-6-6-6"/>',
 };
 
-export const FileTree = {
-  name: 'FileTree',
+export const DesignFileTree = {
+  name: 'DesignFileTree',
   props: {
     files: { type: Array, default: () => [] },
     depth: { type: Number, default: 0 },
+    parentPath: { type: String, default: '' },
+    activeFilePath: { type: String, default: null },
   },
+  emits: ['select'],
   template: `
     <div class="file-tree">
       <div
@@ -22,7 +23,7 @@ export const FileTree = {
       >
         <div
           class="file-tree-item"
-          :class="{ active: store.activeFile === file.name }"
+          :class="{ active: activeFilePath === getFilePath(file) }"
           :style="{ paddingLeft: (depth * 12 + 8) + 'px' }"
           @click="handleClick(file)"
         >
@@ -47,24 +48,37 @@ export const FileTree = {
           ></svg>
           <span class="file-tree-name">{{ file.name }}</span>
         </div>
-        <FileTree
+        <DesignFileTree
           v-if="file.type === 'folder' && isOpen(file.name)"
           :files="file.children"
           :depth="depth + 1"
+          :parentPath="getFilePath(file)"
+          :activeFilePath="activeFilePath"
+          @select="$emit('select', $event)"
         />
       </div>
     </div>
   `,
-  setup(props) {
+  setup(props, { emit }) {
     const openFolders = Vue.ref({});
 
     const isOpen = (name) => openFolders.value[name];
+
+    const getFilePath = (file) => {
+      if (props.parentPath) {
+        return `${props.parentPath}/${file.name}`;
+      }
+      return file.name;
+    };
 
     const handleClick = (file) => {
       if (file.type === 'folder') {
         openFolders.value[file.name] = !openFolders.value[file.name];
       } else {
-        store.activeFile = file.name;
+        emit('select', {
+          name: file.name,
+          path: getFilePath(file),
+        });
       }
     };
 
@@ -75,19 +89,6 @@ export const FileTree = {
       return icons.file;
     };
 
-    return { store, icons, isOpen, handleClick, getIcon };
-  },
-};
-
-export const FileTreeContainer = {
-  components: { FileTree },
-  template: `
-    <div class="file-tree-container">
-      <FileTree :files="files" />
-    </div>
-  `,
-  setup() {
-    const files = Vue.computed(() => store.projectFiles[store.currentProject] || []);
-    return { files };
+    return { icons, isOpen, handleClick, getIcon, getFilePath };
   },
 };

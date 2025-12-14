@@ -39,25 +39,38 @@ prometheus/
 ├── index.html          # App shell, global styles, mounts Vue
 ├── store.js            # Global store + actions
 ├── useStyles.js        # Helper to inject component styles
+├── projectService.js   # Project/file listing and loading (future: server API)
 ├── CLAUDE.md
+├── demo/               # Static project files for demo mode
+│   └── WarrenBuffer/   # Sample project
+│       ├── main.py
+│       ├── portfolio.py
+│       ├── data.py
+│       ├── config.yaml
+│       └── strategies/
+│           ├── value.py
+│           └── moat.py
 └── components/
     ├── Brand.js        # Logo, name, version
-    ├── Button.js       # Reusable button (uses .nav-item styling)
     ├── MenuBar.js      # Top menu bar
-    ├── MenuBarButton.js# Reusable button for menu bar
-    ├── NavFooter.js    # Bottom section of navs
     ├── ProjectSelector.js # Project dropdown for code tab
     ├── Sidenav.js      # Collapsible sidebar
     ├── SidenavItem.js  # Reusable menu item
     ├── UserProfile.js  # User profile in sidenav footer
     ├── UserProfileMenu.js # Dropdown menu for user profile
     ├── Viewport.js     # Routes between HomeView and self-contained views
-    ├── ViewLayout.js   # Reusable layout for self-contained views
     ├── HomeView.js     # Desktop with type-2 app windows
     ├── Window.js       # Window container for type-2 apps
     ├── apps/           # App components (AppX.js naming)
     │   ├── AppSimulator.js
     │   └── AppWallpaper.js
+    ├── design/         # Reusable, app-agnostic UI components (Design* prefix)
+    │   ├── DesignButton.js
+    │   ├── DesignDropdownMenu.js
+    │   ├── DesignFileTree.js
+    │   ├── DesignMenuBarButton.js
+    │   ├── DesignNavFooter.js
+    │   └── DesignViewLayout.js
     └── views/          # View components (ViewX.js naming)
         ├── ViewAgents.js
         ├── ViewApplications.js
@@ -115,28 +128,32 @@ python -m http.server 8080
 
 Type-1 and Type-3 are **self-contained views**. Each view:
 - Lives in `components/views/` directory (e.g., `ViewApplications.js`)
-- Uses the `ViewLayout` component for consistent structure
+- Uses the `DesignViewLayout` component for consistent structure
 - Manages its own local state
 - Is registered directly in the router
 
-### ViewLayout Component
+### DesignViewLayout Component
 
-All views use `ViewLayout` (`components/ViewLayout.js`) which provides:
-- Collapsible menu panel (responds to `store.subSidenavCollapsed`)
+All views use `DesignViewLayout` (`components/design/DesignViewLayout.js`) which provides:
+- Collapsible menu panel (accepts `collapsed` prop)
 - Slots for customization: `#header`, `#menu`, and default slot for content
 
 ```javascript
-import { ViewLayout } from '../ViewLayout.js';
+import { store } from '../../store.js';
+import { DesignViewLayout } from '../design/DesignViewLayout.js';
 
 export const ViewExample = {
-  components: { ViewLayout },
+  components: { DesignViewLayout },
   template: `
-    <ViewLayout>
+    <DesignViewLayout :collapsed="store.subSidenavCollapsed">
       <template #header><!-- Optional: custom header --></template>
       <template #menu><!-- Menu panel content --></template>
       <div class="view-content-inner"><!-- Main content --></div>
-    </ViewLayout>
+    </DesignViewLayout>
   `,
+  setup() {
+    return { store };
+  },
 };
 ```
 
@@ -217,9 +234,13 @@ export const ViewData = {
 }
 ```
 
-**Shared components:**
-- `NavFooter` - Bottom section of navs (border-top, flex-shrink: 0, padding: 0.5em). Used by sidenav profile and view menu footers.
-- `Button` - Reusable button using `.nav-item` styling (same height/padding as sidenav items).
+**Design components** (`components/design/`):
+- `DesignNavFooter` - Bottom section of navs (border-top, flex-shrink: 0, padding: 0.5em). Used by sidenav profile and view menu footers.
+- `DesignButton` - Reusable button using `.nav-item` styling (same height/padding as sidenav items).
+- `DesignDropdownMenu` - Configurable dropdown with `direction` and `trigger` props.
+- `DesignMenuBarButton` - Icon button for menu bar with tooltip positioning.
+- `DesignViewLayout` - Layout for views with collapsible menu panel (accepts `collapsed` prop).
+- `DesignFileTree` - Recursive file tree component with `files`, `depth`, `parentPath`, `activeFilePath` props.
 
 **Alignment principle:** When aligning UI elements, match the rendered pixel height - not the CSS values. Different internal structures (e.g., sidenav-item vs buttons) require different padding values to achieve the same visual height.
 
@@ -231,6 +252,32 @@ export const ViewData = {
 - `--bg-tertiary` - Tertiary background (hover states, inputs)
 - `--border-color` - Border color
 - `--accent` - Accent color (highlights, active states)
+
+## Project Service
+
+The `projectService.js` module provides functions for listing and loading project files. Currently fetches from the local `assets/` directory; in the future, will call a server API.
+
+```javascript
+import { listProjects, listFiles, loadFile } from './projectService.js';
+
+// List all projects
+const projects = await listProjects();
+// ['WarrenBuffer']
+
+// List files for a project
+const files = await listFiles('WarrenBuffer');
+// [{ name: 'main.py', type: 'file' }, { name: 'strategies', type: 'folder', children: [...] }]
+
+// Load file content
+const content = await loadFile('WarrenBuffer', 'main.py');
+const nestedContent = await loadFile('WarrenBuffer', 'strategies/value.py');
+```
+
+**Store properties for file state:**
+- `store.activeFile` - Currently open filename
+- `store.activeFilePath` - Full path for loading (e.g., `strategies/value.py`)
+- `store.activeFileContent` - Content of the open file
+- `store.fileLoading` - Loading state
 
 ## Console Commands
 

@@ -1,6 +1,7 @@
-import { ViewLayout } from '../ViewLayout.js';
-import { NavFooter } from '../NavFooter.js';
-import { Button } from '../Button.js';
+import { store } from '../../store.js';
+import { DesignViewLayout } from '../design/DesignViewLayout.js';
+import { DesignNavFooter } from '../design/DesignNavFooter.js';
+import { DesignButton } from '../design/DesignButton.js';
 import { useStyles } from '../../useStyles.js';
 
 const styles = `
@@ -380,9 +381,9 @@ const logs = [
 ];
 
 export const ViewAgents = {
-  components: { ViewLayout, NavFooter, Button },
+  components: { DesignViewLayout, DesignNavFooter, DesignButton },
   template: `
-    <ViewLayout>
+    <DesignViewLayout :collapsed="store.subSidenavCollapsed">
       <template #menu>
         <div class="view-view-agents-sidebar-content">
           <div class="view-view-agents-sidebar-header">AI Agents</div>
@@ -417,14 +418,14 @@ export const ViewAgents = {
             </div>
           </div>
         </div>
-        <NavFooter>
-          <Button>
+        <DesignNavFooter>
+          <DesignButton>
             <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="icons.trash"></svg>
-          </Button>
-          <Button>
+          </DesignButton>
+          <DesignButton>
             <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="icons.plus"></svg>
-          </Button>
-        </NavFooter>
+          </DesignButton>
+        </DesignNavFooter>
       </template>
 
       <div class="view-view-agents-main">
@@ -495,7 +496,7 @@ export const ViewAgents = {
           </div>
         </div>
       </div>
-    </ViewLayout>
+    </DesignViewLayout>
   `,
   setup() {
     useStyles('view-agents-styles', styles);
@@ -509,6 +510,7 @@ export const ViewAgents = {
     };
 
     return {
+      store,
       agents,
       tasks,
       positions,

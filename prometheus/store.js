@@ -17,59 +17,12 @@ export const store = reactive({
   subSidenavCollapsed: false,
   terminalExpanded: false,
   activeMenuItem: 'yap',
-  currentProject: 'prometheus',
+  currentProject: 'WarrenBuffer',
   activeFile: null,
-
-  // Project Files
-  projectFiles: {
-    'prometheus': [
-      { name: 'index.html', type: 'file' },
-      { name: 'store.js', type: 'file' },
-      { name: 'CLAUDE.md', type: 'file' },
-      { name: 'components', type: 'folder', children: [
-        { name: 'Brand.js', type: 'file' },
-        { name: 'MenuBar.js', type: 'file' },
-        { name: 'Sidenav.js', type: 'file' },
-        { name: 'Viewport.js', type: 'file' },
-        { name: 'Terminal.js', type: 'file' },
-      ]},
-    ],
-    'marketbuffer-api': [
-      { name: 'main.go', type: 'file' },
-      { name: 'go.mod', type: 'file' },
-      { name: 'handlers', type: 'folder', children: [
-        { name: 'auth.go', type: 'file' },
-        { name: 'users.go', type: 'file' },
-        { name: 'projects.go', type: 'file' },
-      ]},
-      { name: 'models', type: 'folder', children: [
-        { name: 'user.go', type: 'file' },
-        { name: 'project.go', type: 'file' },
-      ]},
-    ],
-    'marketbuffer-web': [
-      { name: 'package.json', type: 'file' },
-      { name: 'index.html', type: 'file' },
-      { name: 'src', type: 'folder', children: [
-        { name: 'App.vue', type: 'file' },
-        { name: 'main.js', type: 'file' },
-        { name: 'components', type: 'folder', children: [
-          { name: 'Header.vue', type: 'file' },
-          { name: 'Sidebar.vue', type: 'file' },
-        ]},
-      ]},
-    ],
-    'data-pipeline': [
-      { name: 'pipeline.py', type: 'file' },
-      { name: 'requirements.txt', type: 'file' },
-      { name: 'config.yaml', type: 'file' },
-      { name: 'tasks', type: 'folder', children: [
-        { name: 'extract.py', type: 'file' },
-        { name: 'transform.py', type: 'file' },
-        { name: 'load.py', type: 'file' },
-      ]},
-    ],
-  },
+  activeFilePath: null,  // Full path for loading file content
+  activeFileContent: null,  // Content of the currently open file
+  activeFileError: null,  // Error message if file failed to load
+  fileLoading: false,  // Loading state for file content
 
   // Windows
   openWindows: ['simulator'],
@@ -205,6 +158,37 @@ export const actions = {
 
   toggleDistractionFree() {
     store.distractionFree = !store.distractionFree;
+  },
+
+  // File actions
+  setActiveFile(filename, filepath) {
+    store.activeFile = filename;
+    store.activeFilePath = filepath;
+    store.activeFileError = null;
+  },
+
+  setFileContent(content) {
+    store.activeFileContent = content;
+    store.activeFileError = null;
+    store.fileLoading = false;
+  },
+
+  setFileError(error) {
+    store.activeFileError = error;
+    store.activeFileContent = null;
+    store.fileLoading = false;
+  },
+
+  setFileLoading(loading) {
+    store.fileLoading = loading;
+  },
+
+  clearActiveFile() {
+    store.activeFile = null;
+    store.activeFilePath = null;
+    store.activeFileContent = null;
+    store.activeFileError = null;
+    store.fileLoading = false;
   },
 };
 

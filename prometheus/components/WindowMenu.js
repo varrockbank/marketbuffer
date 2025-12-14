@@ -1,9 +1,8 @@
 import { store } from '../store.js';
 import { ProjectSelector } from './ProjectSelector.js';
-import { FileTreeContainer } from './FileTree.js';
 
 export const WindowMenu = {
-  components: { ProjectSelector, FileTreeContainer },
+  components: { ProjectSelector },
   props: {
     type: { type: String, default: null },
   },
@@ -14,8 +13,7 @@ export const WindowMenu = {
         <span v-else class="window-menu-title">{{ title }}</span>
       </div>
       <div class="window-menu-content">
-        <FileTreeContainer v-if="activeType === 'code'" />
-        <div v-else style="padding: 8px; color: var(--text-secondary);">
+        <div style="padding: 8px; color: var(--text-secondary);">
           {{ activeType }} panel
         </div>
       </div>

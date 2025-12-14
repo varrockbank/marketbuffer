@@ -1,10 +1,11 @@
 import { store } from '../store.js';
-import { DropdownMenu } from './DropdownMenu.js';
+import { DesignDropdownMenu } from './design/DesignDropdownMenu.js';
+import { listProjects } from '../projectService.js';
 
 export const ProjectSelector = {
-  components: { DropdownMenu },
+  components: { DesignDropdownMenu },
   template: `
-    <DropdownMenu direction="down" ref="dropdown">
+    <DesignDropdownMenu direction="down" ref="dropdown">
       <template #trigger>
         <div class="project-selector-trigger">
           <span class="project-selector-name">{{ store.currentProject }}</span>
@@ -35,10 +36,14 @@ export const ProjectSelector = {
           <span>New project</span>
         </div>
       </template>
-    </DropdownMenu>
+    </DesignDropdownMenu>
   `,
   setup() {
-    const projects = ['marketbuffer-api', 'marketbuffer-web', 'prometheus', 'data-pipeline'];
+    const projects = Vue.ref([]);
+
+    Vue.onMounted(async () => {
+      projects.value = await listProjects();
+    });
 
     const newProject = (close) => {
       close();

@@ -1,6 +1,7 @@
-import { ViewLayout } from '../ViewLayout.js';
-import { NavFooter } from '../NavFooter.js';
-import { Button } from '../Button.js';
+import { store } from '../../store.js';
+import { DesignViewLayout } from '../design/DesignViewLayout.js';
+import { DesignNavFooter } from '../design/DesignNavFooter.js';
+import { DesignButton } from '../design/DesignButton.js';
 import { useStyles } from '../../useStyles.js';
 
 const styles = `
@@ -228,9 +229,9 @@ Portfolio Positioning:
 - Cash reserves for opportunistic deployment`;
 
 export const ViewPublish = {
-  components: { ViewLayout, NavFooter, Button },
+  components: { DesignViewLayout, DesignNavFooter, DesignButton },
   template: `
-    <ViewLayout>
+    <DesignViewLayout :collapsed="store.subSidenavCollapsed">
       <template #menu>
         <div class="view-view-publish-sidebar-content">
           <div class="view-view-publish-sidebar-header">Drafts</div>
@@ -259,14 +260,14 @@ export const ViewPublish = {
             <span class="view-view-publish-item-status published">Live</span>
           </div>
         </div>
-        <NavFooter>
-          <Button>
+        <DesignNavFooter>
+          <DesignButton>
             <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="icons.trash"></svg>
-          </Button>
-          <Button>
+          </DesignButton>
+          <DesignButton>
             <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="icons.plus"></svg>
-          </Button>
-        </NavFooter>
+          </DesignButton>
+        </DesignNavFooter>
       </template>
 
       <div class="view-view-publish-main">
@@ -298,7 +299,7 @@ export const ViewPublish = {
           </div>
         </div>
       </div>
-    </ViewLayout>
+    </DesignViewLayout>
   `,
   setup() {
     useStyles('view-publish-styles', styles);
@@ -324,6 +325,7 @@ export const ViewPublish = {
     };
 
     return {
+      store,
       documents,
       icons,
       selectedDoc,

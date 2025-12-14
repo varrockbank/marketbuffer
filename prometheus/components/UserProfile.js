@@ -1,13 +1,13 @@
 import { store } from '../store.js';
-import { NavFooter } from './NavFooter.js';
-import { DropdownMenu } from './DropdownMenu.js';
+import { DesignNavFooter } from './design/DesignNavFooter.js';
+import { DesignDropdownMenu } from './design/DesignDropdownMenu.js';
 import { UserProfileMenu } from './UserProfileMenu.js';
 
 export const UserProfile = {
-  components: { NavFooter, DropdownMenu, UserProfileMenu },
+  components: { DesignNavFooter, DesignDropdownMenu, UserProfileMenu },
   template: `
-    <NavFooter>
-      <DropdownMenu direction="up">
+    <DesignNavFooter>
+      <DesignDropdownMenu direction="up">
         <template #trigger>
           <div class="sidenav-item" data-tooltip="Profile">
             <svg class="sidenav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -20,8 +20,8 @@ export const UserProfile = {
         <template #menu="{ close }">
           <UserProfileMenu @close="close" />
         </template>
-      </DropdownMenu>
-    </NavFooter>
+      </DesignDropdownMenu>
+    </DesignNavFooter>
   `,
   setup() {
     return { store };

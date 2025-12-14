@@ -1,0 +1,83 @@
+# WarrenBuffer Configuration
+# Value investing algorithm settings
+
+algorithm:
+  name: WarrenBuffer
+  version: 1.0.0
+  description: Value investing algorithm inspired by Warren Buffett
+
+# Portfolio settings
+portfolio:
+  initial_capital: 100000
+  max_position_size: 0.25  # 25% max per position
+  min_cash_reserve: 0.10   # Keep 10% in cash for opportunities
+  rebalance_threshold: 0.05
+
+# Value investing criteria
+value_criteria:
+  min_margin_of_safety: 0.25  # 25% discount to intrinsic value
+  min_moat_score: 7           # Out of 10
+  min_roe: 0.15               # 15% return on equity
+  max_debt_to_equity: 0.5     # Conservative leverage
+  min_current_ratio: 1.5
+  min_interest_coverage: 5.0
+
+# Moat analysis weights
+moat_weights:
+  brand_power: 0.20
+  network_effects: 0.20
+  switching_costs: 0.15
+  cost_advantages: 0.15
+  intangible_assets: 0.15
+  efficient_scale: 0.15
+
+# Universe of stocks to analyze
+universe:
+  # Blue chips
+  - AAPL
+  - MSFT
+  - GOOGL
+  - AMZN
+
+  # Berkshire holdings
+  - BRK.B
+  - KO
+  - AXP
+  - BAC
+
+  # Consumer staples
+  - PG
+  - JNJ
+  - PEP
+  - CL
+
+  # Financials
+  - V
+  - MA
+  - JPM
+
+# Data sources
+data:
+  provider: polygon
+  api_key: ${POLYGON_API_KEY}
+  cache_ttl: 3600  # 1 hour
+
+# Logging
+logging:
+  level: INFO
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: logs/warrenbuffer.log
+
+# Alerts
+alerts:
+  enabled: true
+  channels:
+    - email
+    - slack
+  triggers:
+    - type: margin_of_safety
+      threshold: 0.30
+      message: "High margin of safety opportunity detected"
+    - type: position_size
+      threshold: 0.20
+      message: "Position approaching size limit"

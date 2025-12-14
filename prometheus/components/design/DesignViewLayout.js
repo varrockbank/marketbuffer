@@ -1,9 +1,10 @@
-import { store } from '../store.js';
-
-export const ViewLayout = {
+export const DesignViewLayout = {
+  props: {
+    collapsed: { type: Boolean, default: false },
+  },
   template: `
     <div class="view-layout">
-      <div class="view-menu" :class="{ collapsed: store.subSidenavCollapsed }">
+      <div class="view-menu" :class="{ collapsed: collapsed }">
         <div class="view-menu-header" v-if="$slots.header">
           <slot name="header"></slot>
         </div>
@@ -18,7 +19,4 @@ export const ViewLayout = {
       </div>
     </div>
   `,
-  setup() {
-    return { store };
-  },
 };

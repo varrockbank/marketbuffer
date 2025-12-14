@@ -1,7 +1,7 @@
 import { store } from '../../store.js';
-import { ViewLayout } from '../ViewLayout.js';
-import { NavFooter } from '../NavFooter.js';
-import { Button } from '../Button.js';
+import { DesignViewLayout } from '../design/DesignViewLayout.js';
+import { DesignNavFooter } from '../design/DesignNavFooter.js';
+import { DesignButton } from '../design/DesignButton.js';
 import { useStyles } from '../../useStyles.js';
 
 const styles = `
@@ -282,9 +282,9 @@ const icons = {
 };
 
 export const ViewData = {
-  components: { ViewLayout, NavFooter, Button },
+  components: { DesignViewLayout, DesignNavFooter, DesignButton },
   template: `
-    <ViewLayout>
+    <DesignViewLayout :collapsed="store.subSidenavCollapsed">
       <template #menu>
         <div class="view-view-data-sidebar-content">
           <div class="view-view-data-sidebar-header">User Data</div>
@@ -313,14 +313,14 @@ export const ViewData = {
             <span class="view-view-data-item-rows">{{ item.rows }}</span>
           </div>
         </div>
-        <NavFooter>
-          <Button>
+        <DesignNavFooter>
+          <DesignButton>
             <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="icons.upload"></svg>
-          </Button>
-          <Button>
+          </DesignButton>
+          <DesignButton>
             <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="icons.plus"></svg>
-          </Button>
-        </NavFooter>
+          </DesignButton>
+        </DesignNavFooter>
       </template>
 
       <div class="view-view-data-main">
@@ -370,7 +370,7 @@ export const ViewData = {
           </div>
         </div>
       </div>
-    </ViewLayout>
+    </DesignViewLayout>
   `,
   setup() {
     useStyles('view-data-styles', styles);
@@ -417,6 +417,7 @@ export const ViewData = {
     };
 
     return {
+      store,
       dataSources,
       icons,
       selectedTable,

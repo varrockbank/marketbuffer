@@ -1,7 +1,7 @@
 import { store, actions } from '../store.js';
-import { MenuBarButton } from './MenuBarButton.js';
+import { DesignMenuBarButton } from './design/DesignMenuBarButton.js';
 import { Brand } from './Brand.js';
-import { DropdownMenu } from './DropdownMenu.js';
+import { DesignDropdownMenu } from './design/DesignDropdownMenu.js';
 
 const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 const modKey = isMac ? '⌘' : 'Ctrl';
@@ -25,16 +25,16 @@ const appSubmenu = [
 ];
 
 export const MenuBar = {
-  components: { MenuBarButton, Brand, DropdownMenu },
+  components: { DesignMenuBarButton, Brand, DesignDropdownMenu },
   template: `
     <div class="menu-bar">
       <Brand v-if="!store.distractionFree" />
       <div class="menu-bar-right">
         <template v-if="!store.distractionFree">
-          <MenuBarButton :icon="icons.home" title="Home" :active="isHome" @click="goHome" />
-          <DropdownMenu direction="down" trigger="click">
+          <DesignMenuBarButton :icon="icons.home" title="Home" :active="isHome" @click="goHome" />
+          <DesignDropdownMenu direction="down" trigger="click">
             <template #trigger>
-              <MenuBarButton :icon="icons.apps" title="Applications" />
+              <DesignMenuBarButton :icon="icons.apps" title="Applications" />
             </template>
             <template #menu="{ close }">
               <div
@@ -53,14 +53,14 @@ export const MenuBar = {
                 <span>More Apps</span>
               </div>
             </template>
-          </DropdownMenu>
-          <MenuBarButton :icon="themeIcon" :title="themeTitle + ' (' + modKey + '⇧T)'" @click="actions.toggleTheme" />
-          <MenuBarButton :icon="icons.contrast" :title="contrastTitle + ' (' + modKey + '⇧C)'" @click="actions.toggleContrast" />
-          <MenuBarButton :icon="icons.sidenav" :title="'Toggle Sidenav (' + modKey + 'B)'" @click="actions.toggleSidenav" />
-          <MenuBarButton :icon="icons.subSidenav" :title="'Toggle Panel (' + modKey + 'J)'" @click="actions.toggleSubSidenav" />
-          <MenuBarButton :icon="icons.terminal" :title="terminalTitle" @click="actions.toggleTerminal" />
+          </DesignDropdownMenu>
+          <DesignMenuBarButton :icon="themeIcon" :title="themeTitle + ' (' + modKey + '⇧T)'" @click="actions.toggleTheme" />
+          <DesignMenuBarButton :icon="icons.contrast" :title="contrastTitle + ' (' + modKey + '⇧C)'" @click="actions.toggleContrast" />
+          <DesignMenuBarButton :icon="icons.sidenav" :title="'Toggle Sidenav (' + modKey + 'B)'" @click="actions.toggleSidenav" />
+          <DesignMenuBarButton :icon="icons.subSidenav" :title="'Toggle Panel (' + modKey + 'J)'" @click="actions.toggleSubSidenav" />
+          <DesignMenuBarButton :icon="icons.terminal" :title="terminalTitle" @click="actions.toggleTerminal" />
         </template>
-        <MenuBarButton :icon="icons.focus" :title="focusTitle" @click="actions.toggleDistractionFree" class="focus-btn" />
+        <DesignMenuBarButton :icon="icons.focus" :title="focusTitle" @click="actions.toggleDistractionFree" class="focus-btn" />
       </div>
     </div>
   `,

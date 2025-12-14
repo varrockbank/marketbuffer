@@ -1,6 +1,7 @@
-import { ViewLayout } from '../ViewLayout.js';
-import { NavFooter } from '../NavFooter.js';
-import { Button } from '../Button.js';
+import { store } from '../../store.js';
+import { DesignViewLayout } from '../design/DesignViewLayout.js';
+import { DesignNavFooter } from '../design/DesignNavFooter.js';
+import { DesignButton } from '../design/DesignButton.js';
 import { useStyles } from '../../useStyles.js';
 
 const styles = `
@@ -182,9 +183,9 @@ const initialMessages = [
 ];
 
 export const ViewYap = {
-  components: { ViewLayout, NavFooter, Button },
+  components: { DesignViewLayout, DesignNavFooter, DesignButton },
   template: `
-    <ViewLayout>
+    <DesignViewLayout :collapsed="store.subSidenavCollapsed">
       <template #menu>
         <div class="view-view-yap-sidebar-content">
           <div class="view-view-yap-sidebar-header">AI Chats</div>
@@ -223,18 +224,18 @@ export const ViewYap = {
             <span class="view-view-yap-channel-name">{{ channel.name }}</span>
           </div>
         </div>
-        <NavFooter>
-          <Button>
+        <DesignNavFooter>
+          <DesignButton>
             <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
             </svg>
-          </Button>
-          <Button>
+          </DesignButton>
+          <DesignButton>
             <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
-          </Button>
-        </NavFooter>
+          </DesignButton>
+        </DesignNavFooter>
       </template>
 
       <div class="view-view-yap-main">
@@ -261,7 +262,7 @@ export const ViewYap = {
           >
         </div>
       </div>
-    </ViewLayout>
+    </DesignViewLayout>
   `,
   setup() {
     useStyles('view-yap-styles', styles);
@@ -297,6 +298,7 @@ export const ViewYap = {
     };
 
     return {
+      store,
       channels,
       selectedChannel,
       currentPrefix,

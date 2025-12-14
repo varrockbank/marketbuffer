@@ -1,4 +1,4 @@
-export const DropdownMenu = {
+export const DesignDropdownMenu = {
   props: {
     direction: { type: String, default: 'down' }, // 'up', 'down', or 'right'
     trigger: { type: String, default: 'click' }, // 'click' or 'hover'

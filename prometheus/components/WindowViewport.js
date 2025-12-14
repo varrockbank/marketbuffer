@@ -1,6 +1,5 @@
 import { store } from '../store.js';
 import { WindowMenu } from './WindowMenu.js';
-import { WindowContent } from './WindowContent.js';
 import { AppSimulator } from './apps/AppSimulator.js';
 import { AppWallpaper } from './apps/AppWallpaper.js';
 import { Terminal } from './Terminal.js';
@@ -9,7 +8,7 @@ import { Terminal } from './Terminal.js';
 const type2Apps = ['simulator', 'wallpaper'];
 
 export const WindowViewport = {
-  components: { WindowMenu, WindowContent, AppSimulator, AppWallpaper, Terminal },
+  components: { WindowMenu, AppSimulator, AppWallpaper, Terminal },
   props: {
     type: { type: String, default: null },
   },
@@ -19,7 +18,6 @@ export const WindowViewport = {
       <div class="window-main">
         <AppSimulator v-if="type === 'simulator'" />
         <AppWallpaper v-else-if="type === 'wallpaper'" />
-        <WindowContent v-else-if="type" :type="type" />
         <router-view v-else />
         <Terminal v-if="!isType2App" />
       </div>

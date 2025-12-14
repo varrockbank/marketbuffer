@@ -1,9 +1,10 @@
-import { ViewLayout } from '../ViewLayout.js';
+import { store } from '../../store.js';
+import { DesignViewLayout } from '../design/DesignViewLayout.js';
 
 export const ViewSettings = {
-  components: { ViewLayout },
+  components: { DesignViewLayout },
   template: `
-    <ViewLayout>
+    <DesignViewLayout :collapsed="store.subSidenavCollapsed">
       <template #menu>
         <div style="padding: 8px; color: var(--text-secondary);">
           Categories
@@ -13,6 +14,9 @@ export const ViewSettings = {
         <h1 class="view-content-title">Settings</h1>
         <p class="view-content-text">Configure your preferences and account settings here.</p>
       </div>
-    </ViewLayout>
+    </DesignViewLayout>
   `,
+  setup() {
+    return { store };
+  },
 };
