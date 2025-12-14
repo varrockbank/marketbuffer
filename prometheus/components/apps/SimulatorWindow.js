@@ -107,9 +107,9 @@ export const SimulatorWindow = {
 
         <div v-if="isEndOfData" class="sim-end">End of simulation data</div>
         <div v-else class="sim-action-buttons">
-          <button v-if="hasPosition" class="sim-btn sim-btn-sell" @click="close" :disabled="!state.tickerData">Sell</button>
-          <button v-else class="sim-btn sim-btn-buy" @click="buy" :disabled="!state.tickerData">Buy</button>
-          <button class="sim-btn sim-btn-secondary" @click="skip">Next Day</button>
+          <button v-if="hasPosition" class="sim-btn sim-btn-sell" @click="close" :disabled="!state.tickerData">Sell <kbd>(Space)</kbd></button>
+          <button v-else class="sim-btn sim-btn-buy" @click="buy" :disabled="!state.tickerData">Buy <kbd>(Space)</kbd></button>
+          <button class="sim-btn sim-btn-secondary" @click="skip">Next Day <kbd>(Enter)</kbd></button>
         </div>
 
         <div v-if="!isEndOfData" class="sim-fastforward">
@@ -540,9 +540,32 @@ export const SimulatorWindow = {
       }
     };
 
+    // Keyboard shortcuts
+    const handleKeydown = (e) => {
+      if (store.activeWindow !== 'simulator') return;
+      if (isEndOfData.value) return;
+
+      if (e.code === 'Space') {
+        e.preventDefault();
+        if (hasPosition.value) {
+          close();
+        } else if (state.tickerData) {
+          buy();
+        }
+      } else if (e.code === 'Enter') {
+        e.preventDefault();
+        skip();
+      }
+    };
+
     // Initialize
     Vue.onMounted(() => {
       fetchTickerData();
+      window.addEventListener('keydown', handleKeydown);
+    });
+
+    Vue.onUnmounted(() => {
+      window.removeEventListener('keydown', handleKeydown);
     });
 
     return {

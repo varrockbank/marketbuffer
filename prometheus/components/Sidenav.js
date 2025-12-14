@@ -2,11 +2,14 @@ import { store, actions } from '../store.js';
 import { SidenavItem } from './SidenavItem.js';
 import { UserProfile } from './UserProfile.js';
 
-// Type-2 apps: Only shown in Applications menu, not in sidenav
+// Type-2 apps: Available in Applications menu
 const appSubmenu = [
   { id: 'simulator', label: 'Perfect Liquidity Simulator', icon: '<path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>' },
   { id: 'wallpaper', label: 'Desktop Wallpaper', icon: '<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>' },
 ];
+
+// Map of app IDs for quick lookup
+const appIds = appSubmenu.map(a => a.id);
 
 export const Sidenav = {
   components: { SidenavItem, UserProfile },
@@ -21,11 +24,30 @@ export const Sidenav = {
           :icon="item.icon"
           :submenu="item.submenu"
         />
+        <template v-if="openApps.length > 0">
+          <div class="sidenav-separator"></div>
+          <div
+            v-for="app in openApps"
+            :key="app.id"
+            class="sidenav-item app-item"
+            :class="{ active: isHome && store.activeWindow === app.id }"
+            :data-tooltip="app.label"
+            @click="focusApp(app.id)"
+          >
+            <svg class="sidenav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="app.icon"></svg>
+            <span class="sidenav-label">{{ app.label }}</span>
+          </div>
+        </template>
       </div>
       <UserProfile />
     </div>
   `,
   setup() {
+    const router = VueRouter.useRouter();
+    const route = VueRouter.useRoute();
+
+    const isHome = Vue.computed(() => route.path === '/');
+
     const menuItems = [
       { id: 'applications', label: 'Applications', icon: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>', submenu: appSubmenu },
       { id: 'yap', label: 'Yap', icon: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>' },
@@ -38,6 +60,17 @@ export const Sidenav = {
       { id: 'agents', label: 'Agents', icon: '<path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>' },
     ];
 
-    return { store, actions, menuItems };
+    const openApps = Vue.computed(() => {
+      return store.openWindows
+        .filter(id => appIds.includes(id))
+        .map(id => appSubmenu.find(a => a.id === id));
+    });
+
+    const focusApp = (appId) => {
+      actions.bringToFront(appId);
+      router.push('/');
+    };
+
+    return { store, actions, menuItems, openApps, focusApp, isHome };
   },
 };

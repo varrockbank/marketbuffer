@@ -25,6 +25,7 @@ export const store = reactive({
   windowPositions: {
     simulator: { x: 0, y: 0, z: 1 },
   },
+  activeWindow: 'simulator', // Window that receives keyboard shortcuts
   topZIndex: 1,
   gridSize: 40,
   defaultWindowWidth: 400,
@@ -60,6 +61,9 @@ export const actions = {
     const index = store.openWindows.indexOf(type);
     if (index > -1) {
       store.openWindows.splice(index, 1);
+      if (store.activeWindow === type) {
+        store.activeWindow = null;
+      }
     }
   },
 
@@ -120,6 +124,7 @@ export const actions = {
         y: bestY,
         z: store.topZIndex,
       };
+      store.activeWindow = type;
     } else {
       // Window already open, just bring to front
       this.bringToFront(type);
@@ -143,6 +148,7 @@ export const actions = {
     if (store.windowPositions[type]) {
       store.topZIndex++;
       store.windowPositions[type].z = store.topZIndex;
+      store.activeWindow = type;
     }
   },
 

@@ -64,20 +64,35 @@ python -m http.server 8080
 
 ## App Types
 
-There are two types of apps:
+When we say "app", we mean type-2 apps.
 
-### Type-1 Apps
-- Appear in the **sidenav** as navigation items
+### Type-1 (Sidenav Items)
+- Permanent items in the **sidenav**
+- Navigate to routes/views
 - Do NOT appear in the Applications menu
 - Examples: Yap, Deployments, Data, Stream, Code, Publish, Simulate, Agents
 - Defined in `menuItems` array in `Sidenav.js`
 
-### Type-2 Apps
-- Appear ONLY in the **Applications menu** (flyout from Applications sidenav item)
-- Do NOT appear as sidenav items
+### Type-2 (Apps)
+- Available in the **Applications menu** (flyout from Applications sidenav item)
 - Open as windows in the home view
-- Examples: Perfect Liquidity Simulator
+- When open, also appear in sidenav below type-1 items (with separator)
+- Components live in `components/apps/` directory
+- Examples: Perfect Liquidity Simulator, Desktop Wallpaper
 - Defined in `appSubmenu` array in `Sidenav.js`
+
+### Active Window
+- The **active window** is the app that receives keyboard shortcuts
+- Tracked in `store.activeWindow`
+- Set when: window is opened, brought to front, or clicked in sidenav
+- Highlighted with accent color in the sidenav
+- Each app can define its own keyboard shortcuts that only work when active
+
+### Keyboard Shortcuts
+
+**Perfect Liquidity Simulator:**
+- `Space` - Buy (when no position) / Sell (when holding)
+- `Enter` - Next Day
 
 ## Component Guidelines
 
