@@ -2,20 +2,11 @@ import { useStyles } from '../../lib/useStyles.js';
 
 const styles = `
 .kit-sidebar-footer {
-  margin-top: auto;
-  flex-shrink: 0;
   border-top: 1px solid var(--border-color);
-  display: flex;
-  gap: 0.5em;
-  overflow: visible;
 }
 
 .no-contrast .kit-sidebar-footer {
   border-top: none;
-}
-
-.kit-sidebar-footer.kit-sidebar-footer-padded {
-  padding: 0.5em;
 }
 `;
 
@@ -30,7 +21,7 @@ export const KitSidebarFooter = {
     padded: { type: Boolean, default: false },
   },
   template: `
-    <div class="kit-sidebar-footer" :class="{ 'kit-sidebar-footer-padded': padded }">
+    <div class="kit-sidebar-footer mt-auto shrink-0 flex gap-2 overflow-visible" :class="{ 'px-2 py-1': padded }">
       <slot></slot>
     </div>
   `,

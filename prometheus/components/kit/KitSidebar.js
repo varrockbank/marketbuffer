@@ -2,36 +2,8 @@ import { useStyles } from '../../lib/useStyles.js';
 
 const styles = `
 .kit-sidebar {
-  width: 200px;
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
   background: var(--bg-secondary);
   border-right: 1px solid var(--border-color);
-  transition: width 0.2s ease-out;
-}
-
-.kit-sidebar.collapsed {
-  display: none;
-}
-
-.kit-sidebar.icon {
-  width: 48px;
-}
-
-.kit-sidebar-content {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-}
-
-.kit-sidebar.icon .kit-sidebar-content {
-  overflow: visible;
-}
-
-.kit-sidebar-content.kit-sidebar-content-padded {
-  padding: 0.5em;
 }
 
 .no-contrast .kit-sidebar {
@@ -55,8 +27,22 @@ export const KitSidebar = {
     padded: { type: Boolean, default: false },
   },
   template: `
-    <div class="kit-sidebar" :class="[mode]">
-      <div class="kit-sidebar-content" :class="{ 'kit-sidebar-content-padded': padded }">
+    <div
+      class="kit-sidebar flex flex-col shrink-0 transition-all duration-200"
+      :class="{
+        'w-[200px]': mode === 'expanded',
+        'w-12': mode === 'icon',
+        'hidden': mode === 'collapsed',
+      }"
+    >
+      <div
+        class="flex-1 flex flex-col"
+        :class="{
+          'overflow-y-auto': mode !== 'icon',
+          'overflow-visible': mode === 'icon',
+          'px-2 pt-1.5 pb-2': padded,
+        }"
+      >
         <slot></slot>
       </div>
       <slot name="footer"></slot>

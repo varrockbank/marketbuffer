@@ -88,9 +88,10 @@ export const KitIcon = {
   },
   template: `
     <svg
-      class="kit-icon"
+      class="kit-icon shrink-0"
       :width="size"
       :height="size"
+      :style="{ width: size + 'px', height: size + 'px', minWidth: size + 'px', minHeight: size + 'px' }"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"

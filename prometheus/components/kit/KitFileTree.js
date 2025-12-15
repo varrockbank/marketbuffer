@@ -2,19 +2,8 @@ import { KitIcon } from './KitIcon.js';
 import { useStyles } from '../../lib/useStyles.js';
 
 const styles = `
-.kit-tree-container {
-  padding: 4px 0;
-}
-
 .kit-tree-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  cursor: pointer;
   color: var(--text-secondary);
-  border-radius: 4px;
-  margin: 0 4px;
 }
 
 .kit-tree-item:hover {
@@ -27,28 +16,8 @@ const styles = `
   color: #fff;
 }
 
-.kit-tree-chevron {
-  flex-shrink: 0;
-  transition: transform 0.15s ease-out;
-}
-
 .kit-tree-chevron.open {
   transform: rotate(90deg);
-}
-
-.kit-tree-spacer {
-  width: 12px;
-  flex-shrink: 0;
-}
-
-.kit-tree-icon {
-  flex-shrink: 0;
-}
-
-.kit-tree-name {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 `;
 
@@ -70,19 +39,19 @@ export const KitFileTree = {
         class="kit-tree-item-wrapper"
       >
         <div
-          class="kit-tree-item"
+          class="kit-tree-item flex items-center gap-1 py-1 px-2 cursor-pointer rounded mx-1"
           :class="{ active: activeFilePath === getFilePath(file) }"
           :style="{ paddingLeft: (depth * 12 + 8) + 'px' }"
           @click="handleClick(file)"
         >
-          <span v-if="file.type === 'folder'" class="kit-tree-chevron" :class="{ open: isOpen(file.name) }">
+          <span v-if="file.type === 'folder'" class="kit-tree-chevron shrink-0 transition-transform duration-150" :class="{ open: isOpen(file.name) }">
             <KitIcon icon="chevronRight" :size="12" />
           </span>
-          <span v-else class="kit-tree-spacer"></span>
-          <span class="kit-tree-icon">
+          <span v-else class="w-3 shrink-0"></span>
+          <span class="shrink-0">
             <KitIcon :icon="getIcon(file)" :size="14" />
           </span>
-          <span class="kit-tree-name">{{ file.name }}</span>
+          <span class="truncate">{{ file.name }}</span>
         </div>
         <KitFileTree
           v-if="file.type === 'folder' && isOpen(file.name)"

@@ -1,93 +1,43 @@
 import { useStyles } from '../../lib/useStyles.js';
 
 const styles = `
-.kit-menu {
-  position: relative;
-  padding: 0.5em;
-  width: 100%;
-}
-
-.kit-menu.kit-menu-compact {
-  padding: 0;
-}
-
-.kit-menu.kit-menu-compact .kit-menu-dropdown {
-  left: 0;
-  right: 0;
-}
-
-.kit-menu.kit-menu-align-right {
-  width: auto;
-}
-
-.kit-menu.kit-menu-align-right .kit-menu-dropdown {
-  left: auto;
-  right: 0;
-  min-width: 220px;
-}
-
-.kit-menu-trigger {
-  cursor: pointer;
-  width: 100%;
-}
-
 .kit-menu-dropdown {
-  position: absolute;
-  left: 0.5em;
-  right: 0.5em;
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
-  padding: 4px;
-  z-index: 100;
-}
-
-.kit-menu-down {
-  top: 100%;
-  margin-top: 8px;
-}
-
-.kit-menu-up {
-  bottom: 100%;
-  margin-bottom: 8px;
-}
-
-.kit-menu-right {
-  left: 100%;
-  right: auto;
-  top: 0;
-  margin-left: 6px;
-  min-width: 200px;
 }
 `;
 
 export const KitMenu = {
   props: {
-    direction: { type: String, default: 'down' }, // 'up', 'down', or 'right'
-    trigger: { type: String, default: 'click' }, // 'click' or 'hover'
-    compact: { type: Boolean, default: false }, // removes wrapper padding
-    align: { type: String, default: 'left' }, // 'left' or 'right'
+    direction: { type: String, default: 'down' },
+    trigger: { type: String, default: 'click' },
+    compact: { type: Boolean, default: false },
+    align: { type: String, default: 'left' },
   },
   template: `
     <div
-      class="kit-menu"
-      :class="{ 'kit-menu-compact': compact, 'kit-menu-align-right': align === 'right' }"
+      class="kit-menu relative"
+      :class="{ 'px-2 py-1 w-full': !compact, 'p-0 w-auto': compact, 'w-auto': align === 'right' }"
       @mouseenter="trigger === 'hover' && (open = true)"
       @mouseleave="trigger === 'hover' && (open = false)"
     >
-      <div class="kit-menu-trigger" @click="trigger === 'click' && (open = !open)">
+      <div class="cursor-pointer" :class="{ 'w-full': !compact }" @click="trigger === 'click' && (open = !open)">
         <slot name="trigger"></slot>
       </div>
       <div
         v-if="open"
-        class="kit-menu-dropdown"
-        :class="'kit-menu-' + direction"
+        class="kit-menu-dropdown absolute rounded-md p-1 z-[100]"
+        :class="[
+          directionClass,
+          compact ? 'left-0 right-0' : 'left-1.5 right-1.5',
+          align === 'right' ? 'left-auto right-0 min-w-[220px]' : ''
+        ]"
       >
         <slot name="menu" :close="close"></slot>
       </div>
     </div>
   `,
-  setup() {
+  setup(props) {
     useStyles('kit-menu', styles);
 
     const open = Vue.ref(false);
@@ -96,6 +46,12 @@ export const KitMenu = {
       open.value = false;
     };
 
-    return { open, close };
+    const directionClass = Vue.computed(() => {
+      if (props.direction === 'up') return 'bottom-full mb-2 min-w-[200px]';
+      if (props.direction === 'right') return 'left-full top-0 ml-1.5 min-w-[200px]';
+      return 'top-full mt-2';
+    });
+
+    return { open, close, directionClass };
   },
 };

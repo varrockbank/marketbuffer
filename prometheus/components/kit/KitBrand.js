@@ -3,13 +3,7 @@ import { useStyles } from '../../lib/useStyles.js';
 
 const styles = `
 .kit-brand {
-  display: flex;
-  align-items: center;
-  gap: 1em;
   color: var(--text-secondary);
-  padding-left: 0.167em;
-  cursor: pointer;
-  transition: color 0.2s ease-out;
 }
 
 .kit-brand:hover {
@@ -18,11 +12,9 @@ const styles = `
 
 .kit-brand-name {
   font-family: Georgia, 'Times New Roman', serif;
-  font-weight: 300;
 }
 
 .kit-brand-icon {
-  display: flex;
   transition: transform 1s ease-out;
 }
 
@@ -32,11 +24,6 @@ const styles = `
 
 .kit-brand.active .kit-brand-icon {
   color: var(--accent);
-}
-
-.kit-brand-version {
-  opacity: 0.5;
-  font-size: 10px;
 }
 `;
 export const KitBrand = {
@@ -53,12 +40,12 @@ export const KitBrand = {
       :href="isExternal ? to : undefined"
       :to="isExternal ? undefined : to"
       :target="isExternal ? '_blank' : undefined"
-      class="kit-brand"
+      class="kit-brand flex items-center gap-2 pl-0.5 cursor-pointer transition-colors duration-200"
       :class="{ active: isActive }"
     >
-      <span class="kit-brand-icon"><KitIcon :icon="icon" :size="18" /></span>
-      <span class="kit-brand-name">{{ name }}</span>
-      <span v-if="subtitle" class="kit-brand-version">{{ subtitle }}</span>
+      <span class="kit-brand-icon flex"><KitIcon :icon="icon" :size="18" /></span>
+      <span class="kit-brand-name font-light">{{ name }}</span>
+      <span v-if="subtitle" class="opacity-50 text-[10px]">{{ subtitle }}</span>
     </component>
   `,
   setup(props) {

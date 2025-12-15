@@ -22,7 +22,7 @@ export const Dock = {
         variant="sidebar"
       />
       <template v-if="activeApps.length > 0">
-        <div style="height: 1px; background: var(--border-color); margin: 0.5em 0.667em;"></div>
+        <div class="h-px bg-[var(--border-color)] my-2 mx-2.5"></div>
         <KitButton
           v-for="app in activeApps"
           :key="app.id"
@@ -42,7 +42,7 @@ export const Dock = {
               <KitButton icon="user" label="Profile" :collapsed="isIconMode" tooltipPosition="right" variant="sidebar" />
             </template>
             <template #menu="{ close }">
-              <div style="padding: 8px; color: var(--text-primary); font-weight: 500;">username@foobar.com</div>
+              <div class="p-2 font-medium text-[var(--text-primary)]">username@foobar.com</div>
               <KitMenuSeparator />
               <KitMenuItem icon="settings" to="/settings" @click="close">Settings</KitMenuItem>
               <KitMenuItem icon="globe">Language</KitMenuItem>

@@ -16,36 +16,12 @@ import { useStyles } from '../../lib/useStyles.js';
 
 const styles = `
 .kit-bar {
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-shrink: 0;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-color);
-  padding: 0 2px 0 12px;
   color: var(--text-primary);
 }
 
-.kit-bar-draggable {
-  cursor: grab;
-}
-
-.kit-bar-draggable:active {
-  cursor: grabbing;
-}
-
-.kit-bar-element {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.no-contrast .kit-bar {
-  background: var(--bg-primary);
-  border-bottom-color: transparent;
-}
-
+.no-contrast .kit-bar,
 .distraction-free .kit-bar {
   background: var(--bg-primary);
   border-bottom-color: transparent;
@@ -59,14 +35,14 @@ export const KitBar = {
   emits: ['dragstart', 'drag', 'dragend'],
   template: `
     <div
-      class="kit-bar"
-      :class="[{ 'kit-bar-draggable': draggable }]"
+      class="kit-bar h-7 flex items-center justify-between shrink-0 pl-3 pr-0.5"
+      :class="{ 'cursor-grab active:cursor-grabbing': draggable }"
       @mousedown="onMouseDown"
     >
-      <div class="kit-bar-element">
+      <div class="flex items-center gap-1">
         <slot name="left"></slot>
       </div>
-      <div class="kit-bar-element">
+      <div class="flex items-center gap-0.5">
         <slot></slot>
       </div>
     </div>

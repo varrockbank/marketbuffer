@@ -3,36 +3,7 @@ import { useStyles } from '../../lib/useStyles.js';
 
 const styles = `
 .kit-button {
-  display: flex;
-  align-items: center;
-  gap: 0.667em;
-  padding: 0.667em;
-  border-radius: 0.5em;
-  cursor: pointer;
   color: var(--text-secondary);
-  transition: all 0.15s ease-out;
-  background: none;
-  border: none;
-  font-family: inherit;
-  font-size: inherit;
-  position: relative;
-  text-decoration: none;
-  min-width: 0;
-}
-
-.kit-button-label {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.kit-button-icon-right {
-  margin-left: auto;
-  flex-shrink: 0;
-}
-
-.kit-button-sm {
-  padding: 4px;
 }
 
 .kit-button:hover {
@@ -46,7 +17,6 @@ const styles = `
 
 .theme-light .kit-button:hover {
   background: var(--bg-tertiary);
-  color: var(--text-primary);
 }
 
 .kit-button.active {
@@ -66,27 +36,9 @@ const styles = `
   color: var(--text-primary);
 }
 
-.kit-button-sidebar {
-  color: var(--text-secondary);
-  width: 100%;
-}
-
-.kit-button-sidebar:hover {
-  background: #000;
-  color: var(--text-primary);
-}
-
-.theme-light .kit-button-sidebar:hover {
-  background: var(--bg-tertiary);
-}
-
 .kit-button-sidebar.active {
   color: var(--text-primary);
   box-shadow: inset 2px 0 0 var(--accent), inset -2px 0 0 var(--accent);
-}
-
-.kit-button-sidebar.collapsed {
-  justify-content: center;
 }
 
 .kit-button-danger {
@@ -107,17 +59,12 @@ const styles = `
   color: rgb(131, 193, 141);
 }
 
-.kit-button-menu {
-  width: 100%;
-  border-radius: 4px;
-}
-
 .kit-button-menu:hover {
   background: #000;
   color: #fff;
 }
 
-/* Tooltip - bottom (default) */
+/* Tooltip */
 .kit-button[data-tooltip]::after {
   content: attr(data-tooltip);
   position: absolute;
@@ -144,7 +91,6 @@ const styles = `
   transform: none;
 }
 
-/* Tooltip - right */
 .kit-button[data-tooltip].tooltip-right::after {
   top: 50%;
   left: 100%;
@@ -166,8 +112,8 @@ export const KitButton = {
     iconRight: { type: String, default: null },
     label: { type: String, default: null },
     tooltip: { type: String, default: null },
-    tooltipPosition: { type: String, default: 'bottom' }, // 'bottom' or 'right'
-    collapsed: { type: Boolean, default: false }, // hides label, uses label as tooltip
+    tooltipPosition: { type: String, default: 'bottom' },
+    collapsed: { type: Boolean, default: false },
     active: { type: Boolean, default: false },
     size: { type: String, default: null },
     variant: { type: String, default: null },
@@ -178,14 +124,14 @@ export const KitButton = {
       :is="to ? 'router-link' : 'button'"
       :to="to"
       ref="btn"
-      class="kit-button"
-      :class="[sizeClass, variantClass, { active, collapsed, 'tooltip-align-right': tooltipAlignRight, 'tooltip-right': tooltipPosition === 'right' }]"
+      class="kit-button flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all duration-150 bg-transparent border-0 font-inherit text-inherit relative no-underline min-w-0"
+      :class="[sizeClass, variantClass, { active, 'tooltip-align-right': tooltipAlignRight, 'tooltip-right': tooltipPosition === 'right' }]"
       :data-tooltip="effectiveTooltip"
       @mouseenter="checkPosition"
     >
       <KitIcon v-if="icon" :icon="icon" :size="iconSize" />
-      <span v-if="!collapsed && (label || $slots.default)" class="kit-button-label">{{ label }}<slot></slot></span>
-      <span v-if="iconRight" class="kit-button-icon-right"><KitIcon :icon="iconRight" :size="iconRightSize" /></span>
+      <span v-if="!collapsed && (label || $slots.default)" class="truncate">{{ label }}<slot></slot></span>
+      <span v-if="iconRight" class="ml-auto shrink-0"><KitIcon :icon="iconRight" :size="iconRightSize" /></span>
     </component>
   `,
   setup(props) {
@@ -193,8 +139,14 @@ export const KitButton = {
 
     const btn = Vue.ref(null);
     const tooltipAlignRight = Vue.ref(false);
-    const sizeClass = Vue.computed(() => props.size === 'sm' ? 'kit-button-sm' : null);
-    const variantClass = Vue.computed(() => props.variant ? `kit-button-${props.variant}` : null);
+    const sizeClass = Vue.computed(() => props.size === 'sm' ? '!p-0.5 !rounded' : null);
+    const variantClass = Vue.computed(() => {
+      const classes = [];
+      if (props.variant) classes.push(`kit-button-${props.variant}`);
+      if (props.variant === 'sidebar' || props.variant === 'menu') classes.push('w-full');
+      if (props.variant === 'menu') classes.push('!rounded');
+      return classes.join(' ') || null;
+    });
     const iconSize = Vue.computed(() => props.size === 'sm' ? 16 : 18);
     const iconRightSize = Vue.computed(() => props.size === 'sm' ? 12 : 14);
     const effectiveTooltip = Vue.computed(() => props.tooltip || (props.collapsed ? props.label : null));

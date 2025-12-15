@@ -2,10 +2,7 @@ import { useStyles } from '../../lib/useStyles.js';
 
 const styles = `
 .kit-background {
-  flex: 1;
-  position: relative;
   background: var(--bg-primary);
-  overflow: hidden;
 }
 
 .kit-background.show-grid {
@@ -83,7 +80,7 @@ export const KitBackground = {
     showGrid: { type: Boolean, default: false },
   },
   template: `
-    <div class="kit-background" :class="[wallpaper ? 'wp-' + wallpaper : '', { 'show-grid': showGrid }]">
+    <div class="kit-background flex-1 relative overflow-hidden" :class="[wallpaper ? 'wp-' + wallpaper : '', { 'show-grid': showGrid }]">
       <slot></slot>
     </div>
   `,
