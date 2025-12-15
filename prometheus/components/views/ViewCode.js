@@ -8,105 +8,12 @@ import { KitFileTree } from '../kit/KitFileTree.js';
 import { KitDrawer } from '../kit/KitDrawer.js';
 import { KitTerminal } from '../kit/KitTerminal.js';
 import { store, actions } from '../../store.js';
-import { useStyles } from '../../lib/useStyles.js';
 import { listProjects, listFiles, loadFile } from '../../lib/projectService.js';
-
-const styles = `
-.file-tree-container {
-  flex: 1;
-  overflow-y: auto;
-}
-
-.view-view-code-wrapper {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.view-view-code-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.view-view-code-content {
-  flex: 1;
-  overflow: auto;
-  background: var(--bg-primary);
-}
-
-.view-view-code-editor {
-  display: flex;
-  min-height: 100%;
-}
-
-.view-view-code-gutter {
-  flex-shrink: 0;
-  padding: 12px 8px;
-  background: var(--bg-secondary);
-  border-right: 1px solid var(--border-color);
-  text-align: right;
-  user-select: none;
-  font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--text-secondary);
-}
-
-.view-view-code-lines {
-  flex: 1;
-  padding: 12px 16px;
-  font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
-  font-size: 12px;
-  line-height: 1.5;
-  white-space: pre;
-  overflow-x: auto;
-  color: var(--text-primary);
-}
-
-.view-view-code-empty {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding-top: 120px;
-  gap: 16px;
-  color: var(--text-secondary);
-}
-
-.view-view-code-empty-icon {
-  opacity: 0.5;
-}
-
-.view-view-code-empty-title {
-  font-size: 14px;
-  font-weight: bold;
-  color: var(--text-primary);
-}
-
-.view-view-code-empty-text {
-  font-size: 12px;
-}
-
-.view-view-code-loading {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-secondary);
-  font-size: 12px;
-}
-`;
-
 
 export const ViewCode = {
   components: { KitViewLayout, KitMenu, KitMenuItem, KitMenuSeparator, KitButton, KitIcon, KitFileTree, KitDrawer, KitTerminal },
   template: `
-    <div class="view-view-code-wrapper">
+    <div class="flex-1 flex flex-col overflow-hidden">
     <KitViewLayout :collapsed="store.subSidenavCollapsed">
       <template #header>
         <KitMenu direction="down">
@@ -132,7 +39,7 @@ export const ViewCode = {
         </KitMenu>
       </template>
       <template #menu>
-        <div class="file-tree-container">
+        <div class="flex-1 overflow-y-auto">
           <KitFileTree
             :files="files"
             :activeFilePath="store.activeFilePath"
@@ -140,31 +47,31 @@ export const ViewCode = {
           />
         </div>
       </template>
-      <div class="view-view-code-main">
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
         <template v-if="store.activeFileError">
-          <div class="view-view-code-empty">
-            <span class="view-view-code-empty-icon"><KitIcon icon="fileX" :size="48" /></span>
-            <div class="view-view-code-empty-title">{{ store.activeFile }}</div>
-            <div class="view-view-code-empty-text">File not found</div>
+          <div class="flex-1 flex flex-col items-center justify-start pt-[120px] gap-4 text-[var(--text-secondary)]">
+            <span class="opacity-50"><KitIcon icon="fileX" :size="48" /></span>
+            <div class="text-sm font-bold text-[var(--text-primary)]">{{ store.activeFile }}</div>
+            <div class="text-xs">File not found</div>
           </div>
         </template>
         <template v-else-if="store.activeFile">
-          <div class="view-view-code-content">
-            <div v-if="store.fileLoading" class="view-view-code-loading">
+          <div class="flex-1 overflow-auto bg-[var(--bg-primary)]">
+            <div v-if="store.fileLoading" class="flex-1 flex items-center justify-center text-[var(--text-secondary)] text-xs">
               Loading...
             </div>
-            <div v-else class="view-view-code-editor">
-              <div class="view-view-code-gutter">
+            <div v-else class="flex min-h-full">
+              <div class="shrink-0 py-3 px-2 bg-[var(--bg-secondary)] border-r border-[var(--border-color)] text-right select-none font-mono text-xs leading-normal text-[var(--text-secondary)]">
                 <div v-for="n in lineCount" :key="n">{{ n }}</div>
               </div>
-              <div class="view-view-code-lines">{{ store.activeFileContent }}</div>
+              <div class="flex-1 py-3 px-4 font-mono text-xs leading-normal whitespace-pre overflow-x-auto text-[var(--text-primary)]">{{ store.activeFileContent }}</div>
             </div>
           </div>
         </template>
-        <div v-else class="view-view-code-empty">
-          <span class="view-view-code-empty-icon"><KitIcon icon="folder" :size="48" /></span>
-          <div class="view-view-code-empty-title">{{ store.currentProject }}</div>
-          <div class="view-view-code-empty-text">Select a file from the tree to view its contents</div>
+        <div v-else class="flex-1 flex flex-col items-center justify-start pt-[120px] gap-4 text-[var(--text-secondary)]">
+          <span class="opacity-50"><KitIcon icon="folder" :size="48" /></span>
+          <div class="text-sm font-bold text-[var(--text-primary)]">{{ store.currentProject }}</div>
+          <div class="text-xs">Select a file from the tree to view its contents</div>
         </div>
       </div>
     </KitViewLayout>
@@ -174,7 +81,6 @@ export const ViewCode = {
     </div>
   `,
   setup() {
-    useStyles('view-code-styles', styles);
 
     const route = VueRouter.useRoute();
     const files = Vue.ref([]);

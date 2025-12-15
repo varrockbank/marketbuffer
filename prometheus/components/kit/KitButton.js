@@ -1,70 +1,17 @@
 import { KitIcon } from './KitIcon.js';
 import { useStyles } from '../../lib/useStyles.js';
 
+// Keep only: theme-light parent selector, svg child rotation, tooltip ::after
 const styles = `
-.kit-button {
-  color: var(--text-secondary);
-}
-
-.kit-button:hover {
-  background: #000;
-  color: var(--text-primary);
+.theme-light .kit-button:hover {
+  background: var(--bg-tertiary);
 }
 
 .kit-button:hover svg {
   transform: rotate(15deg);
 }
 
-.theme-light .kit-button:hover {
-  background: var(--bg-tertiary);
-}
-
-.kit-button.active {
-  color: var(--accent);
-}
-
-.kit-button-inherit {
-  color: inherit;
-}
-
-.kit-button-inherit:hover {
-  background: rgba(128, 128, 128, 0.2);
-  color: inherit;
-}
-
-.kit-button-primary {
-  color: var(--text-primary);
-}
-
-.kit-button-sidebar.active {
-  color: var(--text-primary);
-  box-shadow: inset 2px 0 0 var(--accent), inset -2px 0 0 var(--accent);
-}
-
-.kit-button-danger {
-  color: #e55;
-}
-
-.kit-button-danger:hover {
-  background: rgba(238, 85, 85, 0.1);
-  color: #e55;
-}
-
-.kit-button-success {
-  color: rgb(131, 193, 141);
-}
-
-.kit-button-success:hover {
-  background: rgba(131, 193, 141, 0.1);
-  color: rgb(131, 193, 141);
-}
-
-.kit-button-menu:hover {
-  background: #000;
-  color: #fff;
-}
-
-/* Tooltip */
+/* Tooltip - requires ::after pseudo-element */
 .kit-button[data-tooltip]::after {
   content: attr(data-tooltip);
   position: absolute;
@@ -109,6 +56,7 @@ export const KitButton = {
   components: { KitIcon },
   props: {
     icon: { type: String, default: null },
+    iconPlaceholder: { type: Boolean, default: false },
     iconRight: { type: String, default: null },
     label: { type: String, default: null },
     tooltip: { type: String, default: null },
@@ -124,12 +72,13 @@ export const KitButton = {
       :is="to ? 'router-link' : 'button'"
       :to="to"
       ref="btn"
-      class="kit-button flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all duration-150 bg-transparent border-0 font-inherit text-inherit relative no-underline min-w-0"
-      :class="[sizeClass, variantClass, { active, 'tooltip-align-right': tooltipAlignRight, 'tooltip-right': tooltipPosition === 'right' }]"
+      class="kit-button flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all duration-150 bg-transparent border-0 font-inherit relative no-underline min-w-0 text-[var(--text-secondary)] hover:bg-black hover:text-[var(--text-primary)]"
+      :class="[sizeClass, variantClass, { '!text-[var(--accent)]': active, 'tooltip-align-right': tooltipAlignRight, 'tooltip-right': tooltipPosition === 'right' }]"
       :data-tooltip="effectiveTooltip"
       @mouseenter="checkPosition"
     >
       <KitIcon v-if="icon" :icon="icon" :size="iconSize" />
+      <span v-else-if="iconPlaceholder" class="shrink-0" :style="{ width: iconSize + 'px', height: iconSize + 'px' }"></span>
       <span v-if="!collapsed && (label || $slots.default)" class="truncate">{{ label }}<slot></slot></span>
       <span v-if="iconRight" class="ml-auto shrink-0"><KitIcon :icon="iconRight" :size="iconRightSize" /></span>
     </component>
@@ -142,9 +91,27 @@ export const KitButton = {
     const sizeClass = Vue.computed(() => props.size === 'sm' ? '!p-0.5 !rounded' : null);
     const variantClass = Vue.computed(() => {
       const classes = [];
-      if (props.variant) classes.push(`kit-button-${props.variant}`);
-      if (props.variant === 'sidebar' || props.variant === 'menu') classes.push('w-full');
-      if (props.variant === 'menu') classes.push('!rounded');
+      switch (props.variant) {
+        case 'inherit':
+          classes.push('!text-inherit hover:!bg-[rgba(128,128,128,0.2)] hover:!text-inherit');
+          break;
+        case 'primary':
+          // Don't apply primary color if active - let active state win
+          if (!props.active) classes.push('!text-[var(--text-primary)]');
+          break;
+        case 'danger':
+          classes.push('!text-[#e55] hover:!bg-[rgba(238,85,85,0.1)] hover:!text-[#e55] w-full !rounded');
+          break;
+        case 'success':
+          classes.push('!text-[rgb(131,193,141)] hover:!bg-[rgba(131,193,141,0.1)] hover:!text-[rgb(131,193,141)] w-full !rounded');
+          break;
+        case 'menu':
+          classes.push('hover:!bg-black hover:!text-white w-full !rounded');
+          break;
+        case 'sidebar':
+          classes.push('w-full', props.active ? '!text-[var(--text-primary)] shadow-[inset_2px_0_0_var(--accent),inset_-2px_0_0_var(--accent)]' : '');
+          break;
+      }
       return classes.join(' ') || null;
     });
     const iconSize = Vue.computed(() => props.size === 'sm' ? 16 : 18);

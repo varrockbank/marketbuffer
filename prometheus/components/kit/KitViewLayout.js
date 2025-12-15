@@ -1,27 +1,9 @@
 import { useStyles } from '../../lib/useStyles.js';
 
+// Keep CSS for parent selectors (.no-contrast, .distraction-free) and child selector
 const styles = `
-.kit-view-layout-menu {
-  background: var(--bg-secondary);
-  border-right: 1px solid var(--border-color);
-}
-
-.kit-view-layout-menu.collapsed {
-  width: 0;
-  border-right: none;
-}
-
-.kit-view-layout-menu-header {
-  border-bottom: 1px solid var(--border-color);
-}
-
 .kit-view-layout-menu-header > .kit-menu {
   flex: 1;
-}
-
-.kit-view-layout-menu-title {
-  font-weight: 500;
-  color: var(--text-primary);
 }
 
 .no-contrast .kit-view-layout-menu {
@@ -36,10 +18,6 @@ const styles = `
 .distraction-free .kit-view-layout-menu {
   display: none;
 }
-
-.kit-view-layout-content {
-  background: var(--bg-primary);
-}
 `;
 
 export const KitViewLayout = {
@@ -47,20 +25,20 @@ export const KitViewLayout = {
     collapsed: { type: Boolean, default: false },
   },
   template: `
-    <div class="kit-view-layout flex flex-1 overflow-hidden">
+    <div class="flex flex-1 overflow-hidden">
       <div
-        class="kit-view-layout-menu w-[220px] flex flex-col shrink-0 transition-all duration-150 overflow-hidden"
-        :class="{ collapsed }"
+        class="kit-view-layout-menu flex flex-col shrink-0 transition-all duration-150 overflow-hidden bg-[var(--bg-secondary)] border-r border-[var(--border-color)]"
+        :class="collapsed ? 'w-0 !border-r-0' : 'w-[220px]'"
       >
-        <div class="kit-view-layout-menu-header flex items-center shrink-0" v-if="$slots.header">
+        <div class="kit-view-layout-menu-header flex items-center shrink-0 border-b border-[var(--border-color)]" v-if="$slots.header">
           <slot name="header"></slot>
         </div>
-        <div class="kit-view-layout-menu-content flex-1 overflow-hidden flex flex-col">
+        <div class="flex-1 overflow-hidden flex flex-col">
           <slot name="menu"></slot>
         </div>
       </div>
-      <div class="kit-view-layout-main flex-1 flex flex-col overflow-hidden">
-        <div class="kit-view-layout-content flex-1 overflow-auto">
+      <div class="flex-1 flex flex-col overflow-hidden">
+        <div class="flex-1 overflow-auto bg-[var(--bg-primary)]">
           <slot></slot>
         </div>
       </div>

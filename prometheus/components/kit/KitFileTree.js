@@ -1,25 +1,4 @@
 import { KitIcon } from './KitIcon.js';
-import { useStyles } from '../../lib/useStyles.js';
-
-const styles = `
-.kit-tree-item {
-  color: var(--text-secondary);
-}
-
-.kit-tree-item:hover {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-}
-
-.kit-tree-item.active {
-  background: var(--accent);
-  color: #fff;
-}
-
-.kit-tree-chevron.open {
-  transform: rotate(90deg);
-}
-`;
 
 export const KitFileTree = {
   name: 'KitFileTree',
@@ -32,19 +11,18 @@ export const KitFileTree = {
   },
   emits: ['select'],
   template: `
-    <div class="kit-tree">
+    <div>
       <div
         v-for="file in files"
         :key="file.name"
-        class="kit-tree-item-wrapper"
       >
         <div
-          class="kit-tree-item flex items-center gap-1 py-1 px-2 cursor-pointer rounded mx-1"
-          :class="{ active: activeFilePath === getFilePath(file) }"
+          class="flex items-center gap-1 py-1 px-2 cursor-pointer rounded mx-1 text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+          :class="{ 'bg-[var(--accent)] text-white hover:bg-[var(--accent)] hover:text-white': activeFilePath === getFilePath(file) }"
           :style="{ paddingLeft: (depth * 12 + 8) + 'px' }"
           @click="handleClick(file)"
         >
-          <span v-if="file.type === 'folder'" class="kit-tree-chevron shrink-0 transition-transform duration-150" :class="{ open: isOpen(file.name) }">
+          <span v-if="file.type === 'folder'" class="shrink-0 transition-transform duration-150" :class="{ 'rotate-90': isOpen(file.name) }">
             <KitIcon icon="chevronRight" :size="12" />
           </span>
           <span v-else class="w-3 shrink-0"></span>
@@ -65,7 +43,6 @@ export const KitFileTree = {
     </div>
   `,
   setup(props, { emit }) {
-    useStyles('kit-file-tree', styles);
     const openFolders = Vue.ref({});
 
     const isOpen = (name) => openFolders.value[name];

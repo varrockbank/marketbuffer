@@ -1,12 +1,3 @@
-import { useStyles } from '../../lib/useStyles.js';
-
-const styles = `
-.kit-menu-dropdown {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-}
-`;
-
 export const KitMenu = {
   props: {
     direction: { type: String, default: 'down' },
@@ -16,7 +7,7 @@ export const KitMenu = {
   },
   template: `
     <div
-      class="kit-menu relative"
+      class="relative"
       :class="{ 'px-2 py-1 w-full': !compact, 'p-0 w-auto': compact, 'w-auto': align === 'right' }"
       @mouseenter="trigger === 'hover' && (open = true)"
       @mouseleave="trigger === 'hover' && (open = false)"
@@ -26,10 +17,10 @@ export const KitMenu = {
       </div>
       <div
         v-if="open"
-        class="kit-menu-dropdown absolute rounded-md p-1 z-[100]"
+        class="absolute rounded-md p-1 z-[100] bg-[var(--bg-tertiary)] border border-[var(--border-color)]"
         :class="[
           directionClass,
-          compact ? 'left-0 right-0' : 'left-1.5 right-1.5',
+          compact ? 'left-0 right-0' : 'left-2 right-2',
           align === 'right' ? 'left-auto right-0 min-w-[220px]' : ''
         ]"
       >
@@ -38,8 +29,6 @@ export const KitMenu = {
     </div>
   `,
   setup(props) {
-    useStyles('kit-menu', styles);
-
     const open = Vue.ref(false);
 
     const close = () => {
@@ -47,8 +36,8 @@ export const KitMenu = {
     };
 
     const directionClass = Vue.computed(() => {
-      if (props.direction === 'up') return 'bottom-full mb-2 min-w-[200px]';
-      if (props.direction === 'right') return 'left-full top-0 ml-1.5 min-w-[200px]';
+      if (props.direction === 'up') return 'bottom-full mb-2';
+      if (props.direction === 'right') return 'left-full top-0 ml-1.5';
       return 'top-full mt-2';
     });
 

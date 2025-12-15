@@ -3,282 +3,6 @@ import { KitViewLayout } from '../kit/KitViewLayout.js';
 import { KitSidebarFooter } from '../kit/KitSidebarFooter.js';
 import { KitButton } from '../kit/KitButton.js';
 import { KitIcon } from '../kit/KitIcon.js';
-import { useStyles } from '../../lib/useStyles.js';
-
-const styles = `
-.view-view-simulate-sidebar-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0;
-}
-
-.view-view-simulate-sidebar-header {
-  padding: 8px 12px;
-  font-weight: bold;
-  font-size: 11px;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.view-view-simulate-sidebar-header:first-child {
-  padding-top: 14px;
-}
-
-.view-view-simulate-item {
-  padding: 8px 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border-left: 3px solid transparent;
-}
-
-.view-view-simulate-item:hover {
-  background: var(--bg-tertiary);
-}
-
-.view-view-simulate-item.active {
-  background: var(--bg-tertiary);
-  border-left-color: var(--accent);
-}
-
-.view-view-simulate-item-icon {
-  color: var(--text-secondary);
-}
-
-.view-view-simulate-item-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex: 1;
-  color: var(--text-primary);
-}
-
-.view-view-simulate-item-status {
-  font-size: 9px;
-  padding: 2px 6px;
-  border-radius: 8px;
-  font-weight: bold;
-}
-
-.view-view-simulate-item-status.running {
-  background: #3498db;
-  color: #fff;
-}
-
-.view-view-simulate-item-status.completed {
-  background: #2ecc71;
-  color: #fff;
-}
-
-.view-view-simulate-item-status.failed {
-  background: #e74c3c;
-  color: #fff;
-}
-
-.view-view-simulate-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.view-view-simulate-header {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-shrink: 0;
-}
-
-.view-view-simulate-header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.view-view-simulate-header-title {
-  font-weight: bold;
-  font-size: 16px;
-  color: var(--text-primary);
-}
-
-.view-view-simulate-header-meta {
-  font-size: 11px;
-  color: var(--text-secondary);
-}
-
-.view-view-simulate-header-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.view-view-simulate-header-btn {
-  padding: 6px 12px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  font-family: inherit;
-  font-size: 11px;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-.view-view-simulate-header-btn:hover {
-  background: var(--bg-tertiary);
-}
-
-.view-view-simulate-header-btn.primary {
-  background: #2ecc71;
-  border-color: #2ecc71;
-  color: #fff;
-}
-
-.view-view-simulate-header-btn.primary:hover {
-  background: #27ae60;
-}
-
-.view-view-simulate-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px;
-}
-
-.view-view-simulate-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.view-view-simulate-stat-card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  padding: 16px;
-}
-
-.view-view-simulate-stat-label {
-  font-size: 11px;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-}
-
-.view-view-simulate-stat-value {
-  font-size: 24px;
-  font-weight: bold;
-  color: var(--text-primary);
-}
-
-.view-view-simulate-stat-value.positive {
-  color: #2ecc71;
-}
-
-.view-view-simulate-stat-value.negative {
-  color: #e74c3c;
-}
-
-.view-view-simulate-stat-change {
-  font-size: 11px;
-  color: var(--text-secondary);
-  margin-top: 4px;
-}
-
-.view-view-simulate-section {
-  margin-bottom: 24px;
-}
-
-.view-view-simulate-section-header {
-  font-weight: bold;
-  font-size: 13px;
-  margin-bottom: 12px;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.view-view-simulate-chart {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  height: 200px;
-  display: flex;
-  align-items: flex-end;
-  padding: 16px;
-  gap: 2px;
-}
-
-.view-view-simulate-chart-bar {
-  flex: 1;
-  min-height: 4px;
-  border-radius: 2px 2px 0 0;
-}
-
-.view-view-simulate-chart-bar.positive {
-  background: #2ecc71;
-}
-
-.view-view-simulate-chart-bar.negative {
-  background: #e74c3c;
-}
-
-.view-view-simulate-trades-table {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.view-view-simulate-trades-header {
-  display: grid;
-  grid-template-columns: 100px 1fr 100px 100px 100px;
-  padding: 12px 16px;
-  background: var(--bg-tertiary);
-  font-size: 11px;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.view-view-simulate-trades-row {
-  display: grid;
-  grid-template-columns: 100px 1fr 100px 100px 100px;
-  padding: 12px 16px;
-  border-top: 1px solid var(--border-color);
-  font-size: 12px;
-  color: var(--text-primary);
-}
-
-.view-view-simulate-trades-row:hover {
-  background: var(--bg-tertiary);
-}
-
-.view-view-simulate-trade-type {
-  font-weight: bold;
-}
-
-.view-view-simulate-trade-type.buy {
-  color: #2ecc71;
-}
-
-.view-view-simulate-trade-type.sell {
-  color: #e74c3c;
-}
-
-.view-view-simulate-trade-pnl.positive {
-  color: #2ecc71;
-}
-
-.view-view-simulate-trade-pnl.negative {
-  color: #e74c3c;
-}
-`;
-
 
 const backtests = [
   { id: 'momentum-2024', name: 'Momentum 2024', status: 'completed' },
@@ -306,29 +30,29 @@ export const ViewSimulate = {
   template: `
     <KitViewLayout :collapsed="store.subSidenavCollapsed">
       <template #menu>
-        <div class="view-view-simulate-sidebar-content">
-          <div class="view-view-simulate-sidebar-header">Backtests</div>
+        <div class="flex-1 overflow-y-auto">
+          <div class="px-3 py-2 pt-3.5 font-bold text-[11px] text-[var(--text-secondary)] uppercase tracking-wide">Backtests</div>
           <div
             v-for="test in backtests"
             :key="test.id"
-            class="view-view-simulate-item"
-            :class="{ active: selectedTest === test.id }"
+            class="flex items-center gap-2 px-4 py-2 cursor-pointer border-l-[3px] border-transparent transition-colors hover:bg-[var(--bg-tertiary)]"
+            :class="{ 'bg-[var(--bg-tertiary)] !border-l-[var(--accent)]': selectedTest === test.id }"
             @click="selectTest(test)"
           >
-            <span class="view-view-simulate-item-icon"><KitIcon icon="chart" :size="14" /></span>
-            <span class="view-view-simulate-item-name">{{ test.name }}</span>
-            <span class="view-view-simulate-item-status" :class="test.status">{{ statusLabel(test.status) }}</span>
+            <span class="text-[var(--text-secondary)]"><KitIcon icon="chart" :size="14" /></span>
+            <span class="truncate flex-1 text-[var(--text-primary)]">{{ test.name }}</span>
+            <span class="text-[9px] px-1.5 py-0.5 rounded-lg font-bold text-white" :class="{'bg-[#2ecc71]': test.status === 'completed', 'bg-[#3498db]': test.status === 'running', 'bg-[#e74c3c]': test.status === 'failed'}">{{ statusLabel(test.status) }}</span>
           </div>
 
-          <div class="view-view-simulate-sidebar-header">Strategies</div>
+          <div class="px-3 py-2 font-bold text-[11px] text-[var(--text-secondary)] uppercase tracking-wide">Strategies</div>
           <div
             v-for="strategy in strategies"
             :key="strategy.id"
-            class="view-view-simulate-item"
+            class="flex items-center gap-2 px-4 py-2 cursor-pointer border-l-[3px] border-transparent transition-colors hover:bg-[var(--bg-tertiary)]"
             @click="selectStrategy(strategy)"
           >
-            <span class="view-view-simulate-item-icon"><KitIcon icon="code" :size="14" /></span>
-            <span class="view-view-simulate-item-name">{{ strategy.name }}</span>
+            <span class="text-[var(--text-secondary)]"><KitIcon icon="code" :size="14" /></span>
+            <span class="truncate flex-1 text-[var(--text-primary)]">{{ strategy.name }}</span>
           </div>
         </div>
         <KitSidebarFooter padded>
@@ -337,65 +61,65 @@ export const ViewSimulate = {
         </KitSidebarFooter>
       </template>
 
-      <div class="view-view-simulate-main">
-        <div class="view-view-simulate-header">
-          <div class="view-view-simulate-header-left">
-            <span class="view-view-simulate-header-title">{{ selectedName }}</span>
-            <span class="view-view-simulate-header-meta">Jan 1, 2024 - Dec 1, 2024 | AAPL, MSFT, GOOGL</span>
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <div class="px-5 py-4 border-b border-[var(--border-color)] flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-3">
+            <span class="font-bold text-base text-[var(--text-primary)]">{{ selectedName }}</span>
+            <span class="text-[11px] text-[var(--text-secondary)]">Jan 1, 2024 - Dec 1, 2024 | AAPL, MSFT, GOOGL</span>
           </div>
-          <div class="view-view-simulate-header-actions">
-            <button class="view-view-simulate-header-btn">Export</button>
-            <button class="view-view-simulate-header-btn">Configure</button>
-            <button class="view-view-simulate-header-btn primary">Run Again</button>
+          <div class="flex gap-2">
+            <button class="px-3 py-1.5 bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[var(--text-primary)] text-[11px] cursor-pointer rounded hover:bg-[var(--bg-tertiary)]">Export</button>
+            <button class="px-3 py-1.5 bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[var(--text-primary)] text-[11px] cursor-pointer rounded hover:bg-[var(--bg-tertiary)]">Configure</button>
+            <button class="px-3 py-1.5 bg-[#2ecc71] border border-[#2ecc71] text-white text-[11px] cursor-pointer rounded hover:bg-[#27ae60]">Run Again</button>
           </div>
         </div>
-        <div class="view-view-simulate-content">
-          <div class="view-view-simulate-stats">
-            <div class="view-view-simulate-stat-card">
-              <div class="view-view-simulate-stat-label">Total Return</div>
-              <div class="view-view-simulate-stat-value positive">+24.5%</div>
-              <div class="view-view-simulate-stat-change">vs SPY +18.2%</div>
+        <div class="flex-1 overflow-y-auto p-5">
+          <div class="grid grid-cols-4 gap-4 mb-6">
+            <div class="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded p-4">
+              <div class="text-[11px] text-[var(--text-secondary)] uppercase tracking-wide mb-2">Total Return</div>
+              <div class="text-2xl font-bold text-[#2ecc71]">+24.5%</div>
+              <div class="text-[11px] text-[var(--text-secondary)] mt-1">vs SPY +18.2%</div>
             </div>
-            <div class="view-view-simulate-stat-card">
-              <div class="view-view-simulate-stat-label">Sharpe Ratio</div>
-              <div class="view-view-simulate-stat-value">1.85</div>
-              <div class="view-view-simulate-stat-change">Annualized</div>
+            <div class="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded p-4">
+              <div class="text-[11px] text-[var(--text-secondary)] uppercase tracking-wide mb-2">Sharpe Ratio</div>
+              <div class="text-2xl font-bold text-[var(--text-primary)]">1.85</div>
+              <div class="text-[11px] text-[var(--text-secondary)] mt-1">Annualized</div>
             </div>
-            <div class="view-view-simulate-stat-card">
-              <div class="view-view-simulate-stat-label">Max Drawdown</div>
-              <div class="view-view-simulate-stat-value negative">-8.3%</div>
-              <div class="view-view-simulate-stat-change">Mar 15, 2024</div>
+            <div class="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded p-4">
+              <div class="text-[11px] text-[var(--text-secondary)] uppercase tracking-wide mb-2">Max Drawdown</div>
+              <div class="text-2xl font-bold text-[#e74c3c]">-8.3%</div>
+              <div class="text-[11px] text-[var(--text-secondary)] mt-1">Mar 15, 2024</div>
             </div>
-            <div class="view-view-simulate-stat-card">
-              <div class="view-view-simulate-stat-label">Win Rate</div>
-              <div class="view-view-simulate-stat-value">62%</div>
-              <div class="view-view-simulate-stat-change">186 / 300 trades</div>
-            </div>
-          </div>
-
-          <div class="view-view-simulate-section">
-            <div class="view-view-simulate-section-header">Equity Curve</div>
-            <div class="view-view-simulate-chart">
-              <div v-for="(bar, idx) in chartBars" :key="idx" class="view-view-simulate-chart-bar" :class="bar.positive ? 'positive' : 'negative'" :style="{ height: bar.height + '%' }"></div>
+            <div class="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded p-4">
+              <div class="text-[11px] text-[var(--text-secondary)] uppercase tracking-wide mb-2">Win Rate</div>
+              <div class="text-2xl font-bold text-[var(--text-primary)]">62%</div>
+              <div class="text-[11px] text-[var(--text-secondary)] mt-1">186 / 300 trades</div>
             </div>
           </div>
 
-          <div class="view-view-simulate-section">
-            <div class="view-view-simulate-section-header">Recent Trades</div>
-            <div class="view-view-simulate-trades-table">
-              <div class="view-view-simulate-trades-header">
+          <div class="mb-6">
+            <div class="font-bold text-[13px] mb-3 text-[var(--text-secondary)] uppercase tracking-wide">Equity Curve</div>
+            <div class="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded h-[200px] flex items-end p-4 gap-0.5">
+              <div v-for="(bar, idx) in chartBars" :key="idx" class="flex-1 min-h-1 rounded-t-sm" :class="bar.positive ? 'bg-[#2ecc71]' : 'bg-[#e74c3c]'" :style="{ height: bar.height + '%' }"></div>
+            </div>
+          </div>
+
+          <div class="mb-6">
+            <div class="font-bold text-[13px] mb-3 text-[var(--text-secondary)] uppercase tracking-wide">Recent Trades</div>
+            <div class="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded overflow-hidden">
+              <div class="grid grid-cols-[100px_1fr_100px_100px_100px] px-4 py-3 bg-[var(--bg-tertiary)] text-[11px] text-[var(--text-secondary)] uppercase tracking-wide">
                 <div>Date</div>
                 <div>Symbol</div>
                 <div>Type</div>
                 <div>Price</div>
                 <div>P&L</div>
               </div>
-              <div v-for="(trade, idx) in trades" :key="idx" class="view-view-simulate-trades-row">
+              <div v-for="(trade, idx) in trades" :key="idx" class="grid grid-cols-[100px_1fr_100px_100px_100px] px-4 py-3 border-t border-[var(--border-color)] text-xs text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)]">
                 <div>{{ trade.date }}</div>
                 <div>{{ trade.symbol }}</div>
-                <div class="view-view-simulate-trade-type" :class="trade.type">{{ trade.type.toUpperCase() }}</div>
+                <div class="font-bold" :class="trade.type === 'buy' ? 'text-[#2ecc71]' : 'text-[#e74c3c]'">{{ trade.type.toUpperCase() }}</div>
                 <div>{{ trade.price }}</div>
-                <div class="view-view-simulate-trade-pnl" :class="{ positive: trade.positive, negative: trade.positive === false }">{{ trade.pnl }}</div>
+                <div :class="{ 'text-[#2ecc71]': trade.positive, 'text-[#e74c3c]': trade.positive === false }">{{ trade.pnl }}</div>
               </div>
             </div>
           </div>
@@ -404,8 +128,6 @@ export const ViewSimulate = {
     </KitViewLayout>
   `,
   setup() {
-    useStyles('view-simulate-styles', styles);
-
     const selectedTest = Vue.ref('momentum-2024');
     const selectedName = Vue.ref('Momentum 2024');
 

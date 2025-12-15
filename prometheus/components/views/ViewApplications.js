@@ -1,167 +1,46 @@
 import { store, actions, isWindowOpen } from '../../store.js';
 import { KitViewLayout } from '../kit/KitViewLayout.js';
 import { KitIcon } from '../kit/KitIcon.js';
-import { useStyles } from '../../lib/useStyles.js';
-
-const styles = `
-.view-content-inner {
-  padding: 24px;
-  max-width: 800px;
-}
-
-.view-content-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: var(--text-secondary);
-}
-
-.view-content-title {
-  font-size: 24px;
-  font-weight: 600;
-  margin-bottom: 16px;
-  color: var(--text-primary);
-}
-
-.view-content-text {
-  line-height: 1.6;
-  color: var(--text-secondary);
-}
-
-.view-applications-list {
-  padding: 4px 0;
-}
-
-.view-applications-list-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  cursor: pointer;
-  transition: background 0.1s ease-out;
-}
-
-.view-applications-list-item:hover {
-  background: var(--bg-tertiary);
-}
-
-.view-applications-list-item.selected {
-  background: var(--bg-tertiary);
-}
-
-.view-applications-list-item-icon {
-  color: var(--text-secondary);
-}
-
-.view-applications-list-item.selected .view-applications-list-item-icon {
-  color: var(--accent);
-}
-
-.view-applications-list-label {
-  font-size: 12px;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.view-applications-detail-version {
-  font-size: 11px;
-  color: var(--text-secondary);
-}
-
-.view-applications-detail-actions {
-  margin-top: 24px;
-}
-
-.view-applications-detail-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-.view-applications-detail-header-icon {
-  color: var(--accent);
-}
-
-.view-applications-detail-title {
-  flex: 1;
-}
-
-.view-applications-detail-title .view-content-title {
-  margin-bottom: 4px;
-}
-
-.view-applications-detail-btn {
-  padding: 8px 16px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  font-size: 12px;
-  cursor: pointer;
-  transition: background 0.1s ease-out, border-color 0.1s ease-out;
-}
-
-.view-applications-detail-btn:hover {
-  background: var(--bg-tertiary);
-  border-color: var(--text-secondary);
-}
-
-.view-applications-detail-btn-primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-}
-
-.view-applications-detail-btn-primary:hover {
-  background: #6a5a9a;
-  border-color: #6a5a9a;
-}
-`;
 
 export const ViewApplications = {
   components: { KitViewLayout, KitIcon },
   template: `
     <KitViewLayout :collapsed="store.subSidenavCollapsed">
       <template #menu>
-        <div class="view-applications-list">
+        <div class="py-1">
           <div
             v-for="app in store.type2Apps"
             :key="app.id"
-            class="view-applications-list-item"
-            :class="{ selected: selectedApp?.id === app.id }"
+            class="flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors hover:bg-[var(--bg-tertiary)]"
+            :class="{ 'bg-[var(--bg-tertiary)]': selectedApp?.id === app.id }"
             @click="selectApp(app)"
           >
-            <span class="view-applications-list-item-icon"><KitIcon :icon="app.icon" :size="16" /></span>
-            <span class="view-applications-list-label">{{ app.label }}</span>
+            <span :class="selectedApp?.id === app.id ? 'text-[var(--accent)]' : 'text-[var(--text-secondary)]'"><KitIcon :icon="app.icon" :size="16" /></span>
+            <span class="text-xs text-[var(--text-primary)] truncate">{{ app.label }}</span>
           </div>
         </div>
       </template>
-      <div class="view-content-inner" v-if="selectedApp">
-        <div class="view-applications-detail-header">
-          <span class="view-applications-detail-header-icon"><KitIcon :icon="selectedApp.icon" :size="48" /></span>
-          <div class="view-applications-detail-title">
-            <h1 class="view-content-title">{{ selectedApp.label }}</h1>
-            <span class="view-applications-detail-version">v{{ selectedApp.version }}</span>
+      <div class="p-6 max-w-[800px]" v-if="selectedApp">
+        <div class="flex items-start gap-4 mb-4">
+          <span class="text-[var(--accent)]"><KitIcon :icon="selectedApp.icon" :size="48" /></span>
+          <div class="flex-1">
+            <h1 class="text-2xl font-semibold mb-1 text-[var(--text-primary)]">{{ selectedApp.label }}</h1>
+            <span class="text-[11px] text-[var(--text-secondary)]">v{{ selectedApp.version }}</span>
           </div>
         </div>
-        <p class="view-content-text">{{ selectedApp.description }}</p>
-        <div class="view-applications-detail-actions">
-          <button class="view-applications-detail-btn view-applications-detail-btn-primary" @click="launchApp">
+        <p class="leading-relaxed text-[var(--text-secondary)]">{{ selectedApp.description }}</p>
+        <div class="mt-6">
+          <button class="px-4 py-2 border border-[var(--accent)] rounded bg-[var(--accent)] text-white text-xs cursor-pointer transition-colors hover:bg-[#6a5a9a] hover:border-[#6a5a9a]" @click="launchApp">
             {{ isWindowOpen(selectedApp.id) ? 'Open' : 'Launch' }}
           </button>
         </div>
       </div>
-      <div class="view-content-inner view-content-empty" v-else>
+      <div class="p-6 max-w-[800px] flex items-center justify-center h-full text-[var(--text-secondary)]" v-else>
         <p>Select an application to view details</p>
       </div>
     </KitViewLayout>
   `,
   setup() {
-    useStyles('view-applications', styles);
 
     const router = VueRouter.useRouter();
     const selectedApp = Vue.ref(store.type2Apps[0]);

@@ -31,7 +31,7 @@ export const Topbar = {
               <span>{{ app.label }}</span>
             </KitMenuItem>
             <KitMenuSeparator />
-            <KitMenuItem icon="ellipsis" @click="goToApps(close)">
+            <KitMenuItem icon="ellipsis" variant="success" @click="goToApps(close)">
               <span>More Apps</span>
             </KitMenuItem>
           </template>

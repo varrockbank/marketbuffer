@@ -14,13 +14,8 @@ import { useStyles } from '../../lib/useStyles.js';
  *   dragstart, drag, dragend - Emitted when draggable is true
  */
 
+// Keep CSS for .no-contrast and .distraction-free parent selectors
 const styles = `
-.kit-bar {
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
-  color: var(--text-primary);
-}
-
 .no-contrast .kit-bar,
 .distraction-free .kit-bar {
   background: var(--bg-primary);
@@ -35,7 +30,7 @@ export const KitBar = {
   emits: ['dragstart', 'drag', 'dragend'],
   template: `
     <div
-      class="kit-bar h-7 flex items-center justify-between shrink-0 pl-3 pr-0.5"
+      class="kit-bar h-7 flex items-center justify-between shrink-0 pl-3 pr-0.5 bg-[var(--bg-secondary)] border-b border-[var(--border-color)] text-[var(--text-primary)]"
       :class="{ 'cursor-grab active:cursor-grabbing': draggable }"
       @mousedown="onMouseDown"
     >

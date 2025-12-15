@@ -178,29 +178,47 @@ export const ViewExample = {
 
 ## CSS Guidelines
 
-**Where to put styles:**
-- `index.html` - Global styles, shared components, theme variables
-- Component files - View-specific styles using `useStyles` helper
+**Use Tailwind CSS first.** Prefer Tailwind utility classes over custom CSS for all styling. Only use `useStyles` for styles that cannot be achieved with Tailwind (pseudo-elements, complex animations, dynamically generated class selectors).
 
-**View-specific styles** should be co-located with the component using `useStyles`:
+**Tailwind usage:**
+```javascript
+// PREFERRED - Use Tailwind classes
+<div class="flex-1 flex flex-col overflow-hidden">
+<div class="text-xs text-[var(--text-primary)] font-bold">
+<div class="p-4 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded">
+
+// Use CSS variables with Tailwind's arbitrary value syntax
+<div class="text-[var(--text-primary)] bg-[var(--bg-tertiary)]">
+```
+
+**When to use `useStyles`:**
+- Pseudo-elements (::before, ::after) with complex styling
+- Toggle switches with animated knobs
+- Dynamically generated class names (e.g., wallpaper previews)
+- Complex hover/focus states that can't be expressed in Tailwind
+
+**Where to put styles:**
+- `index.html` - Global styles, theme variables
+- Component files - Only complex styles that require `useStyles`
+
+**If you must use `useStyles`** for complex components:
 
 ```javascript
 import { useStyles } from '../../lib/useStyles.js';
 
 const styles = `
-.view-view-data-header { }
-.view-view-data-table { }
+/* Only styles that cannot be done with Tailwind */
+.my-toggle::after { content: ''; /* pseudo-element */ }
 `;
 
-export const ViewData = {
+export const MyComponent = {
   setup() {
-    useStyles('view-data-styles', styles);
-    // ...
+    useStyles('my-component', styles);
   },
 };
 ```
 
-**CSS prefix conventions:**
+**CSS prefix conventions (for non-Tailwind styles):**
 - `view-*` - Shared ViewLayout component styles (e.g., `view-layout`, `view-menu`, `view-content`)
 - `view-view-{viewname}-*` - View-specific styles (e.g., `view-view-data-*`, `view-view-code-*`)
 

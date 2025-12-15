@@ -1,525 +1,45 @@
 import { store } from '../../store.js';
 import { useStyles } from '../../lib/useStyles.js';
 
+// Keep only CSS that cannot be done with Tailwind (keyframes, pseudo-elements, complex selectors)
 const styles = `
-.simulator-content {
-  display: flex;
-  overflow: hidden;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-}
-
-.sim-main {
-  padding: 12px;
-  font-size: 11px;
-  width: 380px;
-  flex-shrink: 0;
-  overflow-y: auto;
-  background: var(--bg-primary);
-}
-
+/* Slide animations for details panel */
 .sim-details {
-  display: flex;
-  flex-direction: column;
-  border-left: 1px solid var(--border-color);
-  flex-shrink: 0;
-  width: 0;
-  overflow: hidden;
   animation: sim-slide-out 0.5s ease forwards;
 }
-
 @keyframes sim-slide-out {
   from { width: 0; }
   to { width: 280px; }
 }
-
 .sim-details-no-anim {
   animation: none;
   width: 280px;
 }
-
 .sim-details-closing {
   animation: sim-slide-in 0.5s ease forwards;
 }
-
 @keyframes sim-slide-in {
   from { width: 280px; }
   to { width: 0; }
 }
 
-.sim-details-top {
-  flex: 0 0 auto;
-  border-bottom: 1px solid var(--border-color);
-  height: 150px;
-  background: var(--bg-secondary);
-  width: 280px;
-  min-width: 280px;
-  display: flex;
-  flex-direction: column;
-  padding: 10px;
-}
-
-.sim-details-bottom {
-  flex: 1;
-  min-height: 0;
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  background: var(--bg-secondary);
-  width: 280px;
-  min-width: 280px;
-}
-
-.sim-status {
-  margin-bottom: 8px;
-}
-
-.sim-header-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
-}
-
-.sim-date {
-  font-size: 14px;
-  font-weight: bold;
-}
-
-.sim-portfolio-label {
-  margin-top: 8px;
-  margin-bottom: 4px;
-  font-weight: bold;
-}
-
-.sim-portfolio-grid {
-  display: grid;
-  grid-template-columns: auto auto;
-  gap: 2px 12px;
-}
-
-.sim-portfolio-row {
-  display: contents;
-}
-
-.sim-portfolio-row span:last-child {
-  text-align: right;
-}
-
-.sim-total {
-  border-top: 1px solid var(--border-color);
-  font-weight: bold;
-}
-
-.sim-total span {
-  padding-top: 4px;
-}
-
-.sim-label {
-  color: var(--text-primary);
-  opacity: 0.7;
-  margin-right: 4px;
-}
-
-.sim-delta-up {
-  color: #00c853;
-}
-
-.sim-delta-down {
-  color: #ff1744;
-}
-
-.sim-delta-none {
-  color: transparent;
-}
-
-.sim-divider {
-  border: none;
-  border-top: 1px solid var(--border-color);
-  margin: 8px 0;
-}
-
-.sim-inquiry-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.sim-select {
-  flex: 1;
-  font-family: inherit;
-  font-size: 11px;
-  padding: 4px;
-  border: 1px solid var(--border-color);
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  border-radius: 4px;
-}
-
-.sim-ohlc {
-  padding: 8px 0;
-}
-
-.sim-ohlc-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 2px 0;
-  color: var(--text-primary);
-}
-
-.sim-ohlc-row span:first-child {
-  opacity: 0.7;
-}
-
-.sim-midpoint {
-  border-top: 1px solid var(--border-color);
-  margin-top: 4px;
-  padding-top: 4px;
-  font-weight: bold;
-}
-
-.sim-action-buttons {
-  display: flex;
-  gap: 8px;
-}
-
-.sim-btn {
-  flex: 1;
-  font-family: inherit;
-  font-size: 11px;
-  padding: 6px 12px;
-  border: 1px solid var(--border-color);
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-.sim-btn:hover:not(:disabled) {
-  background: var(--bg-tertiary);
-}
-
-.sim-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.sim-btn-secondary {
-  background: var(--bg-tertiary);
-}
-
-.sim-btn-buy {
-  background: #00c853;
-  color: white;
-  border-color: #00a844;
-}
-
-.sim-btn-buy:hover:not(:disabled) {
-  background: #00b848;
-}
-
-.sim-btn-sell {
-  background: #ff1744;
-  color: white;
-  border-color: #e0153c;
-}
-
-.sim-btn-sell:hover:not(:disabled) {
-  background: #e6143d;
-}
-
-.sim-btn kbd {
-  font-family: inherit;
-  font-size: 9px;
-  padding: 1px 4px;
-  margin-left: 6px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 3px;
-  opacity: 0.8;
-}
-
-.sim-end {
-  text-align: center;
-  color: var(--text-primary);
-  opacity: 0.7;
-  padding: 8px;
-}
-
-.sim-fastforward {
-  width: 100%;
-  margin-top: 12px;
-}
-
-.sim-fastforward-header {
-  margin-bottom: 6px;
-  font-weight: bold;
-  font-size: 10px;
-  color: var(--text-primary);
-  opacity: 0.7;
-}
-
-.sim-fastforward-list {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 4px;
-}
-
-.sim-ff-date {
-  font-family: inherit;
-  font-size: 10px;
-  padding: 4px 2px;
-  border: 1px solid var(--border-color);
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  cursor: pointer;
-  border-radius: 2px;
-}
-
-.sim-ff-date:hover {
-  background: var(--bg-tertiary);
-}
-
-.sim-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 12px;
-  padding-top: 8px;
-  border-top: 1px solid var(--border-color);
-}
-
-.sim-btn-link {
-  font-family: inherit;
-  font-size: 10px;
-  padding: 2px 6px;
-  border: none;
-  background: transparent;
-  color: var(--text-primary);
-  cursor: pointer;
-}
-
-.sim-btn-link:hover:not(:disabled) {
-  background: var(--bg-tertiary);
-  border-radius: 2px;
-}
-
-.sim-btn-link:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.sim-timeline-header {
-  font-weight: bold;
-  font-size: 11px;
-  margin-bottom: 4px;
-  flex-shrink: 0;
-}
-
-.sim-timeline {
-  flex: 1;
-  overflow-x: auto;
-  display: flex;
-  align-items: flex-end;
-  padding-top: 10px;
-}
-
-.sim-timeline-segments {
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  height: 100%;
-}
-
-.sim-timeline-segment {
-  width: 8px;
-  height: 80px;
-  position: relative;
-  flex-shrink: 0;
-  cursor: pointer;
-  transition: height 0.1s ease;
-}
-
-.sim-timeline-segment:hover {
-  height: 90px;
-}
-
-.sim-timeline-up {
-  background: #00c853;
-}
-
-.sim-timeline-down {
-  background: #ff1744;
-}
-
-.sim-timeline-neutral {
-  background: #666;
-}
-
-.sim-timeline-arrow {
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 10px;
-  color: var(--text-primary);
-}
-
-.sim-timeline-empty {
-  color: var(--text-primary);
-  opacity: 0.6;
-  font-size: 11px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-}
-
-.sim-timeline-info {
-  height: 20px;
-  font-size: 10px;
-  padding: 4px 0 0 0;
-  white-space: nowrap;
-  flex-shrink: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.sim-timeline-info-date {
-  color: var(--text-primary);
-  flex: 1;
-  text-align: left;
-}
-
-.sim-timeline-info-ticker {
-  color: var(--text-primary);
-  font-weight: bold;
-  flex: 1;
-  text-align: center;
-}
-
-.sim-timeline-info-pnl {
-  flex: 1;
-  text-align: right;
-}
-
-.sim-timeline-info-pnl.up {
-  color: #00c853;
-}
-
-.sim-timeline-info-pnl.down {
-  color: #ff1744;
-}
-
-.sim-ledger-header-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
-}
-
-.sim-ledger-header {
-  font-weight: bold;
-  font-size: 11px;
-}
-
-.sim-ledger-scroll {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-}
-
-.sim-ledger-empty {
-  color: var(--text-primary);
-  opacity: 0.6;
-  font-size: 11px;
-  text-align: center;
-  padding: 20px;
-}
-
-.sim-trade-row {
-  border-bottom: 1px solid var(--border-color);
-}
-
-.sim-trade-row:last-child {
-  border-bottom: none;
-}
-
-.sim-trade-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 4px;
-  cursor: pointer;
-  font-size: 10px;
-  list-style: none;
-  color: var(--text-primary);
-}
-
+/* Trade row expand/collapse marker */
 .sim-trade-header::-webkit-details-marker {
   display: none;
 }
-
 .sim-trade-header::before {
   content: '>';
   font-size: 8px;
   width: 10px;
   flex-shrink: 0;
 }
-
 .sim-trade-row[open] .sim-trade-header::before {
   content: 'v';
 }
 
-.sim-trade-header:hover {
-  background: var(--bg-tertiary);
-}
-
-.sim-trade-date {
-  color: var(--text-primary);
-  opacity: 0.7;
-}
-
-.sim-trade-ticker {
-  font-weight: bold;
-  color: var(--text-primary);
-}
-
-.sim-trade-status {
-  margin-left: auto;
-  font-size: 9px;
-  color: var(--text-primary);
-  opacity: 0.7;
-}
-
-.sim-trade-open {
-  color: #00c853;
-}
-
-.sim-trade-details {
-  padding: 4px 8px 8px 22px;
-  font-size: 10px;
-  color: var(--text-primary);
-}
-
-.sim-trade-detail-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 2px 0;
-}
-
-.sim-trade-detail-row span:first-child {
-  color: var(--text-primary);
-  opacity: 0.7;
-}
-
-.sim-trade-pnl {
-  border-top: 1px solid var(--border-color);
-  margin-top: 4px;
-  padding-top: 4px;
-  font-weight: bold;
+/* Timeline segment hover */
+.sim-timeline-segment:hover {
+  height: 90px;
 }
 `;
 
@@ -576,135 +96,135 @@ const generatePriceData = (ticker, dateKey) => {
 
 export const AppSimulator = {
   template: `
-    <div class="simulator-content">
-      <div class="sim-main">
-        <div class="sim-status">
-          <div class="sim-header-row">
-            <span class="sim-date">{{ formatDate(state.currentDate) }}</span>
+    <div class="flex overflow-hidden bg-[var(--bg-primary)] text-[var(--text-primary)]">
+      <div class="p-3 text-[11px] w-[380px] shrink-0 overflow-y-auto bg-[var(--bg-primary)]">
+        <div class="mb-2">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-sm font-bold">{{ formatDate(state.currentDate) }}</span>
             <span :class="deltaClass">{{ deltaText }}</span>
           </div>
-          <div class="sim-portfolio-label">Your position:</div>
-          <div class="sim-portfolio-grid">
-            <div class="sim-portfolio-row">
-              <span class="sim-label">Cash:</span>
-              <span>{{ formatMoney(state.cash) }}</span>
+          <div class="mt-2 mb-1 font-bold">Your position:</div>
+          <div class="grid grid-cols-[auto_auto] gap-x-3 gap-y-0.5">
+            <div class="contents">
+              <span class="text-[var(--text-primary)] opacity-70 mr-1">Cash:</span>
+              <span class="text-right">{{ formatMoney(state.cash) }}</span>
             </div>
-            <div class="sim-portfolio-row">
-              <span class="sim-label">Ticker:</span>
-              <span>{{ state.ticker || '-' }}</span>
+            <div class="contents">
+              <span class="text-[var(--text-primary)] opacity-70 mr-1">Ticker:</span>
+              <span class="text-right">{{ state.ticker || '-' }}</span>
             </div>
-            <div class="sim-portfolio-row">
-              <span class="sim-label">Shares:</span>
-              <span>{{ hasPosition ? state.shares.toFixed(1) : '-' }}</span>
+            <div class="contents">
+              <span class="text-[var(--text-primary)] opacity-70 mr-1">Shares:</span>
+              <span class="text-right">{{ hasPosition ? state.shares.toFixed(1) : '-' }}</span>
             </div>
-            <div class="sim-portfolio-row">
-              <span class="sim-label">Equity Value:</span>
-              <span>{{ hasPosition ? formatMoney(equityValue) : '-' }}</span>
+            <div class="contents">
+              <span class="text-[var(--text-primary)] opacity-70 mr-1">Equity Value:</span>
+              <span class="text-right">{{ hasPosition ? formatMoney(equityValue) : '-' }}</span>
             </div>
-            <div class="sim-portfolio-row sim-total">
-              <span class="sim-label">Total Value:</span>
-              <span>{{ formatMoney(totalValue) }}</span>
+            <div class="contents border-t border-[var(--border-color)] font-bold">
+              <span class="text-[var(--text-primary)] opacity-70 mr-1 pt-1">Total Value:</span>
+              <span class="text-right pt-1">{{ formatMoney(totalValue) }}</span>
             </div>
           </div>
         </div>
 
-        <hr class="sim-divider">
+        <hr class="border-none border-t border-[var(--border-color)] my-2">
 
-        <div class="sim-inquiry">
-          <div class="sim-inquiry-header">
-            <label class="sim-label">Quote:</label>
-            <select class="sim-select" v-model="state.selectedTicker" @change="fetchTickerData">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <label class="text-[var(--text-primary)] opacity-70 mr-1">Quote:</label>
+            <select class="flex-1 text-[11px] p-1 border border-[var(--border-color)] bg-[var(--bg-secondary)] text-[var(--text-primary)] rounded" v-model="state.selectedTicker" @change="fetchTickerData">
               <option value="">Select...</option>
               <option v-for="t in tickers" :key="t" :value="t">{{ t }}</option>
             </select>
           </div>
 
-          <div class="sim-ohlc">
-            <div class="sim-ohlc-row"><span>Open:</span> <span>{{ state.tickerData ? formatMoney(state.tickerData.open) : '-' }}</span></div>
-            <div class="sim-ohlc-row"><span>High:</span> <span>{{ state.tickerData ? formatMoney(state.tickerData.high) : '-' }}</span></div>
-            <div class="sim-ohlc-row"><span>Low:</span> <span>{{ state.tickerData ? formatMoney(state.tickerData.low) : '-' }}</span></div>
-            <div class="sim-ohlc-row"><span>Close:</span> <span>{{ state.tickerData ? formatMoney(state.tickerData.close) : '-' }}</span></div>
-            <div class="sim-ohlc-row sim-midpoint"><span>Midpoint:</span> <span>{{ state.tickerData ? formatMoney(getMidpoint(state.tickerData)) : '-' }}</span></div>
+          <div class="py-2">
+            <div class="flex justify-between py-0.5 text-[var(--text-primary)]"><span class="opacity-70">Open:</span> <span>{{ state.tickerData ? formatMoney(state.tickerData.open) : '-' }}</span></div>
+            <div class="flex justify-between py-0.5 text-[var(--text-primary)]"><span class="opacity-70">High:</span> <span>{{ state.tickerData ? formatMoney(state.tickerData.high) : '-' }}</span></div>
+            <div class="flex justify-between py-0.5 text-[var(--text-primary)]"><span class="opacity-70">Low:</span> <span>{{ state.tickerData ? formatMoney(state.tickerData.low) : '-' }}</span></div>
+            <div class="flex justify-between py-0.5 text-[var(--text-primary)]"><span class="opacity-70">Close:</span> <span>{{ state.tickerData ? formatMoney(state.tickerData.close) : '-' }}</span></div>
+            <div class="flex justify-between py-0.5 text-[var(--text-primary)] border-t border-[var(--border-color)] mt-1 pt-1 font-bold"><span>Midpoint:</span> <span>{{ state.tickerData ? formatMoney(getMidpoint(state.tickerData)) : '-' }}</span></div>
           </div>
         </div>
 
-        <div v-if="isEndOfData" class="sim-end">End of simulation data</div>
-        <div v-else class="sim-action-buttons">
-          <button v-if="hasPosition" class="sim-btn sim-btn-sell" @click="close" :disabled="!state.tickerData">Sell <kbd>(Space)</kbd></button>
-          <button v-else class="sim-btn sim-btn-buy" @click="buy" :disabled="!state.tickerData">Buy <kbd>(Space)</kbd></button>
-          <button class="sim-btn sim-btn-secondary" @click="skip">Next Day <kbd>(Enter)</kbd></button>
+        <div v-if="isEndOfData" class="text-center text-[var(--text-primary)] opacity-70 p-2">End of simulation data</div>
+        <div v-else class="flex gap-2">
+          <button v-if="hasPosition" class="flex-1 text-[11px] px-3 py-1.5 border border-[#e0153c] bg-[#ff1744] text-white cursor-pointer rounded hover:bg-[#e6143d] disabled:opacity-50 disabled:cursor-not-allowed" @click="close" :disabled="!state.tickerData">Sell <kbd class="text-[9px] px-1 ml-1.5 bg-black/20 rounded opacity-80">(Space)</kbd></button>
+          <button v-else class="flex-1 text-[11px] px-3 py-1.5 border border-[#00a844] bg-[#00c853] text-white cursor-pointer rounded hover:bg-[#00b848] disabled:opacity-50 disabled:cursor-not-allowed" @click="buy" :disabled="!state.tickerData">Buy <kbd class="text-[9px] px-1 ml-1.5 bg-black/20 rounded opacity-80">(Space)</kbd></button>
+          <button class="flex-1 text-[11px] px-3 py-1.5 border border-[var(--border-color)] bg-[var(--bg-tertiary)] text-[var(--text-primary)] cursor-pointer rounded hover:bg-[var(--bg-tertiary)]" @click="skip">Next Day <kbd class="text-[9px] px-1 ml-1.5 bg-black/20 rounded opacity-80">(Enter)</kbd></button>
         </div>
 
-        <div v-if="!isEndOfData" class="sim-fastforward">
-          <div class="sim-fastforward-header">Skip to next 30 trading days:</div>
-          <div class="sim-fastforward-list">
+        <div v-if="!isEndOfData" class="w-full mt-3">
+          <div class="mb-1.5 font-bold text-[10px] text-[var(--text-primary)] opacity-70">Skip to next 30 trading days:</div>
+          <div class="grid grid-cols-6 gap-1">
             <button
               v-for="d in nextDates"
               :key="d"
-              class="sim-ff-date"
+              class="text-[10px] px-0.5 py-1 border border-[var(--border-color)] bg-[var(--bg-secondary)] text-[var(--text-primary)] cursor-pointer rounded-sm hover:bg-[var(--bg-tertiary)]"
               @click="jumpToDate(d)"
             >{{ formatDateShort(d) }}</button>
           </div>
         </div>
 
-        <div class="sim-footer">
-          <button class="sim-btn-link" @click="replay">Start Over</button>
-          <button class="sim-btn-link" @click="toggleDetails">{{ state.showDetails ? '<< Hide' : 'Details >>' }}</button>
+        <div class="flex justify-between items-center mt-3 pt-2 border-t border-[var(--border-color)]">
+          <button class="text-[10px] px-1.5 py-0.5 border-none bg-transparent text-[var(--text-primary)] cursor-pointer hover:bg-[var(--bg-tertiary)] hover:rounded-sm disabled:opacity-50 disabled:cursor-not-allowed" @click="replay">Start Over</button>
+          <button class="text-[10px] px-1.5 py-0.5 border-none bg-transparent text-[var(--text-primary)] cursor-pointer hover:bg-[var(--bg-tertiary)] hover:rounded-sm disabled:opacity-50 disabled:cursor-not-allowed" @click="toggleDetails">{{ state.showDetails ? '<< Hide' : 'Details >>' }}</button>
         </div>
       </div>
 
-      <div v-if="state.showDetails || state.detailsClosing" class="sim-details" :class="{ 'sim-details-no-anim': state.detailsAnimated, 'sim-details-closing': state.detailsClosing }">
-        <div class="sim-details-top">
-          <div class="sim-timeline-header">P&L History</div>
-          <div class="sim-timeline">
-            <div v-if="state.dailyTotalValues.length > 0" class="sim-timeline-segments">
+      <div v-if="state.showDetails || state.detailsClosing" class="sim-details flex flex-col border-l border-[var(--border-color)] shrink-0 w-0 overflow-hidden" :class="{ 'sim-details-no-anim': state.detailsAnimated, 'sim-details-closing': state.detailsClosing }">
+        <div class="shrink-0 border-b border-[var(--border-color)] h-[150px] bg-[var(--bg-secondary)] w-[280px] min-w-[280px] flex flex-col p-2.5">
+          <div class="font-bold text-[11px] mb-1 shrink-0">P&L History</div>
+          <div class="flex-1 overflow-x-auto flex items-end pt-2.5">
+            <div v-if="state.dailyTotalValues.length > 0" class="flex items-end gap-0.5 h-full">
               <div
                 v-for="(seg, i) in timelineSegments"
                 :key="i"
-                class="sim-timeline-segment"
-                :class="'sim-timeline-' + seg.color"
+                class="sim-timeline-segment w-2 h-20 relative shrink-0 cursor-pointer transition-[height] duration-100"
+                :class="{'bg-[#00c853]': seg.color === 'up', 'bg-[#ff1744]': seg.color === 'down', 'bg-[#666]': seg.color === 'neutral'}"
                 @mouseenter="showTimelineInfo(seg)"
                 @mouseleave="hideTimelineInfo"
               >
-                <span v-if="seg.isToday" class="sim-timeline-arrow">v</span>
+                <span v-if="seg.isToday" class="absolute bottom-full left-1/2 -translate-x-1/2 text-[10px] text-[var(--text-primary)]">v</span>
               </div>
             </div>
-            <div v-else class="sim-timeline-empty">Start trading to see history</div>
+            <div v-else class="text-[var(--text-primary)] opacity-60 text-[11px] flex items-center justify-center w-full h-full">Start trading to see history</div>
           </div>
-          <div class="sim-timeline-info">
-            <span class="sim-timeline-info-date">{{ timelineInfo.date }}</span>
-            <span class="sim-timeline-info-ticker">{{ timelineInfo.ticker }}</span>
-            <span class="sim-timeline-info-pnl" :class="timelineInfo.pnlClass">{{ timelineInfo.pnl }}</span>
+          <div class="h-5 text-[10px] pt-1 whitespace-nowrap shrink-0 flex justify-between items-center">
+            <span class="text-[var(--text-primary)] flex-1 text-left">{{ timelineInfo.date }}</span>
+            <span class="text-[var(--text-primary)] font-bold flex-1 text-center">{{ timelineInfo.ticker }}</span>
+            <span class="flex-1 text-right" :class="{'text-[#00c853]': timelineInfo.pnlClass === 'up', 'text-[#ff1744]': timelineInfo.pnlClass === 'down'}">{{ timelineInfo.pnl }}</span>
           </div>
         </div>
-        <div class="sim-details-bottom">
-          <div class="sim-ledger-header-row">
-            <span class="sim-ledger-header">Position History</span>
+        <div class="flex-1 min-h-0 p-2 flex flex-col bg-[var(--bg-secondary)] w-[280px] min-w-[280px]">
+          <div class="flex justify-between items-center mb-1">
+            <span class="font-bold text-[11px]">Position History</span>
           </div>
-          <div class="sim-ledger-scroll">
-            <div class="sim-ledger">
-              <div v-if="state.trades.length === 0" class="sim-ledger-empty">No trades yet</div>
-              <details v-for="(trade, idx) in reversedTrades" :key="idx" class="sim-trade-row">
-                <summary class="sim-trade-header">
-                  <span class="sim-trade-date">{{ formatLedgerDate(trade.openDate) }}{{ trade.closeDate ? ' to ' + formatLedgerDate(trade.closeDate) : '' }}</span>
-                  <span class="sim-trade-ticker">{{ trade.ticker }}</span>
-                  <span class="sim-trade-status" :class="{ 'sim-trade-open': !trade.closeDate }">{{ trade.closeDate ? 'Closed' : 'Open' }}</span>
+          <div class="flex-1 min-h-0 overflow-y-auto">
+            <div>
+              <div v-if="state.trades.length === 0" class="text-[var(--text-primary)] opacity-60 text-[11px] text-center p-5">No trades yet</div>
+              <details v-for="(trade, idx) in reversedTrades" :key="idx" class="sim-trade-row border-b border-[var(--border-color)] last:border-b-0">
+                <summary class="sim-trade-header flex items-center gap-2 px-1 py-1.5 cursor-pointer text-[10px] list-none text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)]">
+                  <span class="text-[var(--text-primary)] opacity-70">{{ formatLedgerDate(trade.openDate) }}{{ trade.closeDate ? ' to ' + formatLedgerDate(trade.closeDate) : '' }}</span>
+                  <span class="font-bold text-[var(--text-primary)]">{{ trade.ticker }}</span>
+                  <span class="ml-auto text-[9px] text-[var(--text-primary)] opacity-70" :class="{ 'text-[#00c853] !opacity-100': !trade.closeDate }">{{ trade.closeDate ? 'Closed' : 'Open' }}</span>
                 </summary>
-                <div class="sim-trade-details">
-                  <div class="sim-trade-detail-row">
-                    <span>Shares:</span>
+                <div class="px-2 pb-2 pl-[22px] text-[10px] text-[var(--text-primary)]">
+                  <div class="flex justify-between py-0.5">
+                    <span class="text-[var(--text-primary)] opacity-70">Shares:</span>
                     <span>{{ trade.shares.toFixed(1) }}</span>
                   </div>
-                  <div class="sim-trade-detail-row">
-                    <span>Open Price:</span>
+                  <div class="flex justify-between py-0.5">
+                    <span class="text-[var(--text-primary)] opacity-70">Open Price:</span>
                     <span>{{ formatMoney(trade.openPrice) }}</span>
                   </div>
-                  <div class="sim-trade-detail-row">
-                    <span>{{ trade.closeDate ? 'Close Price:' : 'Current Price:' }}</span>
+                  <div class="flex justify-between py-0.5">
+                    <span class="text-[var(--text-primary)] opacity-70">{{ trade.closeDate ? 'Close Price:' : 'Current Price:' }}</span>
                     <span>{{ trade.closeDate ? formatMoney(trade.closePrice) : (getCurrentPrice(trade) ? formatMoney(getCurrentPrice(trade)) : '-') }}</span>
                   </div>
-                  <div class="sim-trade-detail-row sim-trade-pnl">
-                    <span>P&L:</span>
+                  <div class="flex justify-between py-0.5 border-t border-[var(--border-color)] mt-1 pt-1 font-bold">
+                    <span class="text-[var(--text-primary)] opacity-70">P&L:</span>
                     <span :class="getPnlClass(trade)">{{ getPnlText(trade) }}</span>
                   </div>
                 </div>
@@ -767,8 +287,8 @@ export const AppSimulator = {
     });
 
     const deltaClass = Vue.computed(() => {
-      if (deltaPercent.value === null) return 'sim-delta-none';
-      return deltaPercent.value >= 0 ? 'sim-delta-up' : 'sim-delta-down';
+      if (deltaPercent.value === null) return 'text-transparent';
+      return deltaPercent.value >= 0 ? 'text-[#00c853]' : 'text-[#ff1744]';
     });
 
     const deltaText = Vue.computed(() => {
@@ -1020,12 +540,12 @@ export const AppSimulator = {
 
     const getPnlClass = (trade) => {
       if (trade.closeDate) {
-        return trade.pnl >= 0 ? 'sim-delta-up' : 'sim-delta-down';
+        return trade.pnl >= 0 ? 'text-[#00c853]' : 'text-[#ff1744]';
       }
       const currentPrice = getCurrentPrice(trade);
       if (currentPrice !== null) {
         const unrealizedPnl = (currentPrice * trade.shares) - trade.openValue;
-        return unrealizedPnl >= 0 ? 'sim-delta-up' : 'sim-delta-down';
+        return unrealizedPnl >= 0 ? 'text-[#00c853]' : 'text-[#ff1744]';
       }
       return '';
     };

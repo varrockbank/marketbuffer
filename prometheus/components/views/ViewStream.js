@@ -3,202 +3,6 @@ import { KitViewLayout } from '../kit/KitViewLayout.js';
 import { KitSidebarFooter } from '../kit/KitSidebarFooter.js';
 import { KitButton } from '../kit/KitButton.js';
 import { KitIcon } from '../kit/KitIcon.js';
-import { useStyles } from '../../lib/useStyles.js';
-
-const styles = `
-.view-view-stream-sidebar-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0;
-}
-
-.view-view-stream-sidebar-header {
-  padding: 8px 12px;
-  font-weight: bold;
-  font-size: 11px;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.view-view-stream-sidebar-header:first-child {
-  padding-top: 14px;
-}
-
-.view-view-stream-item {
-  padding: 8px 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border-left: 3px solid transparent;
-}
-
-.view-view-stream-item:hover {
-  background: var(--bg-tertiary);
-}
-
-.view-view-stream-item.active {
-  background: var(--bg-tertiary);
-  border-left-color: var(--accent);
-}
-
-.view-view-stream-item-icon {
-  color: var(--text-secondary);
-}
-
-.view-view-stream-item-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex: 1;
-  color: var(--text-primary);
-}
-
-.view-view-stream-item-badge {
-  font-size: 9px;
-  padding: 2px 6px;
-  background: var(--text-primary);
-  color: var(--bg-primary);
-  border-radius: 8px;
-  font-weight: bold;
-}
-
-.view-view-stream-item-badge.alert {
-  background: #e74c3c;
-  color: white;
-}
-
-.view-view-stream-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.view-view-stream-header {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-shrink: 0;
-}
-
-.view-view-stream-header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.view-view-stream-header-title {
-  font-weight: bold;
-  font-size: 16px;
-  color: var(--text-primary);
-}
-
-.view-view-stream-header-meta {
-  font-size: 11px;
-  color: var(--text-secondary);
-}
-
-.view-view-stream-header-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.view-view-stream-header-btn {
-  padding: 6px 12px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  font-family: inherit;
-  font-size: 11px;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-.view-view-stream-header-btn:hover {
-  background: var(--bg-tertiary);
-}
-
-.view-view-stream-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0;
-}
-
-.view-view-stream-entry {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border-color);
-  cursor: pointer;
-}
-
-.view-view-stream-entry:hover {
-  background: var(--bg-tertiary);
-}
-
-.view-view-stream-entry.alert {
-  border-left: 3px solid #e74c3c;
-}
-
-.view-view-stream-entry-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 6px;
-}
-
-.view-view-stream-entry-source {
-  font-size: 10px;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.view-view-stream-entry.alert .view-view-stream-entry-source {
-  color: #e74c3c;
-}
-
-.view-view-stream-entry-time {
-  font-size: 10px;
-  color: var(--text-secondary);
-}
-
-.view-view-stream-entry-title {
-  font-weight: bold;
-  margin-bottom: 6px;
-  line-height: 1.3;
-  color: var(--text-primary);
-}
-
-.view-view-stream-entry-summary {
-  font-size: 11px;
-  color: var(--text-secondary);
-  line-height: 1.4;
-}
-
-.view-view-stream-entry-tags {
-  display: flex;
-  gap: 6px;
-  margin-top: 8px;
-}
-
-.view-view-stream-entry-tag {
-  font-size: 9px;
-  padding: 2px 6px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  color: var(--text-secondary);
-}
-
-.view-view-stream-entry-tag.ticker {
-  color: var(--text-primary);
-  font-weight: bold;
-}
-`;
-
 
 const feeds = {
   news: [
@@ -240,57 +44,57 @@ export const ViewStream = {
   template: `
     <KitViewLayout :collapsed="store.subSidenavCollapsed">
       <template #menu>
-        <div class="view-view-stream-sidebar-content">
-          <div class="view-view-stream-sidebar-header">News</div>
+        <div class="flex-1 overflow-y-auto">
+          <div class="px-3 py-2 pt-3.5 font-bold text-[11px] text-[var(--text-secondary)] uppercase tracking-wide">News</div>
           <div
             v-for="item in feeds.news"
             :key="item.id"
-            class="view-view-stream-item"
-            :class="{ active: selectedFeed === item.id }"
+            class="flex items-center gap-2 px-4 py-2 cursor-pointer border-l-[3px] border-transparent transition-colors hover:bg-[var(--bg-tertiary)]"
+            :class="{ 'bg-[var(--bg-tertiary)] !border-l-[var(--accent)]': selectedFeed === item.id }"
             @click="selectFeed(item)"
           >
-            <span class="view-view-stream-item-icon"><KitIcon :icon="item.icon" :size="14" /></span>
-            <span class="view-view-stream-item-name">{{ item.name }}</span>
-            <span v-if="item.badge" class="view-view-stream-item-badge">{{ item.badge }}</span>
+            <span class="text-[var(--text-secondary)]"><KitIcon :icon="item.icon" :size="14" /></span>
+            <span class="truncate flex-1 text-[var(--text-primary)]">{{ item.name }}</span>
+            <span v-if="item.badge" class="text-[9px] px-1.5 py-0.5 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-lg font-bold">{{ item.badge }}</span>
           </div>
 
-          <div class="view-view-stream-sidebar-header">RSS Feeds</div>
+          <div class="px-3 py-2 font-bold text-[11px] text-[var(--text-secondary)] uppercase tracking-wide">RSS Feeds</div>
           <div
             v-for="item in feeds.rss"
             :key="item.id"
-            class="view-view-stream-item"
-            :class="{ active: selectedFeed === item.id }"
+            class="flex items-center gap-2 px-4 py-2 cursor-pointer border-l-[3px] border-transparent transition-colors hover:bg-[var(--bg-tertiary)]"
+            :class="{ 'bg-[var(--bg-tertiary)] !border-l-[var(--accent)]': selectedFeed === item.id }"
             @click="selectFeed(item)"
           >
-            <span class="view-view-stream-item-icon"><KitIcon :icon="item.icon" :size="14" /></span>
-            <span class="view-view-stream-item-name">{{ item.name }}</span>
-            <span v-if="item.badge" class="view-view-stream-item-badge">{{ item.badge }}</span>
+            <span class="text-[var(--text-secondary)]"><KitIcon :icon="item.icon" :size="14" /></span>
+            <span class="truncate flex-1 text-[var(--text-primary)]">{{ item.name }}</span>
+            <span v-if="item.badge" class="text-[9px] px-1.5 py-0.5 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-lg font-bold">{{ item.badge }}</span>
           </div>
 
-          <div class="view-view-stream-sidebar-header">Alerts</div>
+          <div class="px-3 py-2 font-bold text-[11px] text-[var(--text-secondary)] uppercase tracking-wide">Alerts</div>
           <div
             v-for="item in feeds.alerts"
             :key="item.id"
-            class="view-view-stream-item"
-            :class="{ active: selectedFeed === item.id }"
+            class="flex items-center gap-2 px-4 py-2 cursor-pointer border-l-[3px] border-transparent transition-colors hover:bg-[var(--bg-tertiary)]"
+            :class="{ 'bg-[var(--bg-tertiary)] !border-l-[var(--accent)]': selectedFeed === item.id }"
             @click="selectFeed(item)"
           >
-            <span class="view-view-stream-item-icon"><KitIcon :icon="item.icon" :size="14" /></span>
-            <span class="view-view-stream-item-name">{{ item.name }}</span>
-            <span v-if="item.badge" class="view-view-stream-item-badge" :class="{ alert: item.alertBadge }">{{ item.badge }}</span>
+            <span class="text-[var(--text-secondary)]"><KitIcon :icon="item.icon" :size="14" /></span>
+            <span class="truncate flex-1 text-[var(--text-primary)]">{{ item.name }}</span>
+            <span v-if="item.badge" class="text-[9px] px-1.5 py-0.5 rounded-lg font-bold" :class="item.alertBadge ? 'bg-[#e74c3c] text-white' : 'bg-[var(--text-primary)] text-[var(--bg-primary)]'">{{ item.badge }}</span>
           </div>
 
-          <div class="view-view-stream-sidebar-header">Scanners</div>
+          <div class="px-3 py-2 font-bold text-[11px] text-[var(--text-secondary)] uppercase tracking-wide">Scanners</div>
           <div
             v-for="item in feeds.scanners"
             :key="item.id"
-            class="view-view-stream-item"
-            :class="{ active: selectedFeed === item.id }"
+            class="flex items-center gap-2 px-4 py-2 cursor-pointer border-l-[3px] border-transparent transition-colors hover:bg-[var(--bg-tertiary)]"
+            :class="{ 'bg-[var(--bg-tertiary)] !border-l-[var(--accent)]': selectedFeed === item.id }"
             @click="selectFeed(item)"
           >
-            <span class="view-view-stream-item-icon"><KitIcon :icon="item.icon" :size="14" /></span>
-            <span class="view-view-stream-item-name">{{ item.name }}</span>
-            <span v-if="item.badge" class="view-view-stream-item-badge">{{ item.badge }}</span>
+            <span class="text-[var(--text-secondary)]"><KitIcon :icon="item.icon" :size="14" /></span>
+            <span class="truncate flex-1 text-[var(--text-primary)]">{{ item.name }}</span>
+            <span v-if="item.badge" class="text-[9px] px-1.5 py-0.5 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-lg font-bold">{{ item.badge }}</span>
           </div>
         </div>
         <KitSidebarFooter padded>
@@ -299,36 +103,36 @@ export const ViewStream = {
         </KitSidebarFooter>
       </template>
 
-      <div class="view-view-stream-main">
-        <div class="view-view-stream-header">
-          <div class="view-view-stream-header-left">
-            <span class="view-view-stream-header-title">{{ selectedName }}</span>
-            <span class="view-view-stream-header-meta">{{ selectedBadge }} items • Updated 1 min ago</span>
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <div class="px-5 py-4 border-b border-[var(--border-color)] flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-3">
+            <span class="font-bold text-base text-[var(--text-primary)]">{{ selectedName }}</span>
+            <span class="text-[11px] text-[var(--text-secondary)]">{{ selectedBadge }} items • Updated 1 min ago</span>
           </div>
-          <div class="view-view-stream-header-actions">
-            <button class="view-view-stream-header-btn">Mark All Read</button>
-            <button class="view-view-stream-header-btn">Refresh</button>
+          <div class="flex gap-2">
+            <button class="px-3 py-1.5 bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[var(--text-primary)] text-[11px] cursor-pointer rounded hover:bg-[var(--bg-tertiary)]">Mark All Read</button>
+            <button class="px-3 py-1.5 bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[var(--text-primary)] text-[11px] cursor-pointer rounded hover:bg-[var(--bg-tertiary)]">Refresh</button>
           </div>
         </div>
-        <div class="view-view-stream-content">
+        <div class="flex-1 overflow-y-auto">
           <div
             v-for="(entry, idx) in entries"
             :key="idx"
-            class="view-view-stream-entry"
-            :class="{ alert: entry.isAlert }"
+            class="px-5 py-4 border-b border-[var(--border-color)] cursor-pointer transition-colors hover:bg-[var(--bg-tertiary)]"
+            :class="{ 'border-l-[3px] border-l-[#e74c3c]': entry.isAlert }"
           >
-            <div class="view-view-stream-entry-header">
-              <span class="view-view-stream-entry-source">{{ entry.source }}</span>
-              <span class="view-view-stream-entry-time">{{ entry.time }}</span>
+            <div class="flex items-start justify-between mb-1.5">
+              <span class="text-[10px] uppercase tracking-wide" :class="entry.isAlert ? 'text-[#e74c3c]' : 'text-[var(--text-secondary)]'">{{ entry.source }}</span>
+              <span class="text-[10px] text-[var(--text-secondary)]">{{ entry.time }}</span>
             </div>
-            <div class="view-view-stream-entry-title">{{ entry.title }}</div>
-            <div class="view-view-stream-entry-summary">{{ entry.summary }}</div>
-            <div class="view-view-stream-entry-tags">
+            <div class="font-bold mb-1.5 leading-tight text-[var(--text-primary)]">{{ entry.title }}</div>
+            <div class="text-[11px] text-[var(--text-secondary)] leading-[1.4]">{{ entry.summary }}</div>
+            <div class="flex gap-1.5 mt-2">
               <span
                 v-for="tag in entry.tags"
                 :key="tag"
-                class="view-view-stream-entry-tag"
-                :class="{ ticker: tag === entry.tickerTag }"
+                class="text-[9px] px-1.5 py-0.5 bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[var(--text-secondary)]"
+                :class="{ 'text-[var(--text-primary)] font-bold': tag === entry.tickerTag }"
               >{{ tag }}</span>
             </div>
           </div>
@@ -337,8 +141,6 @@ export const ViewStream = {
     </KitViewLayout>
   `,
   setup() {
-    useStyles('view-stream-styles', styles);
-
     const selectedFeed = Vue.ref('all-news');
     const selectedName = Vue.ref('All News');
     const selectedBadge = Vue.ref('24');

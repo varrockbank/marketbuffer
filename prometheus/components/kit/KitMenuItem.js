@@ -28,12 +28,11 @@ export const KitMenuItem = {
   template: `
     <KitButton
       :icon="effectiveIcon"
+      :iconPlaceholder="!effectiveIcon && selectable"
       :to="to"
       :variant="effectiveVariant"
-      :active="selected"
       @click="$emit('click', $event)"
     >
-      <span v-if="!effectiveIcon && selectable" style="width: 16px; height: 16px; flex-shrink: 0;"></span>
       <slot></slot>
     </KitButton>
   `,

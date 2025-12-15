@@ -2,152 +2,6 @@ import { store } from '../../store.js';
 import { KitViewLayout } from '../kit/KitViewLayout.js';
 import { KitSidebarFooter } from '../kit/KitSidebarFooter.js';
 import { KitButton } from '../kit/KitButton.js';
-import { useStyles } from '../../lib/useStyles.js';
-
-const styles = `
-.view-view-yap-sidebar-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0;
-}
-
-.view-view-yap-sidebar-header {
-  padding: 8px 12px;
-  font-weight: bold;
-  font-size: 11px;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.view-view-yap-sidebar-header:first-child {
-  padding-top: 14px;
-}
-
-.view-view-yap-channel {
-  padding: 6px 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--text-primary);
-}
-
-.view-view-yap-channel:hover {
-  background: var(--bg-tertiary);
-}
-
-.view-view-yap-channel.active {
-  background: var(--bg-tertiary);
-}
-
-.view-view-yap-channel-hash {
-  color: var(--text-secondary);
-  font-weight: bold;
-}
-
-.view-view-yap-channel-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.view-view-yap-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.view-view-yap-header {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.view-view-yap-header-hash {
-  color: var(--text-secondary);
-  font-size: 16px;
-  font-weight: bold;
-}
-
-.view-view-yap-header-name {
-  font-weight: bold;
-  font-size: 14px;
-  color: var(--text-primary);
-}
-
-.view-view-yap-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.view-view-yap-message {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-}
-
-.view-view-yap-message-time {
-  color: var(--text-secondary);
-  font-size: 10px;
-  flex-shrink: 0;
-  width: 50px;
-  padding-top: 2px;
-}
-
-.view-view-yap-message-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.view-view-yap-message-author {
-  font-weight: bold;
-  margin-bottom: 2px;
-  color: var(--text-primary);
-}
-
-.view-view-yap-message-text {
-  line-height: 1.4;
-  word-wrap: break-word;
-  color: var(--text-primary);
-}
-
-.view-view-yap-input-wrapper {
-  padding: 12px 16px;
-  border-top: 1px solid var(--border-color);
-  flex-shrink: 0;
-}
-
-.view-view-yap-input {
-  width: 100%;
-  padding: 10px 12px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  font-family: inherit;
-  font-size: 12px;
-  outline: none;
-  box-sizing: border-box;
-  border-radius: 4px;
-}
-
-.view-view-yap-input::placeholder {
-  color: var(--text-secondary);
-}
-
-.view-view-yap-input:focus {
-  border-color: var(--accent);
-}
-`;
 
 const channels = {
   aiChats: [
@@ -187,41 +41,41 @@ export const ViewYap = {
   template: `
     <KitViewLayout :collapsed="store.subSidenavCollapsed">
       <template #menu>
-        <div class="view-view-yap-sidebar-content">
-          <div class="view-view-yap-sidebar-header">AI Chats</div>
+        <div class="flex-1 overflow-y-auto">
+          <div class="px-3 py-2 pt-3.5 font-bold text-[11px] text-[var(--text-secondary)] uppercase tracking-wide">AI Chats</div>
           <div
             v-for="channel in channels.aiChats"
             :key="channel.id"
-            class="view-view-yap-channel"
-            :class="{ active: selectedChannel === channel.id }"
+            class="flex items-center gap-1.5 px-4 py-1.5 cursor-pointer text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-tertiary)]"
+            :class="{ 'bg-[var(--bg-tertiary)]': selectedChannel === channel.id }"
             @click="selectChannel(channel)"
           >
-            <span class="view-view-yap-channel-hash">{{ channel.prefix }}</span>
-            <span class="view-view-yap-channel-name">{{ channel.name }}</span>
+            <span class="text-[var(--text-secondary)] font-bold">{{ channel.prefix }}</span>
+            <span class="truncate">{{ channel.name }}</span>
           </div>
 
-          <div class="view-view-yap-sidebar-header">DMs</div>
+          <div class="px-3 py-2 font-bold text-[11px] text-[var(--text-secondary)] uppercase tracking-wide">DMs</div>
           <div
             v-for="channel in channels.dms"
             :key="channel.id"
-            class="view-view-yap-channel"
-            :class="{ active: selectedChannel === channel.id }"
+            class="flex items-center gap-1.5 px-4 py-1.5 cursor-pointer text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-tertiary)]"
+            :class="{ 'bg-[var(--bg-tertiary)]': selectedChannel === channel.id }"
             @click="selectChannel(channel)"
           >
-            <span class="view-view-yap-channel-hash">{{ channel.prefix }}</span>
-            <span class="view-view-yap-channel-name">{{ channel.name }}</span>
+            <span class="text-[var(--text-secondary)] font-bold">{{ channel.prefix }}</span>
+            <span class="truncate">{{ channel.name }}</span>
           </div>
 
-          <div class="view-view-yap-sidebar-header">Channels</div>
+          <div class="px-3 py-2 font-bold text-[11px] text-[var(--text-secondary)] uppercase tracking-wide">Channels</div>
           <div
             v-for="channel in channels.channels"
             :key="channel.id"
-            class="view-view-yap-channel"
-            :class="{ active: selectedChannel === channel.id }"
+            class="flex items-center gap-1.5 px-4 py-1.5 cursor-pointer text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-tertiary)]"
+            :class="{ 'bg-[var(--bg-tertiary)]': selectedChannel === channel.id }"
             @click="selectChannel(channel)"
           >
-            <span class="view-view-yap-channel-hash">{{ channel.prefix }}</span>
-            <span class="view-view-yap-channel-name">{{ channel.name }}</span>
+            <span class="text-[var(--text-secondary)] font-bold">{{ channel.prefix }}</span>
+            <span class="truncate">{{ channel.name }}</span>
           </div>
         </div>
         <KitSidebarFooter padded>
@@ -230,24 +84,24 @@ export const ViewYap = {
         </KitSidebarFooter>
       </template>
 
-      <div class="view-view-yap-main">
-        <div class="view-view-yap-header">
-          <span class="view-view-yap-header-hash">{{ currentPrefix }}</span>
-          <span class="view-view-yap-header-name">{{ currentChannelName }}</span>
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <div class="px-4 py-3 border-b border-[var(--border-color)] flex items-center gap-2 shrink-0">
+          <span class="text-[var(--text-secondary)] text-base font-bold">{{ currentPrefix }}</span>
+          <span class="font-bold text-sm text-[var(--text-primary)]">{{ currentChannelName }}</span>
         </div>
-        <div class="view-view-yap-messages" ref="messagesRef">
-          <div v-for="(msg, idx) in messages" :key="idx" class="view-view-yap-message">
-            <span class="view-view-yap-message-time">{{ msg.time }}</span>
-            <div class="view-view-yap-message-content">
-              <div class="view-view-yap-message-author">{{ msg.author }}</div>
-              <div class="view-view-yap-message-text">{{ msg.text }}</div>
+        <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-3" ref="messagesRef">
+          <div v-for="(msg, idx) in messages" :key="idx" class="flex gap-3 items-start">
+            <span class="text-[var(--text-secondary)] text-[10px] shrink-0 w-[50px] pt-0.5">{{ msg.time }}</span>
+            <div class="flex-1 min-w-0">
+              <div class="font-bold mb-0.5 text-[var(--text-primary)]">{{ msg.author }}</div>
+              <div class="leading-[1.4] break-words text-[var(--text-primary)]">{{ msg.text }}</div>
             </div>
           </div>
         </div>
-        <div class="view-view-yap-input-wrapper">
+        <div class="px-4 py-3 border-t border-[var(--border-color)] shrink-0">
           <input
             type="text"
-            class="view-view-yap-input"
+            class="w-full px-3 py-2.5 bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] text-xs rounded outline-none focus:border-[var(--accent)] placeholder:text-[var(--text-secondary)]"
             :placeholder="'Message ' + currentPrefix + currentChannelName"
             v-model="inputText"
             @keydown.enter="sendMessage"
@@ -257,8 +111,6 @@ export const ViewYap = {
     </KitViewLayout>
   `,
   setup() {
-    useStyles('view-yap-styles', styles);
-
     const selectedChannel = Vue.ref('general');
     const currentPrefix = Vue.ref('#');
     const currentChannelName = Vue.ref('general');

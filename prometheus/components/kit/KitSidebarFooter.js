@@ -1,10 +1,7 @@
 import { useStyles } from '../../lib/useStyles.js';
 
+// Keep CSS for .no-contrast parent selector
 const styles = `
-.kit-sidebar-footer {
-  border-top: 1px solid var(--border-color);
-}
-
 .no-contrast .kit-sidebar-footer {
   border-top: none;
 }
@@ -21,7 +18,7 @@ export const KitSidebarFooter = {
     padded: { type: Boolean, default: false },
   },
   template: `
-    <div class="kit-sidebar-footer mt-auto shrink-0 flex gap-2 overflow-visible" :class="{ 'px-2 py-1': padded }">
+    <div class="kit-sidebar-footer mt-auto shrink-0 flex gap-2 overflow-visible border-t border-[var(--border-color)]" :class="{ 'px-2 py-1': padded }">
       <slot></slot>
     </div>
   `,

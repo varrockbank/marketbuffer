@@ -3,239 +3,6 @@ import { KitViewLayout } from '../kit/KitViewLayout.js';
 import { KitSidebarFooter } from '../kit/KitSidebarFooter.js';
 import { KitButton } from '../kit/KitButton.js';
 import { KitIcon } from '../kit/KitIcon.js';
-import { useStyles } from '../../lib/useStyles.js';
-
-const styles = `
-.view-view-data-sidebar-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0;
-}
-
-.view-view-data-sidebar-header {
-  padding: 8px 12px;
-  font-weight: bold;
-  font-size: 11px;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.view-view-data-sidebar-header:first-child {
-  padding-top: 14px;
-}
-
-.view-view-data-item {
-  padding: 8px 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border-left: 3px solid transparent;
-}
-
-.view-view-data-item:hover {
-  background: var(--bg-tertiary);
-}
-
-.view-view-data-item.active {
-  background: var(--bg-tertiary);
-  border-left-color: var(--accent);
-}
-
-.view-view-data-item-icon {
-  color: var(--text-secondary);
-}
-
-.view-view-data-item-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--text-primary);
-}
-
-.view-view-data-item-rows {
-  font-size: 10px;
-  color: var(--text-secondary);
-  margin-left: auto;
-}
-
-.view-view-data-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.view-view-data-header {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-shrink: 0;
-}
-
-.view-view-data-header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.view-view-data-header-title {
-  font-weight: bold;
-  font-size: 16px;
-  color: var(--text-primary);
-}
-
-.view-view-data-header-meta {
-  font-size: 11px;
-  color: var(--text-secondary);
-}
-
-.view-view-data-content {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-}
-
-.view-view-data-preview {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.view-view-data-preview-header {
-  font-weight: bold;
-  margin-bottom: 12px;
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: var(--text-primary);
-}
-
-.view-view-data-preview-count {
-  font-weight: normal;
-  color: var(--text-secondary);
-  font-size: 11px;
-}
-
-.view-view-data-table-wrapper {
-  overflow-x: auto;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-}
-
-.view-view-data-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 11px;
-}
-
-.view-view-data-table th {
-  background: var(--bg-secondary);
-  padding: 8px 12px;
-  text-align: left;
-  font-weight: bold;
-  border-bottom: 1px solid var(--border-color);
-  white-space: nowrap;
-  color: var(--text-primary);
-}
-
-.view-view-data-table td {
-  padding: 6px 12px;
-  border-bottom: 1px solid var(--border-color);
-  white-space: nowrap;
-  color: var(--text-primary);
-}
-
-.view-view-data-table tr:last-child td {
-  border-bottom: none;
-}
-
-.view-view-data-table tr:hover td {
-  background: var(--bg-tertiary);
-}
-
-.view-view-data-table .null {
-  color: var(--text-secondary);
-  font-style: italic;
-}
-
-.view-view-data-table .number {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-.view-view-data-sql {
-  padding: 16px 20px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.view-view-data-sql-header {
-  font-weight: bold;
-  margin-bottom: 12px;
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: var(--text-primary);
-}
-
-.view-view-data-sql-run {
-  padding: 4px 12px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  font-family: inherit;
-  font-size: 11px;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-.view-view-data-sql-run:hover {
-  background: var(--bg-tertiary);
-}
-
-.view-view-data-sql-editor {
-  flex: 1;
-  min-height: 120px;
-  padding: 12px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
-  font-size: 12px;
-  color: var(--text-primary);
-  resize: none;
-  outline: none;
-}
-
-.view-view-data-sql-editor::placeholder {
-  color: var(--text-secondary);
-}
-
-.view-view-data-sql-results {
-  margin-top: 12px;
-  padding: 12px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
-  font-size: 11px;
-  color: var(--text-secondary);
-  min-height: 60px;
-  white-space: pre-wrap;
-}
-
-.view-view-data-sql-results.has-results {
-  color: var(--text-primary);
-}
-`;
 
 // Mock data sources
 const dataSources = {
@@ -280,31 +47,31 @@ export const ViewData = {
   template: `
     <KitViewLayout :collapsed="store.subSidenavCollapsed">
       <template #menu>
-        <div class="view-view-data-sidebar-content">
-          <div class="view-view-data-sidebar-header">User Data</div>
+        <div class="flex-1 overflow-y-auto">
+          <div class="px-3 py-2 pt-3.5 font-bold text-[11px] text-[var(--text-secondary)] uppercase tracking-wide">User Data</div>
           <div
             v-for="item in dataSources.userData"
             :key="item.id"
-            class="view-view-data-item"
-            :class="{ active: selectedTable === item.id }"
+            class="flex items-center gap-2 px-4 py-2 cursor-pointer border-l-[3px] border-transparent transition-colors hover:bg-[var(--bg-tertiary)]"
+            :class="{ 'bg-[var(--bg-tertiary)] !border-l-[var(--accent)]': selectedTable === item.id }"
             @click="selectTable(item.id)"
           >
-            <span class="view-view-data-item-icon"><KitIcon icon="file" :size="14" /></span>
-            <span class="view-view-data-item-name">{{ item.name }}</span>
-            <span class="view-view-data-item-rows">{{ item.rows }}</span>
+            <span class="text-[var(--text-secondary)]"><KitIcon icon="file" :size="14" /></span>
+            <span class="truncate text-[var(--text-primary)]">{{ item.name }}</span>
+            <span class="text-[10px] text-[var(--text-secondary)] ml-auto">{{ item.rows }}</span>
           </div>
 
-          <div class="view-view-data-sidebar-header">Datamart</div>
+          <div class="px-3 py-2 font-bold text-[11px] text-[var(--text-secondary)] uppercase tracking-wide">Datamart</div>
           <div
             v-for="item in dataSources.datamart"
             :key="item.id"
-            class="view-view-data-item"
-            :class="{ active: selectedTable === item.id }"
+            class="flex items-center gap-2 px-4 py-2 cursor-pointer border-l-[3px] border-transparent transition-colors hover:bg-[var(--bg-tertiary)]"
+            :class="{ 'bg-[var(--bg-tertiary)] !border-l-[var(--accent)]': selectedTable === item.id }"
             @click="selectTable(item.id)"
           >
-            <span class="view-view-data-item-icon"><KitIcon icon="table" :size="14" /></span>
-            <span class="view-view-data-item-name">{{ item.name }}</span>
-            <span class="view-view-data-item-rows">{{ item.rows }}</span>
+            <span class="text-[var(--text-secondary)]"><KitIcon icon="table" :size="14" /></span>
+            <span class="truncate text-[var(--text-primary)]">{{ item.name }}</span>
+            <span class="text-[10px] text-[var(--text-secondary)] ml-auto">{{ item.rows }}</span>
           </div>
         </div>
         <KitSidebarFooter padded>
@@ -313,29 +80,29 @@ export const ViewData = {
         </KitSidebarFooter>
       </template>
 
-      <div class="view-view-data-main">
-        <div class="view-view-data-header">
-          <div class="view-view-data-header-left">
-            <span class="view-view-data-header-title">{{ selectedTableName }}</span>
-            <span class="view-view-data-header-meta">{{ currentData.totalRows.toLocaleString() }} rows • {{ currentData.columns_count }} columns • Updated 2 min ago</span>
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <div class="px-5 py-4 border-b border-[var(--border-color)] flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-3">
+            <span class="font-bold text-base text-[var(--text-primary)]">{{ selectedTableName }}</span>
+            <span class="text-[11px] text-[var(--text-secondary)]">{{ currentData.totalRows.toLocaleString() }} rows • {{ currentData.columns_count }} columns • Updated 2 min ago</span>
           </div>
         </div>
-        <div class="view-view-data-content">
-          <div class="view-view-data-preview">
-            <div class="view-view-data-preview-header">
+        <div class="flex-1 overflow-y-auto flex flex-col">
+          <div class="px-5 py-4 border-b border-[var(--border-color)]">
+            <div class="font-bold mb-3 text-[13px] flex items-center justify-between text-[var(--text-primary)]">
               <span>Preview</span>
-              <span class="view-view-data-preview-count">Showing {{ currentData.rows.length }} of {{ currentData.totalRows.toLocaleString() }} rows</span>
+              <span class="font-normal text-[var(--text-secondary)] text-[11px]">Showing {{ currentData.rows.length }} of {{ currentData.totalRows.toLocaleString() }} rows</span>
             </div>
-            <div class="view-view-data-table-wrapper">
-              <table class="view-view-data-table">
+            <div class="overflow-x-auto border border-[var(--border-color)] rounded">
+              <table class="w-full border-collapse text-[11px]">
                 <thead>
                   <tr>
-                    <th v-for="col in currentData.columns" :key="col">{{ col }}</th>
+                    <th v-for="col in currentData.columns" :key="col" class="bg-[var(--bg-secondary)] px-3 py-2 text-left font-bold border-b border-[var(--border-color)] whitespace-nowrap text-[var(--text-primary)]">{{ col }}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(row, idx) in currentData.rows" :key="idx">
-                    <td v-for="(cell, cidx) in row" :key="cidx" :class="{ number: typeof cell === 'number' }">
+                  <tr v-for="(row, idx) in currentData.rows" :key="idx" class="hover:bg-[var(--bg-tertiary)]">
+                    <td v-for="(cell, cidx) in row" :key="cidx" class="px-3 py-1.5 border-b border-[var(--border-color)] whitespace-nowrap text-[var(--text-primary)] last:border-b-0" :class="{ 'text-right tabular-nums': typeof cell === 'number' }">
                       {{ formatCell(cell) }}
                     </td>
                   </tr>
@@ -343,18 +110,18 @@ export const ViewData = {
               </table>
             </div>
           </div>
-          <div class="view-view-data-sql">
-            <div class="view-view-data-sql-header">
+          <div class="px-5 py-4 flex-1 flex flex-col">
+            <div class="font-bold mb-3 text-[13px] flex items-center gap-3 text-[var(--text-primary)]">
               <span>SQL Query</span>
-              <button class="view-view-data-sql-run" @click="runQuery">Run ⌘↵</button>
+              <button class="px-3 py-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[var(--text-primary)] text-[11px] cursor-pointer rounded hover:bg-[var(--bg-tertiary)]" @click="runQuery">Run ⌘↵</button>
             </div>
             <textarea
-              class="view-view-data-sql-editor"
+              class="flex-1 min-h-[120px] p-3 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded font-mono text-xs text-[var(--text-primary)] resize-none outline-none placeholder:text-[var(--text-secondary)]"
               v-model="sqlQuery"
               @keydown="handleKeydown"
               placeholder="SELECT * FROM portfolio WHERE pnl > 1000 ORDER BY pnl DESC"
             ></textarea>
-            <div class="view-view-data-sql-results" :class="{ 'has-results': sqlResults }">
+            <div class="mt-3 p-3 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded font-mono text-[11px] min-h-[60px] whitespace-pre-wrap" :class="sqlResults ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'">
               {{ sqlResults || 'Press Run or ⌘+Enter to execute query' }}
             </div>
           </div>
@@ -363,8 +130,6 @@ export const ViewData = {
     </KitViewLayout>
   `,
   setup() {
-    useStyles('view-data-styles', styles);
-
     const selectedTable = Vue.ref('portfolio');
     const sqlQuery = Vue.ref('');
     const sqlResults = Vue.ref('');

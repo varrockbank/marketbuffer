@@ -1,31 +1,16 @@
 import { KitIcon } from './KitIcon.js';
 import { useStyles } from '../../lib/useStyles.js';
 
+// Keep CSS for hover rotation animation (cannot be done with Tailwind)
 const styles = `
-.kit-brand {
-  color: var(--text-secondary);
-}
-
-.kit-brand:hover {
-  color: var(--text-primary);
-}
-
-.kit-brand-name {
-  font-family: Georgia, 'Times New Roman', serif;
-}
-
 .kit-brand-icon {
   transition: transform 1s ease-out;
 }
-
 .kit-brand:hover .kit-brand-icon {
   transform: rotate(540deg);
 }
-
-.kit-brand.active .kit-brand-icon {
-  color: var(--accent);
-}
 `;
+
 export const KitBrand = {
   components: { KitIcon },
   props: {
@@ -40,11 +25,11 @@ export const KitBrand = {
       :href="isExternal ? to : undefined"
       :to="isExternal ? undefined : to"
       :target="isExternal ? '_blank' : undefined"
-      class="kit-brand flex items-center gap-2 pl-0.5 cursor-pointer transition-colors duration-200"
-      :class="{ active: isActive }"
+      class="kit-brand flex items-center gap-2 pl-0.5 cursor-pointer transition-colors duration-200 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+      :class="{ 'kit-brand-active': isActive }"
     >
-      <span class="kit-brand-icon flex"><KitIcon :icon="icon" :size="18" /></span>
-      <span class="kit-brand-name font-light">{{ name }}</span>
+      <span class="kit-brand-icon flex" :class="{ 'text-[var(--accent)]': isActive }"><KitIcon :icon="icon" :size="18" /></span>
+      <span class="font-light font-serif">{{ name }}</span>
       <span v-if="subtitle" class="opacity-50 text-[10px]">{{ subtitle }}</span>
     </component>
   `,

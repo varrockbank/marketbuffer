@@ -1,11 +1,7 @@
 import { useStyles } from '../../lib/useStyles.js';
 
+// Keep CSS for .no-contrast parent selector
 const styles = `
-.kit-sidebar {
-  background: var(--bg-secondary);
-  border-right: 1px solid var(--border-color);
-}
-
 .no-contrast .kit-sidebar {
   background: var(--bg-primary);
   border-right-color: transparent;
@@ -28,9 +24,9 @@ export const KitSidebar = {
   },
   template: `
     <div
-      class="kit-sidebar flex flex-col shrink-0 transition-all duration-200"
+      class="kit-sidebar flex flex-col shrink-0 transition-all duration-200 bg-[var(--bg-secondary)] border-r border-[var(--border-color)]"
       :class="{
-        'w-[200px]': mode === 'expanded',
+        'w-44': mode === 'expanded',
         'w-12': mode === 'icon',
         'hidden': mode === 'collapsed',
       }"

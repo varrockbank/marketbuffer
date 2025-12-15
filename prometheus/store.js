@@ -34,6 +34,7 @@ const apps = [
     type: 2,
     description: 'Customize your desktop background with various wallpapers and themes.',
     version: '1.0.0',
+    width: 356,
   },
   // Type 3: Routes not in Applications menu
   { id: 'applications', route: '/applications', label: 'Applications', icon: 'apps', type: 3 },

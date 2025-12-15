@@ -5,30 +5,16 @@ import { KitDrawer } from '../kit/KitDrawer.js';
 import { KitTerminal } from '../kit/KitTerminal.js';
 import { AppSimulator } from '../apps/AppSimulator.js';
 import { AppWallpaper } from '../apps/AppWallpaper.js';
-import { useStyles } from '../../lib/useStyles.js';
-
-const styles = `
-.view-home-wrapper {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.view-home-desktop > .kit-panel {
-  position: absolute;
-  height: 100%;
-}
-`;
 
 export const ViewHome = {
   components: { KitBackground, KitPanel, KitDrawer, KitTerminal, AppSimulator, AppWallpaper },
   template: `
-    <div class="view-home-wrapper">
-      <KitBackground ref="homeView" class="view-home-desktop" :wallpaper="store.wallpaper" :showGrid="store.isDraggingWindow">
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <KitBackground ref="homeView" :wallpaper="store.wallpaper" :showGrid="store.isDraggingWindow">
         <KitPanel
           v-for="type in store.openWindows"
           :key="type"
+          class="absolute"
           :title="getWindowTitle(type)"
           :style="getWindowStyle(type)"
           @close="closeWindow(type)"
@@ -46,7 +32,6 @@ export const ViewHome = {
     </div>
   `,
   setup() {
-    useStyles('view-home', styles);
 
     const homeView = Vue.ref(null);
     const titleBarHeight = 28;
@@ -60,13 +45,19 @@ export const ViewHome = {
       return app?.label || 'Window';
     };
 
+    const getWindowWidth = (type) => {
+      const app = store.apps.find(a => a.id === type);
+      return app?.width;
+    };
+
     const getWindowStyle = (type) => {
       const pos = store.windowPositions[type] || { x: 0, y: 0, z: 1 };
+      const width = getWindowWidth(type);
       return {
         left: pos.x + 'px',
         top: pos.y + 'px',
         zIndex: pos.z,
-        width: store.defaultWindowWidth + 'px',
+        ...(width && { width: width + 'px' }),
       };
     };
 
@@ -88,7 +79,8 @@ export const ViewHome = {
 
     const onDrag = (type, { deltaX, deltaY }) => {
       const maxY = containerHeight - titleBarHeight;
-      const maxX = containerWidth - store.defaultWindowWidth;
+      const width = getWindowWidth(type) || store.defaultWindowWidth;
+      const maxX = containerWidth - width;
       actions.moveWindow(type, initialX + deltaX, initialY + deltaY, maxY, maxX);
     };
 
@@ -99,12 +91,13 @@ export const ViewHome = {
     const constrainWindows = () => {
       if (!homeView.value) return;
 
-      const maxX = homeView.value.offsetWidth - store.defaultWindowWidth;
       const maxY = homeView.value.offsetHeight - titleBarHeight;
 
       for (const type of store.openWindows) {
         const pos = store.windowPositions[type];
         if (pos) {
+          const width = getWindowWidth(type) || store.defaultWindowWidth;
+          const maxX = homeView.value.offsetWidth - width;
           let changed = false;
           let newX = pos.x;
           let newY = pos.y;

@@ -3,193 +3,6 @@ import { KitViewLayout } from '../kit/KitViewLayout.js';
 import { KitSidebarFooter } from '../kit/KitSidebarFooter.js';
 import { KitButton } from '../kit/KitButton.js';
 import { KitIcon } from '../kit/KitIcon.js';
-import { useStyles } from '../../lib/useStyles.js';
-
-const styles = `
-.view-view-publish-sidebar-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0;
-}
-
-.view-view-publish-sidebar-header {
-  padding: 8px 12px;
-  font-weight: bold;
-  font-size: 11px;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.view-view-publish-sidebar-header:first-child {
-  padding-top: 14px;
-}
-
-.view-view-publish-item {
-  padding: 8px 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border-left: 3px solid transparent;
-}
-
-.view-view-publish-item:hover {
-  background: var(--bg-tertiary);
-}
-
-.view-view-publish-item.active {
-  background: var(--bg-tertiary);
-  border-left-color: var(--accent);
-}
-
-.view-view-publish-item-icon {
-  color: var(--text-secondary);
-}
-
-.view-view-publish-item-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex: 1;
-  color: var(--text-primary);
-}
-
-.view-view-publish-item-status {
-  font-size: 9px;
-  padding: 2px 6px;
-  border-radius: 8px;
-  font-weight: bold;
-}
-
-.view-view-publish-item-status.draft {
-  background: var(--bg-tertiary);
-  color: var(--text-secondary);
-}
-
-.view-view-publish-item-status.published {
-  background: #2ecc71;
-  color: #fff;
-}
-
-.view-view-publish-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.view-view-publish-header {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-shrink: 0;
-}
-
-.view-view-publish-header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.view-view-publish-header-title {
-  font-weight: bold;
-  font-size: 16px;
-  color: var(--text-primary);
-}
-
-.view-view-publish-header-meta {
-  font-size: 11px;
-  color: var(--text-secondary);
-}
-
-.view-view-publish-header-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.view-view-publish-header-btn {
-  padding: 6px 12px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  font-family: inherit;
-  font-size: 11px;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-.view-view-publish-header-btn:hover {
-  background: var(--bg-tertiary);
-}
-
-.view-view-publish-header-btn.primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-}
-
-.view-view-publish-header-btn.primary:hover {
-  opacity: 0.9;
-}
-
-.view-view-publish-content {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  justify-content: center;
-  padding: 40px 20px;
-}
-
-.view-view-publish-editor {
-  max-width: 700px;
-  width: 100%;
-}
-
-.view-view-publish-editor-title {
-  font-size: 32px;
-  font-weight: bold;
-  border: none;
-  background: transparent;
-  color: var(--text-primary);
-  width: 100%;
-  outline: none;
-  margin-bottom: 24px;
-  font-family: Georgia, 'Times New Roman', serif;
-}
-
-.view-view-publish-editor-title::placeholder {
-  color: var(--text-secondary);
-}
-
-.view-view-publish-editor-body {
-  font-size: 16px;
-  line-height: 1.8;
-  border: none;
-  background: transparent;
-  color: var(--text-primary);
-  width: 100%;
-  min-height: 400px;
-  outline: none;
-  resize: none;
-  font-family: Georgia, 'Times New Roman', serif;
-}
-
-.view-view-publish-editor-body::placeholder {
-  color: var(--text-secondary);
-}
-
-.view-view-publish-word-count {
-  margin-top: 20px;
-  font-size: 11px;
-  color: var(--text-secondary);
-  text-align: right;
-}
-`;
-
 
 const documents = {
   drafts: [
@@ -228,31 +41,31 @@ export const ViewPublish = {
   template: `
     <KitViewLayout :collapsed="store.subSidenavCollapsed">
       <template #menu>
-        <div class="view-view-publish-sidebar-content">
-          <div class="view-view-publish-sidebar-header">Drafts</div>
+        <div class="flex-1 overflow-y-auto">
+          <div class="px-3 py-2 pt-3.5 font-bold text-[11px] text-[var(--text-secondary)] uppercase tracking-wide">Drafts</div>
           <div
             v-for="doc in documents.drafts"
             :key="doc.id"
-            class="view-view-publish-item"
-            :class="{ active: selectedDoc === doc.id }"
+            class="flex items-center gap-2 px-4 py-2 cursor-pointer border-l-[3px] border-transparent transition-colors hover:bg-[var(--bg-tertiary)]"
+            :class="{ 'bg-[var(--bg-tertiary)] !border-l-[var(--accent)]': selectedDoc === doc.id }"
             @click="selectDoc(doc)"
           >
-            <span class="view-view-publish-item-icon"><KitIcon icon="file" :size="14" /></span>
-            <span class="view-view-publish-item-name">{{ doc.name }}</span>
-            <span class="view-view-publish-item-status draft">Draft</span>
+            <span class="text-[var(--text-secondary)]"><KitIcon icon="file" :size="14" /></span>
+            <span class="truncate flex-1 text-[var(--text-primary)]">{{ doc.name }}</span>
+            <span class="text-[9px] px-1.5 py-0.5 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-lg font-bold">Draft</span>
           </div>
 
-          <div class="view-view-publish-sidebar-header">Published</div>
+          <div class="px-3 py-2 font-bold text-[11px] text-[var(--text-secondary)] uppercase tracking-wide">Published</div>
           <div
             v-for="doc in documents.published"
             :key="doc.id"
-            class="view-view-publish-item"
-            :class="{ active: selectedDoc === doc.id }"
+            class="flex items-center gap-2 px-4 py-2 cursor-pointer border-l-[3px] border-transparent transition-colors hover:bg-[var(--bg-tertiary)]"
+            :class="{ 'bg-[var(--bg-tertiary)] !border-l-[var(--accent)]': selectedDoc === doc.id }"
             @click="selectDoc(doc)"
           >
-            <span class="view-view-publish-item-icon"><KitIcon icon="file" :size="14" /></span>
-            <span class="view-view-publish-item-name">{{ doc.name }}</span>
-            <span class="view-view-publish-item-status published">Live</span>
+            <span class="text-[var(--text-secondary)]"><KitIcon icon="file" :size="14" /></span>
+            <span class="truncate flex-1 text-[var(--text-primary)]">{{ doc.name }}</span>
+            <span class="text-[9px] px-1.5 py-0.5 bg-[#2ecc71] text-white rounded-lg font-bold">Live</span>
           </div>
         </div>
         <KitSidebarFooter padded>
@@ -261,40 +74,38 @@ export const ViewPublish = {
         </KitSidebarFooter>
       </template>
 
-      <div class="view-view-publish-main">
-        <div class="view-view-publish-header">
-          <div class="view-view-publish-header-left">
-            <span class="view-view-publish-header-title">{{ selectedName }}</span>
-            <span class="view-view-publish-header-meta">{{ selectedStatus === 'published' ? 'Published' : 'Draft' }} • Last edited 5 min ago</span>
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <div class="px-5 py-4 border-b border-[var(--border-color)] flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-3">
+            <span class="font-bold text-base text-[var(--text-primary)]">{{ selectedName }}</span>
+            <span class="text-[11px] text-[var(--text-secondary)]">{{ selectedStatus === 'published' ? 'Published' : 'Draft' }} • Last edited 5 min ago</span>
           </div>
-          <div class="view-view-publish-header-actions">
-            <button class="view-view-publish-header-btn">Preview</button>
-            <button class="view-view-publish-header-btn primary">Publish</button>
+          <div class="flex gap-2">
+            <button class="px-3 py-1.5 bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[var(--text-primary)] text-[11px] cursor-pointer rounded hover:bg-[var(--bg-tertiary)]">Preview</button>
+            <button class="px-3 py-1.5 bg-[var(--accent)] border border-[var(--accent)] text-white text-[11px] cursor-pointer rounded hover:opacity-90">Publish</button>
           </div>
         </div>
-        <div class="view-view-publish-content">
-          <div class="view-view-publish-editor">
+        <div class="flex-1 overflow-y-auto flex justify-center px-5 py-10">
+          <div class="max-w-[700px] w-full">
             <input
               type="text"
-              class="view-view-publish-editor-title"
+              class="text-[32px] font-bold border-none bg-transparent text-[var(--text-primary)] w-full outline-none mb-6 font-serif placeholder:text-[var(--text-secondary)]"
               v-model="title"
               placeholder="Title..."
             >
             <textarea
-              class="view-view-publish-editor-body"
+              class="text-base leading-[1.8] border-none bg-transparent text-[var(--text-primary)] w-full min-h-[400px] outline-none resize-none font-serif placeholder:text-[var(--text-secondary)]"
               v-model="body"
               placeholder="Start writing..."
               @input="updateWordCount"
             ></textarea>
-            <div class="view-view-publish-word-count">{{ wordCount }} words</div>
+            <div class="mt-5 text-[11px] text-[var(--text-secondary)] text-right">{{ wordCount }} words</div>
           </div>
         </div>
       </div>
     </KitViewLayout>
   `,
   setup() {
-    useStyles('view-publish-styles', styles);
-
     const selectedDoc = Vue.ref('market-outlook');
     const selectedName = Vue.ref('Q4 Market Outlook');
     const selectedStatus = Vue.ref('draft');
