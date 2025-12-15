@@ -1,6 +1,4 @@
-import { store, actions } from '../../store.js';
-import { useStyles } from '../../useStyles.js';
-import { KitDrawer } from './KitDrawer.js';
+import { useStyles } from '../../lib/useStyles.js';
 
 const styles = `
 .kit-terminal {
@@ -12,17 +10,12 @@ const styles = `
 `;
 
 export const KitTerminal = {
-  components: { KitDrawer },
   template: `
-    <KitDrawer title="Terminal" :expanded="store.terminalExpanded" @toggle="actions.toggleTerminal">
-      <div class="kit-terminal">
-        <div>$ ready</div>
-      </div>
-    </KitDrawer>
+    <div class="kit-terminal">
+      <div>$ ready</div>
+    </div>
   `,
   setup() {
     useStyles('kit-terminal', styles);
-
-    return { store, actions };
   },
 };

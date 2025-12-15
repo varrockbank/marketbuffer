@@ -1,4 +1,4 @@
-import { useStyles } from '../../useStyles.js';
+import { useStyles } from '../../lib/useStyles.js';
 
 const styles = `
 .kit-drawer {

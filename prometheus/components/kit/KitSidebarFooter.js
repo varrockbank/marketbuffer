@@ -1,4 +1,4 @@
-import { useStyles } from '../../useStyles.js';
+import { useStyles } from '../../lib/useStyles.js';
 
 const styles = `
 .kit-sidebar-footer {
@@ -8,31 +8,25 @@ const styles = `
   display: flex;
   gap: 0.5em;
   overflow: visible;
+}
+
+.kit-sidebar-footer.kit-sidebar-footer-padded {
   padding: 0.5em;
-}
-
-.kit-sidebar-footer > .dropdown-menu-wrapper {
-  padding: 0;
-  flex: 1;
-}
-
-.kit-sidebar-footer .sidenav-item {
-  margin-bottom: 0;
-}
-
-.kit-sidebar-footer .dropdown-menu {
-  left: 0.5em;
-  right: 0.5em;
 }
 `;
 
 /**
  * KitSidebarFooter - Footer section for KitSidebar.
  * Automatically pushed to bottom via margin-top: auto.
+ * Props:
+ *   padded - Adds padding around content (use for buttons, not for KitMenu)
  */
 export const KitSidebarFooter = {
+  props: {
+    padded: { type: Boolean, default: false },
+  },
   template: `
-    <div class="kit-sidebar-footer">
+    <div class="kit-sidebar-footer" :class="{ 'kit-sidebar-footer-padded': padded }">
       <slot></slot>
     </div>
   `,

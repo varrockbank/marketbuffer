@@ -1,9 +1,9 @@
 import { store } from '../../store.js';
-import { useStyles } from '../../useStyles.js';
+import { useStyles } from '../../lib/useStyles.js';
 
 const styles = `
 /* Wallpaper Window - not full height, auto width */
-.home-view > .window:has(.wallpaper-content) {
+.view-home-desktop > .window:has(.wallpaper-content) {
   height: auto;
   width: auto !important;
 }

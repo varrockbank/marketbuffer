@@ -1,10 +1,10 @@
 import { store, actions, type2Apps } from '../store.js';
 import { KitBar } from './kit/KitBar.js';
-import { KitBarButton } from './kit/KitBarButton.js';
+import { KitButton } from './kit/KitButton.js';
 import { KitBrand } from './kit/KitBrand.js';
 import { KitMenu } from './kit/KitMenu.js';
 import { KitMenuItem } from './kit/KitMenuItem.js';
-import { useStyles } from '../useStyles.js';
+import { useStyles } from '../lib/useStyles.js';
 
 const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 const modKey = isMac ? '⌘' : 'Ctrl';
@@ -15,20 +15,31 @@ const styles = `
   border-bottom: 1px solid var(--border-color);
   padding: 0 2px 0 12px;
 }
+
+.no-contrast .menu-bar {
+  background: var(--bg-primary);
+  border-bottom-color: transparent;
+}
+
+.distraction-free .menu-bar {
+  justify-content: flex-end;
+  background: var(--bg-primary);
+  border-bottom-color: var(--bg-primary);
+}
 `;
 
 export const Topbar = {
-  components: { KitBar, KitBarButton, KitBrand, KitMenu, KitMenuItem },
+  components: { KitBar, KitButton, KitBrand, KitMenu, KitMenuItem },
   template: `
     <KitBar class="menu-bar">
       <template #left>
         <KitBrand v-if="!store.distractionFree" :icon="store.brandIcon" :name="store.brandName" :subtitle="'v' + store.version" />
       </template>
       <template v-if="!store.distractionFree">
-        <KitBarButton icon="home" title="Home" :active="isHome" @click="goHome" />
+        <KitButton icon="home" tooltip="Home" size="sm" :active="isHome" @click="goHome" />
         <KitMenu direction="down" trigger="click">
           <template #trigger>
-            <KitBarButton icon="apps" title="Applications" />
+            <KitButton icon="apps" tooltip="Applications" size="sm" />
           </template>
           <template #menu="{ close }">
             <KitMenuItem
@@ -41,19 +52,19 @@ export const Topbar = {
             >
               <span>{{ app.label }}</span>
             </KitMenuItem>
-            <div class="dropdown-menu-separator"></div>
+            <div class="kit-menu-separator"></div>
             <KitMenuItem icon="ellipsis" @click="goToApps(close)">
               <span>More Apps</span>
             </KitMenuItem>
           </template>
         </KitMenu>
-        <KitBarButton :icon="themeIcon" :title="themeTitle + ' (' + modKey + '⇧T)'" @click="actions.toggleTheme" />
-        <KitBarButton icon="contrast" :title="contrastTitle + ' (' + modKey + '⇧C)'" @click="actions.toggleContrast" />
-        <KitBarButton icon="sidenav" :title="'Toggle Sidenav (' + modKey + 'B)'" @click="actions.toggleSidenav" />
-        <KitBarButton icon="subSidenav" :title="'Toggle Panel (' + modKey + 'J)'" @click="actions.toggleSubSidenav" />
-        <KitBarButton icon="terminal" :title="terminalTitle" @click="actions.toggleTerminal" />
+        <KitButton :icon="themeIcon" :tooltip="themeTitle + ' (' + modKey + '⇧T)'" size="sm" @click="actions.toggleTheme" />
+        <KitButton icon="contrast" :tooltip="contrastTitle + ' (' + modKey + '⇧C)'" size="sm" @click="actions.toggleContrast" />
+        <KitButton icon="sidenav" :tooltip="'Toggle Sidenav (' + modKey + 'B)'" size="sm" @click="actions.toggleSidenav" />
+        <KitButton icon="subSidenav" :tooltip="'Toggle Panel (' + modKey + 'J)'" size="sm" @click="actions.toggleSubSidenav" />
+        <KitButton icon="terminal" :tooltip="terminalTitle" size="sm" @click="actions.toggleTerminal" />
       </template>
-      <KitBarButton icon="focus" :title="focusTitle" @click="actions.toggleDistractionFree" class="focus-btn" />
+      <KitButton icon="focus" :tooltip="focusTitle" size="sm" @click="actions.toggleDistractionFree" class="focus-btn" />
     </KitBar>
   `,
   setup() {

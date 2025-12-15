@@ -2,7 +2,8 @@ import { store } from '../../store.js';
 import { KitViewLayout } from '../kit/KitViewLayout.js';
 import { KitSidebarFooter } from '../kit/KitSidebarFooter.js';
 import { KitButton } from '../kit/KitButton.js';
-import { useStyles } from '../../useStyles.js';
+import { KitIcon } from '../kit/KitIcon.js';
+import { useStyles } from '../../lib/useStyles.js';
 
 const styles = `
 .view-view-publish-sidebar-content {
@@ -44,7 +45,6 @@ const styles = `
 
 .view-view-publish-item-icon {
   color: var(--text-secondary);
-  flex-shrink: 0;
 }
 
 .view-view-publish-item-name {
@@ -190,11 +190,6 @@ const styles = `
 }
 `;
 
-const icons = {
-  file: '<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/>',
-  trash: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
-  plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
-};
 
 const documents = {
   drafts: [
@@ -229,7 +224,7 @@ Portfolio Positioning:
 - Cash reserves for opportunistic deployment`;
 
 export const ViewPublish = {
-  components: { KitViewLayout, KitSidebarFooter, KitButton },
+  components: { KitViewLayout, KitSidebarFooter, KitButton, KitIcon },
   template: `
     <KitViewLayout :collapsed="store.subSidenavCollapsed">
       <template #menu>
@@ -242,7 +237,7 @@ export const ViewPublish = {
             :class="{ active: selectedDoc === doc.id }"
             @click="selectDoc(doc)"
           >
-            <svg class="view-view-publish-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="icons.file"></svg>
+            <span class="view-view-publish-item-icon"><KitIcon icon="file" :size="14" /></span>
             <span class="view-view-publish-item-name">{{ doc.name }}</span>
             <span class="view-view-publish-item-status draft">Draft</span>
           </div>
@@ -255,18 +250,14 @@ export const ViewPublish = {
             :class="{ active: selectedDoc === doc.id }"
             @click="selectDoc(doc)"
           >
-            <svg class="view-view-publish-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="icons.file"></svg>
+            <span class="view-view-publish-item-icon"><KitIcon icon="file" :size="14" /></span>
             <span class="view-view-publish-item-name">{{ doc.name }}</span>
             <span class="view-view-publish-item-status published">Live</span>
           </div>
         </div>
-        <KitSidebarFooter>
-          <KitButton>
-            <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="icons.trash"></svg>
-          </KitButton>
-          <KitButton>
-            <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="icons.plus"></svg>
-          </KitButton>
+        <KitSidebarFooter padded>
+          <KitButton icon="trash" />
+          <KitButton icon="plus" />
         </KitSidebarFooter>
       </template>
 
@@ -327,7 +318,6 @@ export const ViewPublish = {
     return {
       store,
       documents,
-      icons,
       selectedDoc,
       selectedName,
       selectedStatus,

@@ -15,13 +15,13 @@ export const KitMenuItem = {
     <component
       :is="to ? 'router-link' : 'div'"
       :to="to"
-      class="dropdown-menu-item"
+      class="kit-menu-item"
       :class="[variant !== 'default' ? variant : '', { active: selected }]"
       @click="$emit('click', $event)"
     >
-      <KitIcon v-if="selected" icon="check" :size="16" class="dropdown-menu-icon" />
-      <KitIcon v-else-if="icon" :icon="icon" :size="16" class="dropdown-menu-icon" />
-      <span v-else-if="selectable" class="dropdown-menu-icon" style="width: 16px; height: 16px; flex-shrink: 0;"></span>
+      <KitIcon v-if="selected" icon="check" :size="16" />
+      <KitIcon v-else-if="icon" :icon="icon" :size="16" />
+      <span v-else-if="selectable" style="width: 16px; height: 16px; flex-shrink: 0;"></span>
       <slot></slot>
     </component>
   `,

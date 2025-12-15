@@ -1,12 +1,12 @@
 import { KitIcon } from './KitIcon.js';
-import { useStyles } from '../../useStyles.js';
+import { useStyles } from '../../lib/useStyles.js';
 
 const styles = `
-.file-tree-container {
+.kit-tree-container {
   padding: 4px 0;
 }
 
-.file-tree-item {
+.kit-tree-item {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -17,39 +17,35 @@ const styles = `
   margin: 0 4px;
 }
 
-.file-tree-item:hover {
+.kit-tree-item:hover {
   background: var(--bg-tertiary);
   color: var(--text-primary);
 }
 
-.file-tree-item.active {
+.kit-tree-item.active {
   background: var(--accent);
   color: #fff;
 }
 
-.file-tree-chevron {
-  width: 12px;
-  height: 12px;
+.kit-tree-chevron {
   flex-shrink: 0;
   transition: transform 0.15s ease-out;
 }
 
-.file-tree-chevron.open {
+.kit-tree-chevron.open {
   transform: rotate(90deg);
 }
 
-.file-tree-chevron-spacer {
+.kit-tree-spacer {
   width: 12px;
   flex-shrink: 0;
 }
 
-.file-tree-icon {
-  width: 14px;
-  height: 14px;
+.kit-tree-icon {
   flex-shrink: 0;
 }
 
-.file-tree-name {
+.kit-tree-name {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -67,32 +63,26 @@ export const KitFileTree = {
   },
   emits: ['select'],
   template: `
-    <div class="file-tree">
+    <div class="kit-tree">
       <div
         v-for="file in files"
         :key="file.name"
-        class="file-tree-item-wrapper"
+        class="kit-tree-item-wrapper"
       >
         <div
-          class="file-tree-item"
+          class="kit-tree-item"
           :class="{ active: activeFilePath === getFilePath(file) }"
           :style="{ paddingLeft: (depth * 12 + 8) + 'px' }"
           @click="handleClick(file)"
         >
-          <KitIcon
-            v-if="file.type === 'folder'"
-            icon="chevronRight"
-            :size="16"
-            class="file-tree-chevron"
-            :class="{ open: isOpen(file.name) }"
-          />
-          <span v-else class="file-tree-chevron-spacer"></span>
-          <KitIcon
-            :icon="getIcon(file)"
-            :size="16"
-            class="file-tree-icon"
-          />
-          <span class="file-tree-name">{{ file.name }}</span>
+          <span v-if="file.type === 'folder'" class="kit-tree-chevron" :class="{ open: isOpen(file.name) }">
+            <KitIcon icon="chevronRight" :size="12" />
+          </span>
+          <span v-else class="kit-tree-spacer"></span>
+          <span class="kit-tree-icon">
+            <KitIcon :icon="getIcon(file)" :size="14" />
+          </span>
+          <span class="kit-tree-name">{{ file.name }}</span>
         </div>
         <KitFileTree
           v-if="file.type === 'folder' && isOpen(file.name)"

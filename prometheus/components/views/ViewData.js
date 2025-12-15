@@ -2,7 +2,8 @@ import { store } from '../../store.js';
 import { KitViewLayout } from '../kit/KitViewLayout.js';
 import { KitSidebarFooter } from '../kit/KitSidebarFooter.js';
 import { KitButton } from '../kit/KitButton.js';
-import { useStyles } from '../../useStyles.js';
+import { KitIcon } from '../kit/KitIcon.js';
+import { useStyles } from '../../lib/useStyles.js';
 
 const styles = `
 .view-view-data-sidebar-content {
@@ -44,7 +45,6 @@ const styles = `
 
 .view-view-data-item-icon {
   color: var(--text-secondary);
-  flex-shrink: 0;
 }
 
 .view-view-data-item-name {
@@ -274,15 +274,9 @@ const tableData = {
   },
 };
 
-const icons = {
-  file: '<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/>',
-  table: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/>',
-  upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
-  plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
-};
 
 export const ViewData = {
-  components: { KitViewLayout, KitSidebarFooter, KitButton },
+  components: { KitViewLayout, KitSidebarFooter, KitButton, KitIcon },
   template: `
     <KitViewLayout :collapsed="store.subSidenavCollapsed">
       <template #menu>
@@ -295,7 +289,7 @@ export const ViewData = {
             :class="{ active: selectedTable === item.id }"
             @click="selectTable(item.id)"
           >
-            <svg class="view-view-data-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="icons.file"></svg>
+            <span class="view-view-data-item-icon"><KitIcon icon="file" :size="14" /></span>
             <span class="view-view-data-item-name">{{ item.name }}</span>
             <span class="view-view-data-item-rows">{{ item.rows }}</span>
           </div>
@@ -308,18 +302,14 @@ export const ViewData = {
             :class="{ active: selectedTable === item.id }"
             @click="selectTable(item.id)"
           >
-            <svg class="view-view-data-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="icons.table"></svg>
+            <span class="view-view-data-item-icon"><KitIcon icon="table" :size="14" /></span>
             <span class="view-view-data-item-name">{{ item.name }}</span>
             <span class="view-view-data-item-rows">{{ item.rows }}</span>
           </div>
         </div>
-        <KitSidebarFooter>
-          <KitButton>
-            <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="icons.upload"></svg>
-          </KitButton>
-          <KitButton>
-            <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="icons.plus"></svg>
-          </KitButton>
+        <KitSidebarFooter padded>
+          <KitButton icon="upload" />
+          <KitButton icon="plus" />
         </KitSidebarFooter>
       </template>
 
@@ -419,7 +409,6 @@ export const ViewData = {
     return {
       store,
       dataSources,
-      icons,
       selectedTable,
       selectedTableName,
       currentData,

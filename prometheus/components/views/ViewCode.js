@@ -3,36 +3,13 @@ import { KitMenu } from '../kit/KitMenu.js';
 import { KitMenuItem } from '../kit/KitMenuItem.js';
 import { KitIcon } from '../kit/KitIcon.js';
 import { KitFileTree } from '../kit/KitFileTree.js';
+import { KitDrawer } from '../kit/KitDrawer.js';
 import { KitTerminal } from '../kit/KitTerminal.js';
 import { store, actions } from '../../store.js';
-import { useStyles } from '../../useStyles.js';
-import { listProjects, listFiles, loadFile } from '../../projectService.js';
+import { useStyles } from '../../lib/useStyles.js';
+import { listProjects, listFiles, loadFile } from '../../lib/projectService.js';
 
 const styles = `
-.project-selector-trigger {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  cursor: pointer;
-  color: var(--text-primary);
-  width: 100%;
-}
-
-.project-selector-trigger:hover {
-  background: var(--bg-tertiary);
-}
-
-.project-selector-name {
-  font-weight: 500;
-}
-
-.project-selector-chevron {
-  width: 14px;
-  height: 14px;
-  color: var(--text-secondary);
-}
-
 .file-tree-container {
   flex: 1;
   overflow-y: auto;
@@ -100,8 +77,6 @@ const styles = `
 }
 
 .view-view-code-empty-icon {
-  width: 48px;
-  height: 48px;
   opacity: 0.5;
 }
 
@@ -125,22 +100,18 @@ const styles = `
 }
 `;
 
-const icons = {
-  folder: '<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>',
-  fileX: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m14.5 12.5-5 5"/><path d="m9.5 12.5 5 5"/>',
-};
 
 export const ViewCode = {
-  components: { KitViewLayout, KitMenu, KitMenuItem, KitIcon, KitFileTree, KitTerminal },
+  components: { KitViewLayout, KitMenu, KitMenuItem, KitIcon, KitFileTree, KitDrawer, KitTerminal },
   template: `
     <div class="view-view-code-wrapper">
     <KitViewLayout :collapsed="store.subSidenavCollapsed">
       <template #header>
         <KitMenu direction="down">
           <template #trigger>
-            <div class="project-selector-trigger">
-              <span class="project-selector-name">{{ store.currentProject }}</span>
-              <KitIcon icon="chevronDown" class="project-selector-chevron" />
+            <div class="kit-menu-selector">
+              <span class="kit-menu-selector-label">{{ store.currentProject }}</span>
+              <span class="kit-menu-selector-chevron"><KitIcon icon="chevronDown" :size="14" /></span>
             </div>
           </template>
           <template #menu="{ close }">
@@ -154,7 +125,7 @@ export const ViewCode = {
             >
               <span>{{ project }}</span>
             </KitMenuItem>
-            <div class="dropdown-menu-separator"></div>
+            <div class="kit-menu-separator"></div>
             <KitMenuItem icon="plus" variant="success" @click="newProject(close)">
               <span>New project</span>
             </KitMenuItem>
@@ -173,7 +144,7 @@ export const ViewCode = {
       <div class="view-view-code-main">
         <template v-if="store.activeFileError">
           <div class="view-view-code-empty">
-            <svg class="view-view-code-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" v-html="icons.fileX"></svg>
+            <span class="view-view-code-empty-icon"><KitIcon icon="fileX" :size="48" /></span>
             <div class="view-view-code-empty-title">{{ store.activeFile }}</div>
             <div class="view-view-code-empty-text">File not found</div>
           </div>
@@ -192,13 +163,15 @@ export const ViewCode = {
           </div>
         </template>
         <div v-else class="view-view-code-empty">
-          <svg class="view-view-code-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" v-html="icons.folder"></svg>
+          <span class="view-view-code-empty-icon"><KitIcon icon="folder" :size="48" /></span>
           <div class="view-view-code-empty-title">{{ store.currentProject }}</div>
           <div class="view-view-code-empty-text">Select a file from the tree to view its contents</div>
         </div>
       </div>
     </KitViewLayout>
-    <KitTerminal />
+    <KitDrawer title="Terminal" :expanded="store.terminalExpanded" @toggle="actions.toggleTerminal">
+      <KitTerminal />
+    </KitDrawer>
     </div>
   `,
   setup() {
@@ -263,7 +236,7 @@ export const ViewCode = {
 
     return {
       store,
-      icons,
+      actions,
       files,
       projects,
       lineCount,

@@ -1,9 +1,9 @@
 import { store } from '../../store.js';
-import { useStyles } from '../../useStyles.js';
+import { useStyles } from '../../lib/useStyles.js';
 
 const styles = `
 /* Simulator Window - not full height, auto width */
-.home-view > .window:has(.simulator-content) {
+.view-home-desktop > .window:has(.simulator-content) {
   height: auto;
   width: auto !important;
 }

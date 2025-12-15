@@ -1,5 +1,5 @@
 import { store, actions, menuItems, type2Apps, type2AppIds, type3Apps } from '../store.js';
-import { useStyles } from '../useStyles.js';
+import { useStyles } from '../lib/useStyles.js';
 import { KitSidebar } from './kit/KitSidebar.js';
 import { KitSidebarItem } from './kit/KitSidebarItem.js';
 import { KitSidebarFooter } from './kit/KitSidebarFooter.js';
@@ -7,83 +7,32 @@ import { KitMenu } from './kit/KitMenu.js';
 import { KitMenuItem } from './kit/KitMenuItem.js';
 
 const styles = `
-/* Sidenav - Dock styling */
-.sidenav {
+/* Dock styling */
+.dock {
   width: 200px;
   background: var(--bg-secondary);
   border-right: 1px solid var(--border-color);
   transition: width 0.2s ease-out;
 }
 
-.sidenav.collapsed {
+.dock.collapsed {
   width: 48px;
-  overflow: visible;
 }
 
-.sidenav.collapsed .kit-sidebar-content {
-  overflow: visible;
+.no-contrast .dock {
+  background: var(--bg-primary);
+  border-right-color: transparent;
 }
 
-.sidenav > .kit-sidebar-content {
-  padding: 0.5em;
-}
-
-.sidenav-icon {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-  aspect-ratio: 1;
-}
-
-.sidenav-label {
-  white-space: nowrap;
-  overflow: hidden;
-  transition: opacity 0.2s ease-out;
-}
-
-.sidenav.collapsed .sidenav-label {
-  opacity: 0;
-  width: 0;
-}
-
-.sidenav-separator {
-  height: 1px;
-  background: var(--border-color);
-  margin: 0.5em 0.667em;
-}
-
-.sidenav.collapsed .sidenav-item {
-  position: relative;
-}
-
-.sidenav.collapsed .sidenav-item::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  left: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-  margin-left: 8px;
-  padding: 4px 8px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  white-space: nowrap;
-  font-size: 12px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease-out;
-  z-index: 100;
-}
-
-.sidenav.collapsed .sidenav-item:hover::after {
-  opacity: 1;
+.distraction-free .dock {
+  display: none;
 }
 `;
 
 export const Dock = {
   components: { KitSidebar, KitSidebarItem, KitSidebarFooter, KitMenu, KitMenuItem },
   template: `
-    <KitSidebar class="sidenav" :collapsed="store.sidenavCollapsed">
+    <KitSidebar class="dock" :collapsed="store.sidenavCollapsed" padded>
       <KitSidebarItem
         v-for="item in menuItems"
         :key="item.id"
@@ -91,15 +40,17 @@ export const Dock = {
         :label="item.label"
         :to="getRoute(item.id)"
         :active="store.activeMenuItem === item.id"
+        :collapsed="store.sidenavCollapsed"
       />
       <template v-if="activeApps.length > 0">
-        <div class="sidenav-separator"></div>
+        <div style="height: 1px; background: var(--border-color); margin: 0.5em 0.667em;"></div>
         <KitSidebarItem
           v-for="app in activeApps"
           :key="app.id"
           :icon="app.icon"
           :label="app.label"
           :active="app.isActive"
+          :collapsed="store.sidenavCollapsed"
           @click="app.onClick"
         />
       </template>
@@ -107,11 +58,11 @@ export const Dock = {
         <KitSidebarFooter>
           <KitMenu direction="up">
             <template #trigger>
-              <KitSidebarItem icon="user" label="Profile" />
+              <KitSidebarItem icon="user" label="Profile" :collapsed="store.sidenavCollapsed" />
             </template>
             <template #menu="{ close }">
-              <div class="dropdown-menu-header">username@foobar.com</div>
-              <div class="dropdown-menu-separator"></div>
+              <div class="kit-menu-header">username@foobar.com</div>
+              <div class="kit-menu-separator"></div>
               <KitMenuItem icon="settings" to="/settings" @click="close">
                 <span>Settings</span>
               </KitMenuItem>
@@ -121,11 +72,11 @@ export const Dock = {
               <KitMenuItem icon="help">
                 <span>Get help</span>
               </KitMenuItem>
-              <div class="dropdown-menu-separator"></div>
+              <div class="kit-menu-separator"></div>
               <KitMenuItem icon="book">
                 <span>Learn more</span>
               </KitMenuItem>
-              <div class="dropdown-menu-separator"></div>
+              <div class="kit-menu-separator"></div>
               <KitMenuItem icon="logout" variant="danger">
                 <span>Log out</span>
               </KitMenuItem>

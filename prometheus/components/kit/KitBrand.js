@@ -1,44 +1,43 @@
 import { KitIcon } from './KitIcon.js';
-import { useStyles } from '../../useStyles.js';
+import { useStyles } from '../../lib/useStyles.js';
 
 const styles = `
-.brand {
-    display: flex;
-    align-items: center;
-    gap: 1em;
-    color: var(--text-secondary);
-    padding-left: 0.167em;
-    cursor: pointer;
-    transition: color 0.2s ease-out;
-  }
+.kit-brand {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  color: var(--text-secondary);
+  padding-left: 0.167em;
+  cursor: pointer;
+  transition: color 0.2s ease-out;
+}
 
-  .brand:hover {
-    color: var(--text-primary);
-  }
+.kit-brand:hover {
+  color: var(--text-primary);
+}
 
-  .brand-name {
-    font-family: Georgia, 'Times New Roman', serif;
-    font-weight: 300;
-  }
+.kit-brand-name {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 300;
+}
 
-  .brand-icon {
-    width: 18px;
-    height: 18px;
-    transition: transform 1s ease-out;
-  }
+.kit-brand-icon {
+  display: flex;
+  transition: transform 1s ease-out;
+}
 
-  .brand:hover .brand-icon {
-    transform: rotate(540deg);
-  }
+.kit-brand:hover .kit-brand-icon {
+  transform: rotate(540deg);
+}
 
-  .brand.active .brand-icon {
-    color: var(--accent);
-  }
+.kit-brand.active .kit-brand-icon {
+  color: var(--accent);
+}
 
-  .brand-version {
-    opacity: 0.5;
-    font-size: 10px;
-  }
+.kit-brand-version {
+  opacity: 0.5;
+  font-size: 10px;
+}
 `;
 export const KitBrand = {
   components: { KitIcon },
@@ -54,12 +53,12 @@ export const KitBrand = {
       :href="isExternal ? to : undefined"
       :to="isExternal ? undefined : to"
       :target="isExternal ? '_blank' : undefined"
-      class="brand"
+      class="kit-brand"
       :class="{ active: isActive }"
     >
-      <KitIcon :icon="icon" class="brand-icon" />
-      <span class="brand-name">{{ name }}</span>
-      <span v-if="subtitle" class="brand-version">{{ subtitle }}</span>
+      <span class="kit-brand-icon"><KitIcon :icon="icon" :size="18" /></span>
+      <span class="kit-brand-name">{{ name }}</span>
+      <span v-if="subtitle" class="kit-brand-version">{{ subtitle }}</span>
     </component>
   `,
   setup(props) {

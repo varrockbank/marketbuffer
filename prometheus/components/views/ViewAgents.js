@@ -2,7 +2,8 @@ import { store } from '../../store.js';
 import { KitViewLayout } from '../kit/KitViewLayout.js';
 import { KitSidebarFooter } from '../kit/KitSidebarFooter.js';
 import { KitButton } from '../kit/KitButton.js';
-import { useStyles } from '../../useStyles.js';
+import { KitIcon } from '../kit/KitIcon.js';
+import { useStyles } from '../../lib/useStyles.js';
 
 const styles = `
 .view-view-agents-sidebar-content {
@@ -344,12 +345,6 @@ const styles = `
 }
 `;
 
-const icons = {
-  trash: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
-  plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
-  check: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
-  circle: '<circle cx="12" cy="12" r="10"/>',
-};
 
 const agents = [
   { id: 'momentum-bot', name: 'Momentum Bot', letter: 'M', status: 'running', statusText: 'Running since 9:30 AM', type: 'agent' },
@@ -381,7 +376,7 @@ const logs = [
 ];
 
 export const ViewAgents = {
-  components: { KitViewLayout, KitSidebarFooter, KitButton },
+  components: { KitViewLayout, KitSidebarFooter, KitButton, KitIcon },
   template: `
     <KitViewLayout :collapsed="store.subSidenavCollapsed">
       <template #menu>
@@ -410,7 +405,7 @@ export const ViewAgents = {
             @click="selectItem(task)"
           >
             <div class="view-view-agents-item-icon task" :class="{ pending: task.status === 'pending' }">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="task.status === 'completed' ? icons.check : icons.circle"></svg>
+              <KitIcon :icon="task.status === 'completed' ? 'check' : 'circle'" :size="12" />
             </div>
             <div class="view-view-agents-item-info">
               <div class="view-view-agents-item-name">{{ task.name }}</div>
@@ -418,13 +413,9 @@ export const ViewAgents = {
             </div>
           </div>
         </div>
-        <KitSidebarFooter>
-          <KitButton>
-            <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="icons.trash"></svg>
-          </KitButton>
-          <KitButton>
-            <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="icons.plus"></svg>
-          </KitButton>
+        <KitSidebarFooter padded>
+          <KitButton icon="trash" />
+          <KitButton icon="plus" />
         </KitSidebarFooter>
       </template>
 
@@ -515,7 +506,6 @@ export const ViewAgents = {
       tasks,
       positions,
       logs,
-      icons,
       selectedId,
       selectedItem,
       selectItem,

@@ -66,13 +66,15 @@ export const store = reactive({
   terminalExpanded: false,
   activeMenuItem: 'yap',
   currentProject: 'WarrenBuffer',
+
+  // File system state 
   activeFile: null,
   activeFilePath: null,  // Full path for loading file content
   activeFileContent: null,  // Content of the currently open file
   activeFileError: null,  // Error message if file failed to load
   fileLoading: false,  // Loading state for file content
 
-  // Windows
+  // Panes
   openWindows: ['simulator'],
   windowPositions: {
     simulator: { x: 0, y: 0, z: 1 },

@@ -33,9 +33,10 @@ app-agnostic components vs app-specific tweaks. Vue's state container also helps
 prometheus/
 ├── index.html          # App shell, global styles, mounts Vue
 ├── store.js            # Global store + actions
-├── useStyles.js        # Helper to inject component styles
-├── projectService.js   # Project/file listing and loading (future: server API)
 ├── CLAUDE.md
+├── lib/                # Helper utilities
+│   ├── useStyles.js    # Helper to inject component styles
+│   └── projectService.js # Project/file listing and loading (future: server API)
 ├── demo/               # Static project files for demo mode
 │   └── WarrenBuffer/   # Sample project
 │       ├── main.py
@@ -55,7 +56,6 @@ prometheus/
     │   └── AppWallpaper.js
     ├── kit/            # Reusable, app-agnostic UI components (Kit* prefix)
     │   ├── KitBar.js
-    │   ├── KitBarButton.js
     │   ├── KitBrand.js
     │   ├── KitButton.js
     │   ├── KitFileTree.js
@@ -185,7 +185,7 @@ export const ViewExample = {
 **View-specific styles** should be co-located with the component using `useStyles`:
 
 ```javascript
-import { useStyles } from '../../useStyles.js';
+import { useStyles } from '../../lib/useStyles.js';
 
 const styles = `
 .view-view-data-header { }
@@ -224,17 +224,35 @@ export const ViewData = {
 **Kit components** (`components/kit/`):
 - `KitBar` - Horizontal bar with left/right slots. Props: `draggable`. Slots: `#left`, default (right). Emits: `dragstart`, `drag`, `dragend`.
 - `KitBrand` - Brand logo with icon, name, subtitle. Props: `icon`, `name`, `subtitle`, `to` (optional URL).
-- `KitButton` - Reusable button using `.nav-item` styling (same height/padding as sidenav items).
-- `KitBarButton` - Icon button for bars/toolbars with tooltip positioning. Uses KitIcon internally.
+- `KitButton` - Reusable button with optional icon and tooltip. Props: `icon`, `tooltip`, `active`, `size` (sm). Tooltip auto-positions near screen edges.
 - `KitFileTree` - Recursive file tree component with `files`, `depth`, `parentPath`, `activeFilePath` props.
 - `KitIcon` - Centralized icon library. Use icon names (e.g., `icon="home"`) instead of raw SVG paths. Warns on invalid icon names.
-- `KitMenu` - Configurable dropdown menu with `direction` and `trigger` props.
+- `KitMenu` - Configurable dropdown menu. Props: `direction` (up/down/right), `trigger` (click/hover), `compact` (removes wrapper padding). Provides `.kit-menu-selector` class for selector-style triggers with `.kit-menu-selector-label` and `.kit-menu-selector-chevron` children.
 - `KitMenuItem` - Dropdown menu item with `icon`, `selected`, `selectable`, `variant` (default/success/danger), `to` props. Shows checkmark when selected. Use `selectable` to reserve icon space for alignment in lists.
-- `KitSidebarFooter` - Footer for KitSidebar. Automatically pushed to bottom via margin-top: auto.
-- `KitSidebarItem` - Navigation item with icon and label for sidebars. Props: `icon`, `label`, `to` (optional route), `active`. Renders as router-link if `to` is provided.
+- `KitSidebarFooter` - Footer for KitSidebar. Automatically pushed to bottom via margin-top: auto. Props: `padded` (adds padding around content, use for buttons but not for KitMenu).
+- `KitSidebarItem` - Navigation item with icon and label for sidebars. Props: `icon`, `label`, `to` (optional route), `active`, `collapsed` (hides label, shows tooltip on hover). Renders as router-link if `to` is provided.
 - `KitPanel` - Window panel with draggable title bar. Uses KitBar internally. Props: `title`. Emits: `close`, `dragstart`, `drag`, `dragend`.
-- `KitSidebar` - Collapsible sidebar container. Props: `collapsed`. Use KitSidebarFooter as child for footer.
+- `KitSidebar` - Collapsible sidebar container. Props: `collapsed` (enables overflow for tooltips), `padded` (adds padding to content). Use KitSidebarFooter as child for footer.
 - `KitViewLayout` - Layout for views with collapsible menu panel (accepts `collapsed` prop).
+
+**Global state classes** - Components can assume these classes are applied to the document root based on global settings:
+- `.theme-light` / `.theme-dark` - Current theme
+- `.no-contrast` - Borderless mode (no visual separation between regions)
+- `.distraction-free` - Focus mode (minimal UI, hides sidenav and most topbar elements)
+
+**Component styling principle:** Never use CSS selectors to style child components (e.g., `.parent .kit-icon`). Instead:
+- Pass props to the child component (e.g., `<KitIcon :size="16" />`)
+- If you need state-dependent styling, wrap the child in your own element and style that wrapper
+
+```javascript
+// WRONG - reaching into child component's internals
+.my-component .kit-icon { width: 16px; color: red; }
+
+// CORRECT - pass size as prop, wrap for custom styling
+<span class="my-component-icon"><KitIcon :icon="icon" :size="16" /></span>
+.my-component-icon { color: red; }
+.my-component:hover .my-component-icon { color: blue; }
+```
 
 **Alignment principle:** When aligning UI elements, match the rendered pixel height - not the CSS values. Different internal structures (e.g., sidenav-item vs buttons) require different padding values to achieve the same visual height.
 
