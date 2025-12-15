@@ -1,6 +1,8 @@
 import { KitViewLayout } from '../kit/KitViewLayout.js';
 import { KitMenu } from '../kit/KitMenu.js';
 import { KitMenuItem } from '../kit/KitMenuItem.js';
+import { KitMenuSeparator } from '../kit/KitMenuSeparator.js';
+import { KitButton } from '../kit/KitButton.js';
 import { KitIcon } from '../kit/KitIcon.js';
 import { KitFileTree } from '../kit/KitFileTree.js';
 import { KitDrawer } from '../kit/KitDrawer.js';
@@ -102,17 +104,14 @@ const styles = `
 
 
 export const ViewCode = {
-  components: { KitViewLayout, KitMenu, KitMenuItem, KitIcon, KitFileTree, KitDrawer, KitTerminal },
+  components: { KitViewLayout, KitMenu, KitMenuItem, KitMenuSeparator, KitButton, KitIcon, KitFileTree, KitDrawer, KitTerminal },
   template: `
     <div class="view-view-code-wrapper">
     <KitViewLayout :collapsed="store.subSidenavCollapsed">
       <template #header>
         <KitMenu direction="down">
           <template #trigger>
-            <div class="kit-menu-selector">
-              <span class="kit-menu-selector-label">{{ store.currentProject }}</span>
-              <span class="kit-menu-selector-chevron"><KitIcon icon="chevronDown" :size="14" /></span>
-            </div>
+            <KitButton variant="sidebar" iconRight="chevronDown">{{ store.currentProject }}</KitButton>
           </template>
           <template #menu="{ close }">
             <KitMenuItem
@@ -125,7 +124,7 @@ export const ViewCode = {
             >
               <span>{{ project }}</span>
             </KitMenuItem>
-            <div class="kit-menu-separator"></div>
+            <KitMenuSeparator />
             <KitMenuItem icon="plus" variant="success" @click="newProject(close)">
               <span>New project</span>
             </KitMenuItem>

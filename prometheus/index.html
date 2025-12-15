@@ -44,53 +44,6 @@
       --accent: #7A68AA;
     }
 
-    /* Layout */
-    .app-layout {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-    }
-
-    /* Body Area - sidenav + main */
-    .body-area {
-      flex: 1;
-      display: flex;
-      overflow: hidden;
-    }
-
-    /* Viewport */
-    .viewport {
-      flex: 1;
-      display: flex;
-      overflow: hidden;
-    }
-
-    /* Home View */
-    .view-home-desktop {
-      flex: 1;
-      position: relative;
-      background: var(--bg-primary);
-      overflow: hidden;
-    }
-
-    .view-home-desktop.show-grid {
-      background-image:
-        linear-gradient(to right, var(--border-color) 1px, transparent 1px),
-        linear-gradient(to bottom, var(--border-color) 1px, transparent 1px);
-      background-size: 40px 40px;
-    }
-
-    /* Window */
-    .view-home-desktop > .window {
-      position: absolute;
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    }
   </style>
 </head>
 <body>
@@ -98,8 +51,8 @@
 
   <script type="module">
     import { store, actions } from './store.js';
-    import { Dock } from './components/Dock.js';
-    import { Topbar } from './components/Topbar.js';
+    import { initKeyboard } from './lib/keyboard.js';
+    import { AppLayout } from './components/AppLayout.js';
     import { ViewHome } from './components/views/ViewHome.js';
     import { ViewApplications } from './components/views/ViewApplications.js';
     import { ViewYap } from './components/views/ViewYap.js';
@@ -142,28 +95,20 @@
     });
 
     const app = createApp({
+      components: { AppLayout },
       template: `
-        <div class="app-layout" :class="['theme-' + store.theme, { 'no-contrast': !store.contrast, 'distraction-free': store.distractionFree }]">
-          <Topbar />
-          <div class="body-area">
-            <Dock />
-            <div class="viewport">
-              <router-view />
-            </div>
-          </div>
-        </div>
+        <AppLayout>
+          <router-view />
+        </AppLayout>
       `,
-      setup() {
-        return { store };
-      },
     }).use(router)
-      .component('Dock', Dock)
-      .component('Topbar', Topbar)
       .mount('#app');
 
-      router.onError((err) => {
-  console.error("[router.onError]", err);
-});
+    initKeyboard();
+
+    router.onError((err) => {
+      console.error("[router.onError]", err);
+    });
 
   </script>
 </body>

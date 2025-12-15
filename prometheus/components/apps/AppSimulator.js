@@ -2,13 +2,6 @@ import { store } from '../../store.js';
 import { useStyles } from '../../lib/useStyles.js';
 
 const styles = `
-/* Simulator panel - not full height, auto width */
-.view-home-desktop > .kit-panel:has(.simulator-content) {
-  height: auto;
-  width: auto !important;
-}
-
-/* Simulator Styles */
 .simulator-content {
   display: flex;
   overflow: hidden;

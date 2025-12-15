@@ -16,19 +16,32 @@ const styles = `
   font-family: inherit;
   font-size: inherit;
   position: relative;
+  text-decoration: none;
+  min-width: 0;
+}
+
+.kit-button-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kit-button-icon-right {
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .kit-button-sm {
   padding: 4px;
 }
 
-.kit-button-xs {
-  padding: 4px;
-}
-
 .kit-button:hover {
   background: #000;
   color: var(--text-primary);
+}
+
+.kit-button:hover svg {
+  transform: rotate(15deg);
 }
 
 .theme-light .kit-button:hover {
@@ -49,7 +62,62 @@ const styles = `
   color: inherit;
 }
 
-/* Tooltip */
+.kit-button-primary {
+  color: var(--text-primary);
+}
+
+.kit-button-sidebar {
+  color: var(--text-secondary);
+  width: 100%;
+}
+
+.kit-button-sidebar:hover {
+  background: #000;
+  color: var(--text-primary);
+}
+
+.theme-light .kit-button-sidebar:hover {
+  background: var(--bg-tertiary);
+}
+
+.kit-button-sidebar.active {
+  color: var(--text-primary);
+  box-shadow: inset 2px 0 0 var(--accent), inset -2px 0 0 var(--accent);
+}
+
+.kit-button-sidebar.collapsed {
+  justify-content: center;
+}
+
+.kit-button-danger {
+  color: #e55;
+}
+
+.kit-button-danger:hover {
+  background: rgba(238, 85, 85, 0.1);
+  color: #e55;
+}
+
+.kit-button-success {
+  color: rgb(131, 193, 141);
+}
+
+.kit-button-success:hover {
+  background: rgba(131, 193, 141, 0.1);
+  color: rgb(131, 193, 141);
+}
+
+.kit-button-menu {
+  width: 100%;
+  border-radius: 4px;
+}
+
+.kit-button-menu:hover {
+  background: #000;
+  color: #fff;
+}
+
+/* Tooltip - bottom (default) */
 .kit-button[data-tooltip]::after {
   content: attr(data-tooltip);
   position: absolute;
@@ -70,20 +138,24 @@ const styles = `
   z-index: 100;
 }
 
-.kit-button[data-tooltip].tooltip-right::after {
+.kit-button[data-tooltip].tooltip-align-right::after {
   left: auto;
   right: 0;
   transform: none;
 }
 
-.kit-button[data-tooltip]:hover::after {
-  opacity: 1;
+/* Tooltip - right */
+.kit-button[data-tooltip].tooltip-right::after {
+  top: 50%;
+  left: 100%;
+  right: auto;
+  transform: translateY(-50%);
+  margin-top: 0;
+  margin-left: 8px;
 }
 
-/* When inside a footer, center the buttons */
-.kit-sidebar-footer .kit-button {
-  flex: 1;
-  justify-content: center;
+.kit-button[data-tooltip]:hover::after {
+  opacity: 1;
 }
 `;
 
@@ -91,45 +163,53 @@ export const KitButton = {
   components: { KitIcon },
   props: {
     icon: { type: String, default: null },
+    iconRight: { type: String, default: null },
+    label: { type: String, default: null },
     tooltip: { type: String, default: null },
+    tooltipPosition: { type: String, default: 'bottom' }, // 'bottom' or 'right'
+    collapsed: { type: Boolean, default: false }, // hides label, uses label as tooltip
     active: { type: Boolean, default: false },
     size: { type: String, default: null },
     variant: { type: String, default: null },
+    to: { type: String, default: null },
   },
   template: `
-    <button
+    <component
+      :is="to ? 'router-link' : 'button'"
+      :to="to"
       ref="btn"
       class="kit-button"
-      :class="[sizeClass, variantClass, { active, 'tooltip-right': tooltipRight }]"
-      :data-tooltip="tooltip"
+      :class="[sizeClass, variantClass, { active, collapsed, 'tooltip-align-right': tooltipAlignRight, 'tooltip-right': tooltipPosition === 'right' }]"
+      :data-tooltip="effectiveTooltip"
       @mouseenter="checkPosition"
     >
       <KitIcon v-if="icon" :icon="icon" :size="iconSize" />
-      <slot></slot>
-    </button>
+      <span v-if="!collapsed && (label || $slots.default)" class="kit-button-label">{{ label }}<slot></slot></span>
+      <span v-if="iconRight" class="kit-button-icon-right"><KitIcon :icon="iconRight" :size="iconRightSize" /></span>
+    </component>
   `,
   setup(props) {
     useStyles('kit-button', styles);
 
     const btn = Vue.ref(null);
-    const tooltipRight = Vue.ref(false);
-    const sizeClass = Vue.computed(() => props.size ? `kit-button-${props.size}` : null);
+    const tooltipAlignRight = Vue.ref(false);
+    const sizeClass = Vue.computed(() => props.size === 'sm' ? 'kit-button-sm' : null);
     const variantClass = Vue.computed(() => props.variant ? `kit-button-${props.variant}` : null);
-    const iconSize = Vue.computed(() => {
-      if (props.size === 'xs') return 14;
-      if (props.size === 'sm') return 16;
-      return 18;
-    });
+    const iconSize = Vue.computed(() => props.size === 'sm' ? 16 : 18);
+    const iconRightSize = Vue.computed(() => props.size === 'sm' ? 12 : 14);
+    const effectiveTooltip = Vue.computed(() => props.tooltip || (props.collapsed ? props.label : null));
 
     const checkPosition = () => {
+      if (props.tooltipPosition !== 'bottom') return;
       if (btn.value) {
-        const rect = btn.value.getBoundingClientRect();
+        const el = btn.value.$el || btn.value;
+        const rect = el.getBoundingClientRect();
         const buttonCenter = rect.left + rect.width / 2;
         const spaceRight = window.innerWidth - buttonCenter;
-        tooltipRight.value = spaceRight < 80;
+        tooltipAlignRight.value = spaceRight < 80;
       }
     };
 
-    return { btn, tooltipRight, sizeClass, variantClass, iconSize, checkPosition };
+    return { btn, tooltipAlignRight, sizeClass, variantClass, iconSize, iconRightSize, effectiveTooltip, checkPosition };
   },
 };

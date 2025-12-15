@@ -8,7 +8,7 @@ const { reactive } = Vue;
 // Type 1: Permanent sidenav items (views)
 // Type 2: Apps available in Applications menu (open as windows)
 // Type 3: Have routes but not in Applications menu
-export const apps = [
+const apps = [
   // Type 1: Views
   { id: 'yap', label: 'Yap', icon: 'yap', type: 1 },
   { id: 'deployments', label: 'Deployments', icon: 'deployments', type: 1 },
@@ -40,19 +40,24 @@ export const apps = [
   { id: 'settings', route: '/settings', label: 'Settings', icon: 'settings', type: 3 },
 ];
 
-// Derived lists by type
-export const menuItems = apps.filter(a => a.type === 1);
-export const type2Apps = apps.filter(a => a.type === 2);
-export const type3Apps = apps.filter(a => a.type === 3);
-export const type2AppIds = type2Apps.map(a => a.id);
-
-// Helpers
-export const isWindowOpen = (id) => store.openWindows.includes(id);
+const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 
 // ============================================
 // GLOBAL STORE
 // ============================================
+
 export const store = reactive({
+  // Platform
+  isMac,
+  modKey: isMac ? '⌘' : 'Ctrl',
+
+  // Apps
+  apps,
+  menuItems: apps.filter(a => a.type === 1),
+  type2Apps: apps.filter(a => a.type === 2),
+  type3Apps: apps.filter(a => a.type === 3),
+  type2AppIds: apps.filter(a => a.type === 2).map(a => a.id),
+
   // App
   brandName: 'Marketbuffer',
   brandIcon: 'sparkle',
@@ -61,7 +66,19 @@ export const store = reactive({
   // Theme
   theme: 'dark', // 'dark' | 'light'
   contrast: true, // contrast mode for sidenavs
-  wallpaper: 'hokusai', // desktop wallpaper
+  wallpaper: 'hokusai',
+  wallpapers: [
+    { id: 'classic', label: 'Classic' },
+    { id: 'solid-gray', label: 'Solid Gray' },
+    { id: 'solid-teal', label: 'Solid Teal' },
+    { id: 'starfield', label: 'Starfield' },
+    { id: 'hokusai', label: 'Hokusai Wave' },
+    { id: 'gradient-sunset', label: 'Sunset' },
+    { id: 'checkerboard', label: 'Checkerboard' },
+    { id: 'diagonal', label: 'Diagonal' },
+    { id: 'dots', label: 'Dots' },
+    { id: 'mac-ii', label: 'Mac II Dither' },
+  ],
 
   // UI State
   sidenavCollapsed: false,
@@ -244,6 +261,9 @@ export const actions = {
     store.fileLoading = false;
   },
 };
+
+// Helper functions
+export const isWindowOpen = (id) => store.openWindows.includes(id);
 
 // Expose to console for testing
 window.store = store;

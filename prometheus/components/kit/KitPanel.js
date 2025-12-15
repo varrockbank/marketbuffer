@@ -28,7 +28,7 @@ export const KitPanel = {
         @dragend="$emit('dragend')"
       >
         <template #left>{{ title }}</template>
-        <KitButton icon="x" size="xs" variant="inherit" @click.stop="$emit('close')" />
+        <KitButton icon="x" size="sm" variant="inherit" @click.stop="$emit('close')" />
       </KitBar>
       <slot></slot>
     </div>

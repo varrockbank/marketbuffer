@@ -1,4 +1,4 @@
-import { store, actions, type2Apps, isWindowOpen } from '../../store.js';
+import { store, actions, isWindowOpen } from '../../store.js';
 import { KitViewLayout } from '../kit/KitViewLayout.js';
 import { KitIcon } from '../kit/KitIcon.js';
 import { useStyles } from '../../lib/useStyles.js';
@@ -129,7 +129,7 @@ export const ViewApplications = {
       <template #menu>
         <div class="view-applications-list">
           <div
-            v-for="app in type2Apps"
+            v-for="app in store.type2Apps"
             :key="app.id"
             class="view-applications-list-item"
             :class="{ selected: selectedApp?.id === app.id }"
@@ -164,7 +164,7 @@ export const ViewApplications = {
     useStyles('view-applications', styles);
 
     const router = VueRouter.useRouter();
-    const selectedApp = Vue.ref(type2Apps[0]);
+    const selectedApp = Vue.ref(store.type2Apps[0]);
 
     const selectApp = (app) => {
       selectedApp.value = app;
@@ -177,6 +177,6 @@ export const ViewApplications = {
       }
     };
 
-    return { store, type2Apps, selectedApp, selectApp, isWindowOpen, launchApp };
+    return { store, selectedApp, selectApp, isWindowOpen, launchApp };
   },
 };

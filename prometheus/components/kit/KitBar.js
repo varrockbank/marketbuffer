@@ -35,23 +35,18 @@ const styles = `
   cursor: grabbing;
 }
 
-.kit-bar-left,
-.kit-bar-right {
+.kit-bar-element {
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
-.kit-bar .kit-button {
-  color: var(--text-primary);
-}
-
-.kit-bar .kit-button:hover {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-}
-
 .no-contrast .kit-bar {
+  background: var(--bg-primary);
+  border-bottom-color: transparent;
+}
+
+.distraction-free .kit-bar {
   background: var(--bg-primary);
   border-bottom-color: transparent;
 }
@@ -68,10 +63,10 @@ export const KitBar = {
       :class="[{ 'kit-bar-draggable': draggable }]"
       @mousedown="onMouseDown"
     >
-      <div class="kit-bar-left">
+      <div class="kit-bar-element">
         <slot name="left"></slot>
       </div>
-      <div class="kit-bar-right">
+      <div class="kit-bar-element">
         <slot></slot>
       </div>
     </div>

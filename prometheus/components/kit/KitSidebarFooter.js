@@ -10,6 +10,10 @@ const styles = `
   overflow: visible;
 }
 
+.no-contrast .kit-sidebar-footer {
+  border-top: none;
+}
+
 .kit-sidebar-footer.kit-sidebar-footer-padded {
   padding: 0.5em;
 }

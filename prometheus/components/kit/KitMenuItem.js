@@ -1,28 +1,40 @@
-import { KitIcon } from './KitIcon.js';
+import { KitButton } from './KitButton.js';
 
-
+/**
+ * KitMenuItem - Menu item that wraps KitButton with menu-specific behavior.
+ * Handles selected state (shows checkmark) and selectable alignment.
+ */
 export const KitMenuItem = {
-  components: { KitIcon },
+  components: { KitButton },
   props: {
     icon: { type: String, default: null },
     selected: { type: Boolean, default: false },
-    selectable: { type: Boolean, default: false }, // Reserve icon space for alignment in selectable lists
-    variant: { type: String, default: 'default' }, // default, success, danger
+    selectable: { type: Boolean, default: false },
+    variant: { type: String, default: 'menu' }, // menu, success, danger
     to: { type: String, default: null },
   },
   emits: ['click'],
+  computed: {
+    effectiveIcon() {
+      if (this.selected) return 'check';
+      if (this.icon) return this.icon;
+      return null;
+    },
+    effectiveVariant() {
+      if (this.variant === 'menu' || this.variant === 'default') return 'menu';
+      return this.variant;
+    },
+  },
   template: `
-    <component
-      :is="to ? 'router-link' : 'div'"
+    <KitButton
+      :icon="effectiveIcon"
       :to="to"
-      class="kit-menu-item"
-      :class="[variant !== 'default' ? variant : '', { active: selected }]"
+      :variant="effectiveVariant"
+      :active="selected"
       @click="$emit('click', $event)"
     >
-      <KitIcon v-if="selected" icon="check" :size="16" />
-      <KitIcon v-else-if="icon" :icon="icon" :size="16" />
-      <span v-else-if="selectable" style="width: 16px; height: 16px; flex-shrink: 0;"></span>
+      <span v-if="!effectiveIcon && selectable" style="width: 16px; height: 16px; flex-shrink: 0;"></span>
       <slot></slot>
-    </component>
+    </KitButton>
   `,
 };
