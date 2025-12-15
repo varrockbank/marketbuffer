@@ -1,6 +1,12 @@
 import { useStyles } from '../../lib/useStyles.js';
 
 const styles = `
+.kit-view-layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
 .kit-view-layout-menu {
   width: 220px;
   background: var(--bg-secondary);

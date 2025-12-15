@@ -7,7 +7,6 @@ import { KitMenu } from './kit/KitMenu.js';
 import { KitMenuItem } from './kit/KitMenuItem.js';
 
 const styles = `
-/* Dock styling */
 .dock {
   width: 200px;
   background: var(--bg-secondary);
@@ -63,23 +62,13 @@ export const Dock = {
             <template #menu="{ close }">
               <div class="kit-menu-header">username@foobar.com</div>
               <div class="kit-menu-separator"></div>
-              <KitMenuItem icon="settings" to="/settings" @click="close">
-                <span>Settings</span>
-              </KitMenuItem>
-              <KitMenuItem icon="globe">
-                <span>Language</span>
-              </KitMenuItem>
-              <KitMenuItem icon="help">
-                <span>Get help</span>
-              </KitMenuItem>
+              <KitMenuItem icon="settings" to="/settings" @click="close">Settings</KitMenuItem>
+              <KitMenuItem icon="globe">Language</KitMenuItem>
+              <KitMenuItem icon="help">Get help</KitMenuItem>
               <div class="kit-menu-separator"></div>
-              <KitMenuItem icon="book">
-                <span>Learn more</span>
-              </KitMenuItem>
+              <KitMenuItem icon="book">Learn more</KitMenuItem>
               <div class="kit-menu-separator"></div>
-              <KitMenuItem icon="logout" variant="danger">
-                <span>Log out</span>
-              </KitMenuItem>
+              <KitMenuItem icon="logout" variant="danger">Log out</span></KitMenuItem>
             </template>
           </KitMenu>
         </KitSidebarFooter>

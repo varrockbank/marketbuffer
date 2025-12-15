@@ -1,5 +1,17 @@
 import { KitBar } from './KitBar.js';
 import { KitButton } from './KitButton.js';
+import { useStyles } from '../../lib/useStyles.js';
+
+const styles = `
+.kit-panel {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+`;
 
 export const KitPanel = {
   components: { KitBar, KitButton },
@@ -8,9 +20,8 @@ export const KitPanel = {
   },
   emits: ['close', 'dragstart', 'drag', 'dragend'],
   template: `
-    <div class="window">
+    <div class="kit-panel">
       <KitBar
-        variant="title"
         draggable
         @dragstart="$emit('dragstart', $event)"
         @drag="$emit('drag', $event)"
@@ -22,4 +33,7 @@ export const KitPanel = {
       <slot></slot>
     </div>
   `,
+  setup() {
+    useStyles('kit-panel', styles);
+  },
 };

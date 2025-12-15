@@ -2,8 +2,8 @@ import { store } from '../../store.js';
 import { useStyles } from '../../lib/useStyles.js';
 
 const styles = `
-/* Simulator Window - not full height, auto width */
-.view-home-desktop > .window:has(.simulator-content) {
+/* Simulator panel - not full height, auto width */
+.view-home-desktop > .kit-panel:has(.simulator-content) {
   height: auto;
   width: auto !important;
 }

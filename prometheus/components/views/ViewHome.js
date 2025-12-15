@@ -14,6 +14,25 @@ const styles = `
   overflow: hidden;
 }
 
+.view-home-desktop {
+  flex: 1;
+  position: relative;
+  background: var(--bg-primary);
+  overflow: hidden;
+}
+
+.view-home-desktop.show-grid {
+  background-image:
+    linear-gradient(to right, var(--border-color) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border-color) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.view-home-desktop > .kit-panel {
+  position: absolute;
+  height: 100%;
+}
+
 .view-home-desktop.wp-classic {
   background:
     repeating-linear-gradient(0deg, transparent, transparent 1px, var(--bg-secondary) 1px, var(--bg-secondary) 2px),

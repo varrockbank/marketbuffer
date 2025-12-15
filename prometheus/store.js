@@ -46,6 +46,9 @@ export const type2Apps = apps.filter(a => a.type === 2);
 export const type3Apps = apps.filter(a => a.type === 3);
 export const type2AppIds = type2Apps.map(a => a.id);
 
+// Helpers
+export const isWindowOpen = (id) => store.openWindows.includes(id);
+
 // ============================================
 // GLOBAL STORE
 // ============================================

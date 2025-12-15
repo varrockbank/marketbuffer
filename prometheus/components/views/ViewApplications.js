@@ -1,9 +1,34 @@
-import { store, actions, type2Apps } from '../../store.js';
+import { store, actions, type2Apps, isWindowOpen } from '../../store.js';
 import { KitViewLayout } from '../kit/KitViewLayout.js';
 import { KitIcon } from '../kit/KitIcon.js';
 import { useStyles } from '../../lib/useStyles.js';
 
 const styles = `
+.view-content-inner {
+  padding: 24px;
+  max-width: 800px;
+}
+
+.view-content-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-secondary);
+}
+
+.view-content-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--text-primary);
+}
+
+.view-content-text {
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
 .view-applications-list {
   padding: 4px 0;
 }
@@ -126,7 +151,7 @@ export const ViewApplications = {
         <p class="view-content-text">{{ selectedApp.description }}</p>
         <div class="view-applications-detail-actions">
           <button class="view-applications-detail-btn view-applications-detail-btn-primary" @click="launchApp">
-            {{ isAppOpen ? 'Open' : 'Launch' }}
+            {{ isWindowOpen(selectedApp.id) ? 'Open' : 'Launch' }}
           </button>
         </div>
       </div>
@@ -145,10 +170,6 @@ export const ViewApplications = {
       selectedApp.value = app;
     };
 
-    const isAppOpen = Vue.computed(() => {
-      return selectedApp.value && store.openWindows.includes(selectedApp.value.id);
-    });
-
     const launchApp = () => {
       if (selectedApp.value) {
         actions.openWindow(selectedApp.value.id);
@@ -156,6 +177,6 @@ export const ViewApplications = {
       }
     };
 
-    return { store, type2Apps, selectedApp, selectApp, isAppOpen, launchApp };
+    return { store, type2Apps, selectedApp, selectApp, isWindowOpen, launchApp };
   },
 };

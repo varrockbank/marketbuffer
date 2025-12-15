@@ -1,4 +1,4 @@
-import { store, actions, type2Apps } from '../store.js';
+import { store, actions, type2Apps, isWindowOpen } from '../store.js';
 import { KitBar } from './kit/KitBar.js';
 import { KitButton } from './kit/KitButton.js';
 import { KitBrand } from './kit/KitBrand.js';
@@ -10,28 +10,22 @@ const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 const modKey = isMac ? '⌘' : 'Ctrl';
 
 const styles = `
-.menu-bar {
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
-  padding: 0 2px 0 12px;
+.topbar-bar .kit-bar-right .kit-menu {
+  width: auto;
+  padding: 0;
 }
 
-.no-contrast .menu-bar {
-  background: var(--bg-primary);
-  border-bottom-color: transparent;
-}
-
-.distraction-free .menu-bar {
-  justify-content: flex-end;
-  background: var(--bg-primary);
-  border-bottom-color: var(--bg-primary);
+.topbar-bar .kit-bar-right .kit-menu-dropdown {
+  left: auto;
+  right: 0;
+  min-width: 220px;
 }
 `;
 
 export const Topbar = {
   components: { KitBar, KitButton, KitBrand, KitMenu, KitMenuItem },
   template: `
-    <KitBar class="menu-bar">
+    <KitBar class="topbar-bar">
       <template #left>
         <KitBrand v-if="!store.distractionFree" :icon="store.brandIcon" :name="store.brandName" :subtitle="'v' + store.version" />
       </template>
@@ -46,7 +40,7 @@ export const Topbar = {
               v-for="app in type2Apps"
               :key="app.id"
               :icon="app.icon"
-              :selected="store.openWindows.includes(app.id)"
+              :selected="isWindowOpen(app.id)"
               selectable
               @click="launchApp(app.id, close)"
             >
@@ -68,8 +62,8 @@ export const Topbar = {
     </KitBar>
   `,
   setup() {
-    useStyles('top-bar', styles);
-    
+    useStyles('topbar', styles);
+
     const router = VueRouter.useRouter();
     const route = VueRouter.useRoute();
     const themeIcon = Vue.computed(() => store.theme === 'dark' ? 'sun' : 'moon');
@@ -124,6 +118,6 @@ export const Topbar = {
       Vue.onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
     });
 
-    return { store, actions, themeIcon, themeTitle, contrastTitle, focusTitle, terminalTitle, modKey, goHome, isHome, type2Apps, launchApp, goToApps };
+    return { store, actions, themeIcon, themeTitle, contrastTitle, focusTitle, terminalTitle, modKey, goHome, isHome, type2Apps, isWindowOpen, launchApp, goToApps };
   },
 };

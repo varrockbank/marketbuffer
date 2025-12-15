@@ -5,7 +5,6 @@ import { useStyles } from '../../lib/useStyles.js';
  *
  * Props:
  *   draggable - Enables drag events for window title bars
- *   variant   - "default" | "title" - Changes visual style
  *
  * Slots:
  *   #left    - Left side content (title, brand, etc.)
@@ -22,6 +21,10 @@ const styles = `
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0 2px 0 12px;
+  color: var(--text-primary);
 }
 
 .kit-bar-draggable {
@@ -39,47 +42,30 @@ const styles = `
   gap: 4px;
 }
 
-/* Title bar variant - for window panels */
-.kit-bar-title {
-  padding: 0 0 0 8px;
-  background: #000;
-  border-bottom: 1px solid var(--border-color);
-  user-select: none;
-}
-
-.kit-bar-title .kit-bar-left {
-  font-weight: 600;
-  font-size: 12px;
-  color: #fff;
-}
-
-.kit-bar-title .kit-bar-right {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.distraction-free .kit-bar-title {
-  background: var(--bg-primary);
-}
-
-.distraction-free .kit-bar-title .kit-bar-left {
+.kit-bar .kit-button {
   color: var(--text-primary);
 }
 
-.distraction-free .kit-bar-title .kit-bar-right {
-  color: var(--text-secondary);
+.kit-bar .kit-button:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.no-contrast .kit-bar {
+  background: var(--bg-primary);
+  border-bottom-color: transparent;
 }
 `;
 
 export const KitBar = {
   props: {
     draggable: { type: Boolean, default: false },
-    variant: { type: String, default: 'default' },
   },
   emits: ['dragstart', 'drag', 'dragend'],
   template: `
     <div
       class="kit-bar"
-      :class="[{ 'kit-bar-draggable': draggable }, variant !== 'default' ? 'kit-bar-' + variant : '']"
+      :class="[{ 'kit-bar-draggable': draggable }]"
       @mousedown="onMouseDown"
     >
       <div class="kit-bar-left">

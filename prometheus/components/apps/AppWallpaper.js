@@ -2,8 +2,8 @@ import { store } from '../../store.js';
 import { useStyles } from '../../lib/useStyles.js';
 
 const styles = `
-/* Wallpaper Window - not full height, auto width */
-.view-home-desktop > .window:has(.wallpaper-content) {
+/* Wallpaper panel - not full height, auto width */
+.view-home-desktop > .kit-panel:has(.wallpaper-content) {
   height: auto;
   width: auto !important;
 }
