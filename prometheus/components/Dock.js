@@ -5,22 +5,19 @@ import { KitSidebarFooter } from './kit/KitSidebarFooter.js';
 import { KitMenu } from './kit/KitMenu.js';
 import { KitMenuItem } from './kit/KitMenuItem.js';
 import { KitMenuSeparator } from './kit/KitMenuSeparator.js';
-import { KitTUISidenav } from './kit/tui/KitTUISidenav.js';
+import { KitTUIVbufSidenav } from './kit/tui/KitTUIVbufSidenav.js';
 
 export const Dock = {
-  components: { KitSidebar, KitButton, KitSidebarFooter, KitMenu, KitMenuItem, KitMenuSeparator, KitTUISidenav },
+  components: { KitSidebar, KitButton, KitSidebarFooter, KitMenu, KitMenuItem, KitMenuSeparator, KitTUIVbufSidenav },
   template: `
-    <!-- TUI Mode Sidenav -->
-    <KitTUISidenav
-      v-if="store.tuiMode"
+    <!-- TUI Mode Sidenav (vbuf-based) -->
+    <KitTUIVbufSidenav
+      v-if="store.tuiMode && !store.distractionFree && !store.sidenavCollapsed"
       :items="store.menuItems"
       :activeId="store.activeMenuItem"
+      :borderless="!store.contrast"
       @select="handleSelect"
-    >
-      <template #footer>
-        <div>[U] User</div>
-      </template>
-    </KitTUISidenav>
+    />
 
     <!-- Normal Mode Sidebar -->
     <KitSidebar v-else class="dock" :mode="sidebarMode" padded>
@@ -77,10 +74,10 @@ export const Dock = {
 
     const isHome = Vue.computed(() => route.path === '/');
 
-    // Sidebar mode: 'expanded', 'icon', or 'collapsed'
+    // Sidebar mode: 'expanded' or 'collapsed' (no icon mode)
     const sidebarMode = Vue.computed(() => {
       if (store.distractionFree) return 'collapsed';
-      if (store.sidenavCollapsed) return 'icon';
+      if (store.sidenavCollapsed) return 'collapsed';
       return 'expanded';
     });
 
@@ -125,6 +122,11 @@ export const Dock = {
     });
 
     const handleSelect = (id) => {
+      if (id === 'settings') {
+        store.activeMenuItem = null;
+      } else {
+        store.activeMenuItem = id;
+      }
       const route = getRoute(id);
       router.push(route);
     };

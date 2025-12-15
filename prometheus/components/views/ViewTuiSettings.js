@@ -1,5 +1,7 @@
 import { store, actions } from '../../store.js';
 import { KitTUIViewLayout } from '../kit/tui/KitTUIViewLayout.js';
+import { KitTUIVbufViewSidenav } from '../kit/tui/KitTUIVbufViewSidenav.js';
+import { KitTUIVbufContent } from '../kit/tui/KitTUIVbufContent.js';
 
 const categories = [
   { id: 'appearance', label: 'Appearance' },
@@ -7,66 +9,68 @@ const categories = [
 ];
 
 export const ViewTuiSettings = {
-  components: { KitTUIViewLayout },
+  components: { KitTUIViewLayout, KitTUIVbufViewSidenav, KitTUIVbufContent },
   template: `
-    <KitTUIViewLayout :collapsed="store.subSidenavCollapsed" :title="selectedLabel">
+    <KitTUIViewLayout :collapsed="store.subSidenavCollapsed || store.distractionFree" :title="selectedLabel">
       <template #menu>
-        <div class="flex-1 overflow-y-auto">
-          <div class="kit-tui-header">Settings</div>
-          <div
-            v-for="cat in categories"
-            :key="cat.id"
-            class="kit-tui-menu-item pl-0 ml-[1ch] pr-0 gap-0 flex items-center cursor-pointer"
-            :class="selectedCategory === cat.id ? 'active' : ''"
-            @click="selectedCategory = cat.id"
-          >
-            <span class="inline-block" style="width: 2ch;">{{ selectedCategory === cat.id ? '>' : '' }}</span>
-            <span class="truncate">{{ cat.label }}</span>
-          </div>
-        </div>
+        <KitTUIVbufViewSidenav
+          :sections="menuSections"
+          :activeId="selectedCategory"
+          @select="onSelect"
+        />
       </template>
 
       <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <template v-if="selectedCategory === 'appearance'">
-          <div class="font-bold mb-2">== Appearance ==</div>
-          <div class="mb-2">
-            <span>Theme: </span>
-            <span class="cursor-pointer" :class="store.theme === 'dark' ? 'font-bold' : ''" @click="setTheme('dark')">[Dark]</span>
-            <span class="cursor-pointer" :class="store.theme === 'light' ? 'font-bold' : ''" @click="setTheme('light')">[Light]</span>
-          </div>
-          <div class="mb-2">
-            <span>Contrast borders: </span>
-            <span class="cursor-pointer" @click="actions.toggleContrast">{{ store.contrast ? '[ON]' : '[OFF]' }}</span>
-          </div>
-        </template>
-        <template v-else-if="selectedCategory === 'desktop'">
-          <div class="font-bold mb-2">== Desktop ==</div>
-          <div class="mb-1">Wallpaper:</div>
-          <div class="flex flex-wrap gap-1">
-            <span
-              v-for="wp in store.wallpapers"
-              :key="wp.id"
-              class="cursor-pointer"
-              :class="store.wallpaper === wp.id ? 'font-bold' : ''"
-              @click="store.wallpaper = wp.id"
-            >[{{ wp.id }}]</span>
-          </div>
-        </template>
+        <KitTUIVbufContent :lines="contentLines" />
       </div>
     </KitTUIViewLayout>
   `,
   setup() {
-    const selectedCategory = Vue.ref('appearance');
+    const router = VueRouter.useRouter();
+    const route = VueRouter.useRoute();
+
+    // Get selected category from route or default to 'appearance'
+    const selectedCategory = Vue.computed(() => route.params.category || 'appearance');
+
+    const menuSections = Vue.computed(() => [
+      { header: 'Settings', items: categories.map(c => ({ id: c.id, label: c.label })) },
+    ]);
 
     const selectedLabel = Vue.computed(() => {
       const cat = categories.find(c => c.id === selectedCategory.value);
       return cat ? cat.label : 'Settings';
     });
 
+    const onSelect = (id) => {
+      router.push(`/settings/${id}`);
+    };
+
     const setTheme = (value) => {
       store.theme = value;
     };
 
-    return { store, actions, categories, selectedCategory, selectedLabel, setTheme };
+    const contentLines = Vue.computed(() => {
+      const lines = [];
+
+      if (selectedCategory.value === 'appearance') {
+        lines.push('== Appearance ==');
+        lines.push('');
+        lines.push(`Theme: ${store.theme === 'dark' ? '[Dark]*' : '[Dark]'} ${store.theme === 'light' ? '[Light]*' : '[Light]'}`);
+        lines.push('');
+        lines.push(`Contrast borders: ${store.contrast ? '[ON]' : '[OFF]'}`);
+      } else if (selectedCategory.value === 'desktop') {
+        lines.push('== Desktop ==');
+        lines.push('');
+        lines.push('Wallpaper:');
+        const wpLine = store.wallpapers.map(wp =>
+          store.wallpaper === wp.id ? `[${wp.id}]*` : `[${wp.id}]`
+        ).join(' ');
+        lines.push(wpLine);
+      }
+
+      return lines;
+    });
+
+    return { store, actions, categories, selectedCategory, selectedLabel, contentLines, menuSections, onSelect, setTheme };
   },
 };

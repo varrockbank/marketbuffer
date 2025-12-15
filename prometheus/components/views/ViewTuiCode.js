@@ -1,45 +1,24 @@
 import { KitTUIViewLayout } from '../kit/tui/KitTUIViewLayout.js';
+import { KitTUIVbufViewSidenav } from '../kit/tui/KitTUIVbufViewSidenav.js';
+import { KitTUIVbufContent } from '../kit/tui/KitTUIVbufContent.js';
 import { store, actions } from '../../store.js';
 import { listProjects, listFiles, loadFile } from '../../lib/projectService.js';
 
 export const ViewTuiCode = {
-  components: { KitTUIViewLayout },
+  components: { KitTUIViewLayout, KitTUIVbufViewSidenav, KitTUIVbufContent },
   template: `
-    <KitTUIViewLayout :collapsed="store.subSidenavCollapsed" :title="store.activeFile || store.currentProject">
+    <KitTUIViewLayout :collapsed="store.subSidenavCollapsed || store.distractionFree" :title="store.activeFile || store.currentProject">
       <template #menu>
-        <div class="flex-1 overflow-y-auto">
-          <div class="kit-tui-header">{{ store.currentProject }}</div>
-          <div
-            v-for="file in treeFiles"
-            :key="file.path"
-            class="kit-tui-menu-item pl-0 ml-[1ch] pr-0 gap-0 flex items-center cursor-pointer whitespace-pre"
-            :class="store.activeFilePath === file.path ? 'active' : ''"
-            @click="onFileSelect(file)"
-          >
-            <span class="inline-block" style="width: 2ch;">{{ store.activeFilePath === file.path ? '>' : '' }}</span>
-            <span>{{ file.prefix }}</span>
-            <span>{{ file.type === 'folder' ? file.name + '/' : file.name }}</span>
-          </div>
-        </div>
+        <KitTUIVbufViewSidenav
+          :sections="menuSections"
+          :activeId="store.activeFilePath"
+          :borderless="!store.contrast"
+          @select="onMenuSelect"
+        />
       </template>
 
       <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <template v-if="store.activeFileError">
-          <div>File not found: {{ store.activeFile }}</div>
-        </template>
-        <template v-else-if="store.activeFile">
-          <div v-if="store.fileLoading">Loading...</div>
-          <div v-else class="flex-1 overflow-auto">
-            <div v-for="(line, idx) in lines" :key="idx" class="flex">
-              <span class="shrink-0" style="width: 4ch; text-align: right; margin-right: 1ch;">{{ idx + 1 }}</span>
-              <span class="flex-1 whitespace-pre">{{ line }}</span>
-            </div>
-          </div>
-        </template>
-        <div v-else>
-          <div>{{ store.currentProject }}</div>
-          <div>Select a file to view its contents</div>
-        </div>
+        <KitTUIVbufContent :lines="contentLines" :showGutter="!!store.activeFile" />
       </div>
     </KitTUIViewLayout>
   `,
@@ -99,6 +78,18 @@ export const ViewTuiCode = {
       return result;
     });
 
+    // Build menu sections for vbuf sidenav
+    const menuSections = Vue.computed(() => [
+      {
+        header: store.currentProject,
+        items: treeFiles.value.map(f => ({
+          id: f.path,
+          label: f.type === 'folder' ? f.name + '/' : f.name,
+          prefix: f.prefix,
+        })),
+      },
+    ]);
+
     const onFileSelect = async (file) => {
       if (file.type === 'folder') return;
       actions.setActiveFile(file.name, file.path);
@@ -113,9 +104,33 @@ export const ViewTuiCode = {
       }
     };
 
-    const lines = Vue.computed(() => {
-      if (!store.activeFileContent) return [];
-      return store.activeFileContent.split('\n');
+    const onMenuSelect = (id) => {
+      const file = treeFiles.value.find(f => f.path === id);
+      if (file) {
+        onFileSelect(file);
+      }
+    };
+
+    const contentLines = Vue.computed(() => {
+      if (store.activeFileError) {
+        return [`File not found: ${store.activeFile}`];
+      }
+
+      if (store.activeFile) {
+        if (store.fileLoading) {
+          return ['Loading...'];
+        }
+        if (store.activeFileContent) {
+          return store.activeFileContent.split('\n');
+        }
+        return [];
+      }
+
+      return [
+        store.currentProject,
+        '',
+        'Select a file to view its contents',
+      ];
     });
 
     return {
@@ -124,8 +139,10 @@ export const ViewTuiCode = {
       files,
       projects,
       treeFiles,
-      lines,
+      menuSections,
+      contentLines,
       onFileSelect,
+      onMenuSelect,
     };
   },
 };

@@ -1,5 +1,7 @@
 import { store } from '../../store.js';
 import { KitTUIViewLayout } from '../kit/tui/KitTUIViewLayout.js';
+import { KitTUIVbufViewSidenav } from '../kit/tui/KitTUIVbufViewSidenav.js';
+import { KitTUIVbufContent } from '../kit/tui/KitTUIVbufContent.js';
 
 const documents = {
   drafts: [
@@ -14,7 +16,10 @@ const documents = {
   ],
 };
 
-const defaultContent = `As we enter the final quarter of 2024, markets face a complex landscape.
+const documentContent = {
+  'market-outlook': {
+    title: 'Q4 2024 Market Outlook',
+    body: `As we enter the final quarter of 2024, markets face a complex landscape.
 
 Key themes:
 1. Interest Rate Trajectory
@@ -24,83 +29,186 @@ Key themes:
 Portfolio Positioning:
 - Maintaining neutral equity exposure
 - Overweight quality factor
-- Tactical allocation to volatility strategies`;
+- Tactical allocation to volatility strategies`,
+  },
+  'trading-journal': {
+    title: 'Trading Journal - December 2024',
+    body: `Week 1 Summary:
+
+Trades Executed: 8
+Win Rate: 62.5%
+Total P&L: +$1,847.50
+
+Notable Trades:
+- NVDA momentum play: +$567.80 (held 2 days)
+- AAPL earnings fade: -$125.00 (stopped out)
+- SPY mean reversion: +$425.00 (textbook setup)
+
+Lessons Learned:
+- Need to reduce position size on earnings plays
+- Morning momentum setups working well
+- Should add more pairs trades for diversification`,
+  },
+  'algo-notes': {
+    title: 'Algorithm Design Notes',
+    body: `Current Strategy Performance Review:
+
+Momentum Strategy (v2.3):
+- Sharpe: 1.85 (up from 1.42)
+- Key change: Added volume confirmation
+- Next: Test 5-day vs 10-day lookback
+
+Mean Reversion (v1.8):
+- Sharpe: 1.42
+- Issue: Too many false signals in trending markets
+- Idea: Add trend filter (SMA50 > SMA200)
+
+Pairs Trading (v1.2):
+- Sharpe: 2.15 (best performer)
+- Working well, no changes needed
+- Consider adding XLF/XLK pair`,
+  },
+  'momentum-guide': {
+    title: 'Momentum Trading Guide',
+    body: `A Complete Guide to Momentum Trading
+
+What is Momentum Trading?
+Momentum trading is a strategy that aims to capitalize on the
+continuance of existing trends in the market.
+
+Key Principles:
+1. Trend is your friend
+2. Cut losers quickly
+3. Let winners run
+4. Volume confirms moves
+
+Entry Criteria:
+- 10-day return > 2%
+- Volume > 1.5x average
+- Price above 20-day SMA
+
+Exit Criteria:
+- Trailing stop: 5%
+- Time stop: 10 days
+- Momentum reversal signal`,
+  },
+  'risk-management': {
+    title: 'Risk Management 101',
+    body: `Essential Risk Management Principles
+
+Position Sizing:
+- Never risk more than 2% per trade
+- Scale into positions (1/3 at a time)
+- Maximum 6 concurrent positions
+
+Stop Loss Rules:
+- Always use stops
+- Set before entry, never move down
+- Use ATR-based stops for volatility adjustment
+
+Portfolio Rules:
+- Max sector exposure: 30%
+- Max single stock: 10%
+- Cash reserve: 20% minimum
+
+Daily Risk Limits:
+- Max daily loss: 3% of portfolio
+- Stop trading after 2 consecutive losses`,
+  },
+  'backtest-results': {
+    title: 'Backtest Results - November 2024',
+    body: `November 2024 Backtest Summary
+
+Tested: 5 strategy variations
+Period: Jan 2020 - Nov 2024
+
+Best Performer: Momentum + Volume Filter
+- Annual Return: 24.5%
+- Sharpe Ratio: 1.85
+- Max Drawdown: -8.3%
+- Win Rate: 62%
+
+Worst Performer: Pure RSI Mean Reversion
+- Annual Return: 8.2%
+- Sharpe Ratio: 0.95
+- Max Drawdown: -15.2%
+- Win Rate: 48%
+
+Recommendations:
+1. Deploy Momentum + Volume to production
+2. Pause RSI strategy for parameter optimization
+3. Continue walk-forward on Pairs strategy`,
+  },
+};
 
 export const ViewTuiPublish = {
-  components: { KitTUIViewLayout },
+  components: { KitTUIViewLayout, KitTUIVbufViewSidenav, KitTUIVbufContent },
   template: `
-    <KitTUIViewLayout :collapsed="store.subSidenavCollapsed" :title="selectedName">
+    <KitTUIViewLayout :collapsed="store.subSidenavCollapsed || store.distractionFree" :title="selectedName">
       <template #menu>
-        <div class="flex-1 overflow-y-auto">
-          <div class="kit-tui-header">Drafts</div>
-          <div
-            v-for="doc in documents.drafts"
-            :key="doc.id"
-            class="kit-tui-menu-item pl-0 ml-[1ch] pr-0 gap-0 flex items-center cursor-pointer"
-            :class="selectedDoc === doc.id ? 'active' : ''"
-            @click="selectDoc(doc)"
-          >
-            <span class="inline-block" style="width: 2ch;">{{ selectedDoc === doc.id ? '>' : '' }}</span>
-            <span class="truncate flex-1">{{ doc.name }}</span>
-            <span class="ml-1">[D]</span>
-          </div>
-
-          <div class="kit-tui-header">Published</div>
-          <div
-            v-for="doc in documents.published"
-            :key="doc.id"
-            class="kit-tui-menu-item pl-0 ml-[1ch] pr-0 gap-0 flex items-center cursor-pointer"
-            :class="selectedDoc === doc.id ? 'active' : ''"
-            @click="selectDoc(doc)"
-          >
-            <span class="inline-block" style="width: 2ch;">{{ selectedDoc === doc.id ? '>' : '' }}</span>
-            <span class="truncate flex-1">{{ doc.name }}</span>
-            <span class="ml-1">[P]</span>
-          </div>
-        </div>
+        <KitTUIVbufViewSidenav
+          :sections="menuSections"
+          :activeId="selectedDoc"
+          @select="onSelect"
+        />
       </template>
 
       <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <div class="mb-1">{{ selectedStatus === 'published' ? '[Published]' : '[Draft]' }} | {{ wordCount }} words | [Preview] [Publish]</div>
-        <div class="shrink-0 mb-2" style="border-bottom: 1px solid var(--tui-fg);">
-          <input
-            type="text"
-            class="w-full bg-transparent outline-none font-bold"
-            v-model="title"
-            placeholder="Title..."
-          >
-        </div>
-        <div class="flex-1 overflow-auto">
-          <textarea
-            class="w-full h-full bg-transparent outline-none resize-none"
-            v-model="body"
-            placeholder="Start writing..."
-            @input="updateWordCount"
-          ></textarea>
-        </div>
+        <KitTUIVbufContent :lines="contentLines" />
       </div>
     </KitTUIViewLayout>
   `,
   setup() {
-    const selectedDoc = Vue.ref('market-outlook');
-    const selectedName = Vue.ref('Q4 Market Outlook');
-    const selectedStatus = Vue.ref('draft');
-    const title = Vue.ref('Q4 2024 Market Outlook');
-    const body = Vue.ref(defaultContent);
-    const wordCount = Vue.ref(0);
+    const router = VueRouter.useRouter();
+    const route = VueRouter.useRoute();
 
-    const updateWordCount = () => {
-      const text = body.value.trim();
-      wordCount.value = text ? text.split(/\s+/).length : 0;
+    const allDocs = [...documents.drafts, ...documents.published];
+
+    // Get selected doc from route or default to 'market-outlook'
+    const selectedDoc = Vue.computed(() => route.params.doc || 'market-outlook');
+
+    const currentDoc = Vue.computed(() => {
+      return allDocs.find(d => d.id === selectedDoc.value) || documents.drafts[0];
+    });
+
+    const selectedName = Vue.computed(() => currentDoc.value?.name || 'Q4 Market Outlook');
+    const selectedStatus = Vue.computed(() => currentDoc.value?.status || 'draft');
+
+    const menuSections = Vue.computed(() => [
+      { header: 'Drafts', items: documents.drafts.map(d => ({ id: d.id, label: d.name, suffix: '[D]' })) },
+      { header: 'Published', items: documents.published.map(d => ({ id: d.id, label: d.name, suffix: '[P]' })) },
+    ]);
+
+    const currentContent = Vue.computed(() => {
+      return documentContent[selectedDoc.value] || { title: '', body: '' };
+    });
+
+    const wordCount = Vue.computed(() => {
+      const text = currentContent.value.body.trim();
+      return text ? text.split(/\s+/).length : 0;
+    });
+
+    const onSelect = (id) => {
+      router.push(`/publish/${id}`);
     };
 
-    updateWordCount();
+    const contentLines = Vue.computed(() => {
+      const lines = [];
+      const content = currentContent.value;
 
-    const selectDoc = (doc) => {
-      selectedDoc.value = doc.id;
-      selectedName.value = doc.name;
-      selectedStatus.value = doc.status;
-    };
+      lines.push(`${selectedStatus.value === 'published' ? '[Published]' : '[Draft]'} | ${wordCount.value} words | [Preview] [Publish]`);
+      lines.push('');
+      lines.push('─'.repeat(60));
+      lines.push(content.title);
+      lines.push('─'.repeat(60));
+      lines.push('');
+
+      content.body.split('\n').forEach(line => {
+        lines.push(line);
+      });
+
+      return lines;
+    });
 
     return {
       store,
@@ -108,11 +216,10 @@ export const ViewTuiPublish = {
       selectedDoc,
       selectedName,
       selectedStatus,
-      title,
-      body,
       wordCount,
-      updateWordCount,
-      selectDoc,
+      contentLines,
+      menuSections,
+      onSelect,
     };
   },
 };

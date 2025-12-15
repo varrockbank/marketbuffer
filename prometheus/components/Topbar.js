@@ -6,23 +6,12 @@ import { KitMenu } from './kit/KitMenu.js';
 import { KitMenuItem } from './kit/KitMenuItem.js';
 import { KitMenuSeparator } from './kit/KitMenuSeparator.js';
 import { KitTUIBar } from './kit/tui/KitTUIBar.js';
-import { KitTUIButton } from './kit/tui/KitTUIButton.js';
 
 export const Topbar = {
-  components: { KitBar, KitButton, KitBrand, KitMenu, KitMenuItem, KitMenuSeparator, KitTUIBar, KitTUIButton },
+  components: { KitBar, KitButton, KitBrand, KitMenu, KitMenuItem, KitMenuSeparator, KitTUIBar },
   template: `
     <!-- TUI Mode Bar -->
-    <KitTUIBar v-if="store.tuiMode" :brand="store.brandName">
-      <KitTUIButton char="H" tooltip="Home" :active="isHome" @click="router.push('/')" />
-      <KitTUIButton char="A" tooltip="Applications" @click="router.push('/applications')" />
-      <KitTUIButton char="⽉" tooltip="Toggle Theme" @click="actions.toggleTheme" />
-      <KitTUIButton char="#" tooltip="Exit TUI Mode" @click="actions.toggleTuiMode" />
-      <KitTUIButton char="C" tooltip="Toggle Contrast" @click="actions.toggleContrast" />
-      <KitTUIButton char="S" tooltip="Toggle Sidenav" @click="actions.toggleSidenav" />
-      <KitTUIButton char="P" tooltip="Toggle Panel" @click="actions.toggleSubSidenav" />
-      <KitTUIButton char=">" tooltip="Toggle Terminal" @click="actions.toggleTerminal" />
-      <KitTUIButton char="F" tooltip="Focus Mode" @click="actions.toggleDistractionFree" />
-    </KitTUIBar>
+    <KitTUIBar v-if="store.tuiMode" :brand="store.brandName" :buttons="tuiButtons" :distractionFree="store.distractionFree" :borderless="!store.contrast" @button-click="onTuiButtonClick" />
 
     <!-- Normal Mode Bar -->
     <KitBar v-else class="topbar-bar">
@@ -72,6 +61,25 @@ export const Topbar = {
     const terminalTitle = Vue.computed(() => 'Toggle Terminal (' + store.modKey + '`)');
     const isHome = Vue.computed(() => route.path === '/');
 
+    // TUI buttons with reactive active states
+    const tuiButtons = Vue.computed(() => {
+      const inFocus = store.distractionFree;
+      const buttons = [
+        { id: 'theme', char: store.theme === 'dark' ? '☀' : '☽', active: false, hidden: inFocus },
+        { id: 'tui', char: '#', active: store.tuiMode, hidden: inFocus },
+        { id: 'contrast', char: 'C', active: store.contrast, hidden: inFocus },
+        { id: 'sidenav', char: 'S', active: !store.sidenavCollapsed, hidden: inFocus },
+        { id: 'panel', char: 'P', active: !store.subSidenavCollapsed, hidden: inFocus },
+        { id: 'terminal', char: 'T', active: store.terminalExpanded, hidden: inFocus },
+        { id: 'focus', char: 'F', active: inFocus, hidden: false },
+      ];
+      // Only show apps button when not on applications page
+      if (route.path !== '/applications') {
+        buttons.unshift({ id: 'apps', char: 'A', active: false, hidden: inFocus });
+      }
+      return buttons;
+    });
+
     const launchApp = (appId, closeMenu) => {
       actions.openWindow(appId);
       router.push('/');
@@ -83,6 +91,21 @@ export const Topbar = {
       closeMenu();
     };
 
-    return { store, actions, router, themeIcon, themeTitle, contrastTitle, focusTitle, terminalTitle, isHome, isWindowOpen, launchApp, goToApps };
+    const onTuiButtonClick = (id) => {
+      console.log('onTuiButtonClick received:', id);
+      switch (id) {
+        case 'home': router.push('/'); break;
+        case 'apps': router.push('/applications'); break;
+        case 'theme': actions.toggleTheme(); break;
+        case 'tui': actions.toggleTuiMode(); break;
+        case 'contrast': actions.toggleContrast(); break;
+        case 'sidenav': actions.toggleSidenav(); break;
+        case 'panel': actions.toggleSubSidenav(); break;
+        case 'terminal': actions.toggleTerminal(); break;
+        case 'focus': actions.toggleDistractionFree(); break;
+      }
+    };
+
+    return { store, actions, router, themeIcon, themeTitle, contrastTitle, focusTitle, terminalTitle, isHome, isWindowOpen, launchApp, goToApps, tuiButtons, onTuiButtonClick };
   },
 };

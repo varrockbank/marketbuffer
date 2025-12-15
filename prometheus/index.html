@@ -7,6 +7,7 @@
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <script src="https://unpkg.com/vue-router@4/dist/vue-router.global.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="vbuf.min.js"></script>
   <style>
     * {
       margin: 0;
@@ -99,17 +100,17 @@
       history: createWebHashHistory(),
       routes: [
         { path: '/', name: 'home', component: ViewHome },
-        { path: '/applications', name: 'applications', component: createModeSwitch(ViewApplications, ViewTuiApplications) },
-        { path: '/yap', name: 'yap', component: createModeSwitch(ViewYap, ViewTuiYap) },
-        { path: '/deployments', name: 'deployments', component: createModeSwitch(ViewDeployments, ViewTuiDeployments) },
-        { path: '/data', name: 'data', component: createModeSwitch(ViewData, ViewTuiData) },
-        { path: '/stream', name: 'stream', component: createModeSwitch(ViewStream, ViewTuiStream) },
+        { path: '/applications/:app?', name: 'applications', component: createModeSwitch(ViewApplications, ViewTuiApplications) },
+        { path: '/yap/:channel?', name: 'yap', component: createModeSwitch(ViewYap, ViewTuiYap) },
+        { path: '/deployments/:item?', name: 'deployments', component: createModeSwitch(ViewDeployments, ViewTuiDeployments) },
+        { path: '/data/:table?', name: 'data', component: createModeSwitch(ViewData, ViewTuiData) },
+        { path: '/stream/:feed?', name: 'stream', component: createModeSwitch(ViewStream, ViewTuiStream) },
         { path: '/code', redirect: '/code/prometheus' },
-        { path: '/code/:project', name: 'code', component: createModeSwitch(ViewCode, ViewTuiCode) },
-        { path: '/publish', name: 'publish', component: createModeSwitch(ViewPublish, ViewTuiPublish) },
-        { path: '/simulate', name: 'simulate', component: createModeSwitch(ViewSimulate, ViewTuiSimulate) },
-        { path: '/agents', name: 'agents', component: createModeSwitch(ViewAgents, ViewTuiAgents) },
-        { path: '/settings', name: 'settings', component: createModeSwitch(ViewSettings, ViewTuiSettings) },
+        { path: '/code/:project/:file?', name: 'code', component: createModeSwitch(ViewCode, ViewTuiCode) },
+        { path: '/publish/:doc?', name: 'publish', component: createModeSwitch(ViewPublish, ViewTuiPublish) },
+        { path: '/simulate/:item?', name: 'simulate', component: createModeSwitch(ViewSimulate, ViewTuiSimulate) },
+        { path: '/agents/:item?', name: 'agents', component: createModeSwitch(ViewAgents, ViewTuiAgents) },
+        { path: '/settings/:category?', name: 'settings', component: createModeSwitch(ViewSettings, ViewTuiSettings) },
       ]
     });
     router.afterEach((to) => {

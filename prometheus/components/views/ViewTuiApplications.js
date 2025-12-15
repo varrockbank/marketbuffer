@@ -1,46 +1,43 @@
 import { store, actions, isWindowOpen } from '../../store.js';
 import { KitTUIViewLayout } from '../kit/tui/KitTUIViewLayout.js';
+import { KitTUIVbufViewSidenav } from '../kit/tui/KitTUIVbufViewSidenav.js';
+import { KitTUIVbufContent } from '../kit/tui/KitTUIVbufContent.js';
 
 export const ViewTuiApplications = {
-  components: { KitTUIViewLayout },
+  components: { KitTUIViewLayout, KitTUIVbufViewSidenav, KitTUIVbufContent },
   template: `
-    <KitTUIViewLayout :collapsed="store.subSidenavCollapsed" :title="selectedApp ? selectedApp.label : 'Applications'">
+    <KitTUIViewLayout :collapsed="store.subSidenavCollapsed || store.distractionFree" :title="selectedApp ? selectedApp.label : 'Applications'">
       <template #menu>
-        <div class="flex-1 overflow-y-auto">
-          <div class="kit-tui-header">Applications</div>
-          <div
-            v-for="app in store.type2Apps"
-            :key="app.id"
-            class="kit-tui-menu-item pl-0 ml-[1ch] pr-0 gap-0 flex items-center cursor-pointer"
-            :class="selectedApp?.id === app.id ? 'active' : ''"
-            @click="selectApp(app)"
-          >
-            <span class="inline-block" style="width: 2ch;">{{ selectedApp?.id === app.id ? '>' : '' }}</span>
-            <span class="truncate">{{ app.label }}</span>
-          </div>
-        </div>
+        <KitTUIVbufViewSidenav
+          :sections="menuSections"
+          :activeId="selectedApp?.id"
+          :borderless="!store.contrast"
+          @select="onSelect"
+        />
       </template>
 
       <div class="flex-1 flex flex-col min-w-0 overflow-hidden p-0">
-        <template v-if="selectedApp">
-          <div class="mb-1">{{ selectedApp.label }} v{{ selectedApp.version }}</div>
-          <div class="mb-1">{{ selectedApp.description }}</div>
-          <div class="mt-2">
-            <span class="cursor-pointer" @click="launchApp">[{{ isWindowOpen(selectedApp.id) ? 'Open' : 'Launch' }}]</span>
-          </div>
-        </template>
-        <template v-else>
-          <div>Select an application to view details</div>
-        </template>
+        <KitTUIVbufContent :lines="contentLines" />
       </div>
     </KitTUIViewLayout>
   `,
   setup() {
     const router = VueRouter.useRouter();
-    const selectedApp = Vue.ref(store.type2Apps[0]);
+    const route = VueRouter.useRoute();
 
-    const selectApp = (app) => {
-      selectedApp.value = app;
+    // Get selected app from route or default to first app
+    const selectedAppId = Vue.computed(() => route.params.app || (store.type2Apps[0]?.id || ''));
+
+    const selectedApp = Vue.computed(() => {
+      return store.type2Apps.find(a => a.id === selectedAppId.value) || store.type2Apps[0];
+    });
+
+    const menuSections = Vue.computed(() => [
+      { header: 'Applications', items: store.type2Apps.map(a => ({ id: a.id, label: a.label })) },
+    ]);
+
+    const onSelect = (id) => {
+      router.push(`/applications/${id}`);
     };
 
     const launchApp = () => {
@@ -50,6 +47,22 @@ export const ViewTuiApplications = {
       }
     };
 
-    return { store, selectedApp, selectApp, isWindowOpen, launchApp };
+    const contentLines = Vue.computed(() => {
+      const lines = [];
+
+      if (selectedApp.value) {
+        lines.push(`${selectedApp.value.label} v${selectedApp.value.version}`);
+        lines.push('');
+        lines.push(selectedApp.value.description);
+        lines.push('');
+        lines.push(`[${isWindowOpen(selectedApp.value.id) ? 'Open' : 'Launch'}]`);
+      } else {
+        lines.push('Select an application to view details');
+      }
+
+      return lines;
+    });
+
+    return { store, selectedApp, contentLines, menuSections, onSelect, isWindowOpen, launchApp };
   },
 };
