@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketbuffer</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://unpkg.com/vue-router@4/dist/vue-router.global.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="vbuf.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Geneva, Tahoma, sans-serif;
+      font-size: 12px;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Theme: Dark */
+    .theme-dark {
+      --bg-primary: #1a1a1a;
+      --bg-secondary: #252525;
+      --bg-tertiary: #333;
+      --border-color: #444;
+      --text-primary: #e0e0e0;
+      --text-secondary: #888;
+      --accent: #7A68AA;
+      /* TUI Mode */
+      --tui-bg: #0a0a0a;
+      --tui-fg: #fff;
+    }
+
+    /* Theme: Light */
+    .theme-light {
+      --bg-primary: #fff;
+      --bg-secondary: #f0f0f0;
+      --bg-tertiary: #e0e0e0;
+      --border-color: #ccc;
+      --text-primary: #1a1a1a;
+      --text-secondary: #666;
+      --accent: #7A68AA;
+      /* TUI Mode */
+      --tui-bg: #fff;
+      --tui-fg: #0a0a0a;
+    }
+
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script type="module">
+    import { store, actions } from './store.js';
+    import { initKeyboard } from './lib/keyboard.js';
+    import { AppLayout } from './components/AppLayout.js';
+    import { ViewHome } from './components/views/ViewHome.js';
+    import { ViewApplications } from './components/views/ViewApplications.js';
+    import { ViewYap } from './components/views/ViewYap.js';
+    import { ViewDeployments } from './components/views/ViewDeployments.js';
+    import { ViewData } from './components/views/ViewData.js';
+    import { ViewStream } from './components/views/ViewStream.js';
+    import { ViewCode } from './components/views/ViewCode.js';
+    import { ViewPublish } from './components/views/ViewPublish.js';
+    import { ViewSimulate } from './components/views/ViewSimulate.js';
+    import { ViewAgents } from './components/views/ViewAgents.js';
+    import { ViewSettings } from './components/views/ViewSettings.js';
+    // TUI Views
+    import { ViewTuiYap } from './components/views/ViewTuiYap.js';
+    import { ViewTuiApplications } from './components/views/ViewTuiApplications.js';
+    import { ViewTuiData } from './components/views/ViewTuiData.js';
+    import { ViewTuiDeployments } from './components/views/ViewTuiDeployments.js';
+    import { ViewTuiStream } from './components/views/ViewTuiStream.js';
+    import { ViewTuiCode } from './components/views/ViewTuiCode.js';
+    import { ViewTuiPublish } from './components/views/ViewTuiPublish.js';
+    import { ViewTuiSimulate } from './components/views/ViewTuiSimulate.js';
+    import { ViewTuiAgents } from './components/views/ViewTuiAgents.js';
+    import { ViewTuiSettings } from './components/views/ViewTuiSettings.js';
+
+    const { createApp } = Vue;
+    const { createRouter, createWebHashHistory } = VueRouter;
+
+    // Helper to create mode-switching wrapper components
+    const createModeSwitch = (normalView, tuiView) => ({
+      components: { normalView, tuiView },
+      template: `<component :is="store.tuiMode ? 'tuiView' : 'normalView'" />`,
+      setup() {
+        return { store };
+      },
+    });
+
+    const router = createRouter({
+      history: createWebHashHistory(),
+      routes: [
+        { path: '/', name: 'home', component: ViewHome },
+        { path: '/applications/:app?', name: 'applications', component: createModeSwitch(ViewApplications, ViewTuiApplications) },
+        { path: '/yap/:channel?', name: 'yap', component: createModeSwitch(ViewYap, ViewTuiYap) },
+        { path: '/deployments/:item?', name: 'deployments', component: createModeSwitch(ViewDeployments, ViewTuiDeployments) },
+        { path: '/data/:table?', name: 'data', component: createModeSwitch(ViewData, ViewTuiData) },
+        { path: '/stream/:feed?', name: 'stream', component: createModeSwitch(ViewStream, ViewTuiStream) },
+        { path: '/code', redirect: '/code/prometheus' },
+        { path: '/code/:project/:file?', name: 'code', component: createModeSwitch(ViewCode, ViewTuiCode) },
+        { path: '/publish/:doc?', name: 'publish', component: createModeSwitch(ViewPublish, ViewTuiPublish) },
+        { path: '/simulate/:item?', name: 'simulate', component: createModeSwitch(ViewSimulate, ViewTuiSimulate) },
+        { path: '/agents/:item?', name: 'agents', component: createModeSwitch(ViewAgents, ViewTuiAgents) },
+        { path: '/settings/:category?', name: 'settings', component: createModeSwitch(ViewSettings, ViewTuiSettings) },
+      ]
+    });
+    router.afterEach((to) => {
+      if (to.name) {
+        store.activeMenuItem = to.name;
+      }
+      if (to.params.project) {
+        store.currentProject = to.params.project;
+      }
+    });
+
+    const app = createApp({
+      components: { AppLayout },
+      template: `
+        <AppLayout>
+          <router-view />
+        </AppLayout>
+      `,
+    }).use(router)
+      .mount('#app');
+
+    initKeyboard();
+
+    router.onError((err) => {
+      console.error("[router.onError]", err);
+    });
+
+  </script>
+</body>
+</html>
