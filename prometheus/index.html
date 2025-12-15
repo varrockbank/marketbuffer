@@ -32,6 +32,9 @@
       --text-primary: #e0e0e0;
       --text-secondary: #888;
       --accent: #7A68AA;
+      /* TUI Mode */
+      --tui-bg: #0a0a0a;
+      --tui-fg: #fff;
     }
 
     /* Theme: Light */
@@ -43,6 +46,9 @@
       --text-primary: #1a1a1a;
       --text-secondary: #666;
       --accent: #7A68AA;
+      /* TUI Mode */
+      --tui-bg: #fff;
+      --tui-fg: #0a0a0a;
     }
 
   </style>
@@ -65,25 +71,45 @@
     import { ViewSimulate } from './components/views/ViewSimulate.js';
     import { ViewAgents } from './components/views/ViewAgents.js';
     import { ViewSettings } from './components/views/ViewSettings.js';
+    // TUI Views
+    import { ViewTuiYap } from './components/views/ViewTuiYap.js';
+    import { ViewTuiApplications } from './components/views/ViewTuiApplications.js';
+    import { ViewTuiData } from './components/views/ViewTuiData.js';
+    import { ViewTuiDeployments } from './components/views/ViewTuiDeployments.js';
+    import { ViewTuiStream } from './components/views/ViewTuiStream.js';
+    import { ViewTuiCode } from './components/views/ViewTuiCode.js';
+    import { ViewTuiPublish } from './components/views/ViewTuiPublish.js';
+    import { ViewTuiSimulate } from './components/views/ViewTuiSimulate.js';
+    import { ViewTuiAgents } from './components/views/ViewTuiAgents.js';
+    import { ViewTuiSettings } from './components/views/ViewTuiSettings.js';
 
     const { createApp } = Vue;
     const { createRouter, createWebHashHistory } = VueRouter;
+
+    // Helper to create mode-switching wrapper components
+    const createModeSwitch = (normalView, tuiView) => ({
+      components: { normalView, tuiView },
+      template: `<component :is="store.tuiMode ? 'tuiView' : 'normalView'" />`,
+      setup() {
+        return { store };
+      },
+    });
 
     const router = createRouter({
       history: createWebHashHistory(),
       routes: [
         { path: '/', name: 'home', component: ViewHome },
-        { path: '/applications', name: 'applications', component: ViewApplications },
-        { path: '/yap', name: 'yap', component: ViewYap },
-        { path: '/deployments', name: 'deployments', component: ViewDeployments },
-        { path: '/data', name: 'data', component: ViewData },
-        { path: '/stream', name: 'stream', component: ViewStream },
+        { path: '/applications', name: 'applications', component: createModeSwitch(ViewApplications, ViewTuiApplications) },
+        { path: '/yap', name: 'yap', component: createModeSwitch(ViewYap, ViewTuiYap) },
+        { path: '/deployments', name: 'deployments', component: createModeSwitch(ViewDeployments, ViewTuiDeployments) },
+        { path: '/data', name: 'data', component: createModeSwitch(ViewData, ViewTuiData) },
+        { path: '/stream', name: 'stream', component: createModeSwitch(ViewStream, ViewTuiStream) },
         { path: '/code', redirect: '/code/prometheus' },
-        { path: '/code/:project', name: 'code', component: ViewCode },
-        { path: '/publish', name: 'publish', component: ViewPublish },
-        { path: '/simulate', name: 'simulate', component: ViewSimulate },
-        { path: '/agents', name: 'agents', component: ViewAgents },
-        { path: '/settings', name: 'settings', component: ViewSettings },
+        { path: '/code/:project', name: 'code', component: createModeSwitch(ViewCode, ViewTuiCode) },
+        { path: '/publish', name: 'publish', component: createModeSwitch(ViewPublish, ViewTuiPublish) },
+        { path: '/simulate', name: 'simulate', component: createModeSwitch(ViewSimulate, ViewTuiSimulate) },
+        { path: '/agents', name: 'agents', component: createModeSwitch(ViewAgents, ViewTuiAgents) },
+        { path: '/settings', name: 'settings', component: createModeSwitch(ViewSettings, ViewTuiSettings) },
       ]
     });
     router.afterEach((to) => {

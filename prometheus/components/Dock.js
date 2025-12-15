@@ -5,11 +5,25 @@ import { KitSidebarFooter } from './kit/KitSidebarFooter.js';
 import { KitMenu } from './kit/KitMenu.js';
 import { KitMenuItem } from './kit/KitMenuItem.js';
 import { KitMenuSeparator } from './kit/KitMenuSeparator.js';
+import { KitTUISidenav } from './kit/tui/KitTUISidenav.js';
 
 export const Dock = {
-  components: { KitSidebar, KitButton, KitSidebarFooter, KitMenu, KitMenuItem, KitMenuSeparator },
+  components: { KitSidebar, KitButton, KitSidebarFooter, KitMenu, KitMenuItem, KitMenuSeparator, KitTUISidenav },
   template: `
-    <KitSidebar class="dock" :mode="sidebarMode" padded>
+    <!-- TUI Mode Sidenav -->
+    <KitTUISidenav
+      v-if="store.tuiMode"
+      :items="store.menuItems"
+      :activeId="store.activeMenuItem"
+      @select="handleSelect"
+    >
+      <template #footer>
+        <div>[U] User</div>
+      </template>
+    </KitTUISidenav>
+
+    <!-- Normal Mode Sidebar -->
+    <KitSidebar v-else class="dock" :mode="sidebarMode" padded>
       <KitButton
         v-for="item in store.menuItems"
         :key="item.id"
@@ -110,6 +124,11 @@ export const Dock = {
       return apps;
     });
 
-    return { store, activeApps, getRoute, sidebarMode, isIconMode };
+    const handleSelect = (id) => {
+      const route = getRoute(id);
+      router.push(route);
+    };
+
+    return { store, activeApps, getRoute, sidebarMode, isIconMode, handleSelect };
   },
 };

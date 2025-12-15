@@ -1,5 +1,5 @@
 import { store } from '../../store.js';
-import { KitViewLayout } from '../kit/KitViewLayout.js';
+import { KitTUIViewLayout } from '../kit/tui/KitTUIViewLayout.js';
 import { KitSidebarFooter } from '../kit/KitSidebarFooter.js';
 import { KitButton } from '../kit/KitButton.js';
 
@@ -36,79 +36,76 @@ const initialMessages = [
   { time: '9:45 AM', author: 'charlie', text: "I've been watching XOM. Might be a good entry point soon." },
 ];
 
-export const ViewYap = {
-  components: { KitViewLayout, KitSidebarFooter, KitButton },
+export const ViewTuiYap = {
+  components: { KitTUIViewLayout, KitSidebarFooter, KitButton },
   template: `
-    <KitViewLayout :collapsed="store.subSidenavCollapsed">
+    <KitTUIViewLayout :collapsed="store.subSidenavCollapsed" :title="currentPrefix + currentChannelName">
       <template #menu>
         <div class="flex-1 overflow-y-auto">
-          <div class="px-3 py-2 pt-3.5 font-bold text-[11px] text-[var(--text-secondary)] uppercase tracking-wide">AI Chats</div>
+          <div class="kit-tui-header">AI Chats</div>
           <div
             v-for="channel in channels.aiChats"
             :key="channel.id"
-            class="flex items-center gap-1.5 px-4 py-1.5 text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-colors cursor-pointer"
-            :class="selectedChannel === channel.id ? 'bg-[var(--bg-tertiary)]' : ''"
+            class="kit-tui-menu-item pl-0 ml-[1ch] pr-0 gap-0 flex items-center cursor-pointer"
+            :class="selectedChannel === channel.id ? 'active' : ''"
             @click="selectChannel(channel)"
           >
-            <span class="text-[var(--text-secondary)] font-bold">{{ channel.prefix }}</span>
+            <span class="inline-block" style="width: 2ch;">{{ selectedChannel === channel.id ? '>' : '' }}</span>
+            <span>{{ channel.prefix }}</span>
             <span class="truncate">{{ channel.name }}</span>
           </div>
 
-          <div class="px-3 py-2 font-bold text-[11px] text-[var(--text-secondary)] uppercase tracking-wide">DMs</div>
+          <div class="kit-tui-header">DMs</div>
           <div
             v-for="channel in channels.dms"
             :key="channel.id"
-            class="flex items-center gap-1.5 px-4 py-1.5 text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-colors cursor-pointer"
-            :class="selectedChannel === channel.id ? 'bg-[var(--bg-tertiary)]' : ''"
+            class="kit-tui-menu-item pl-0 ml-[1ch] pr-0 gap-0 flex items-center cursor-pointer"
+            :class="selectedChannel === channel.id ? 'active' : ''"
             @click="selectChannel(channel)"
           >
-            <span class="text-[var(--text-secondary)] font-bold">{{ channel.prefix }}</span>
+            <span class="inline-block" style="width: 2ch;">{{ selectedChannel === channel.id ? '>' : '' }}</span>
+            <span>{{ channel.prefix }}</span>
             <span class="truncate">{{ channel.name }}</span>
           </div>
 
-          <div class="px-3 py-2 font-bold text-[11px] text-[var(--text-secondary)] uppercase tracking-wide">Channels</div>
+          <div class="kit-tui-header">Channels</div>
           <div
             v-for="channel in channels.channels"
             :key="channel.id"
-            class="flex items-center gap-1.5 px-4 py-1.5 text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-colors cursor-pointer"
-            :class="selectedChannel === channel.id ? 'bg-[var(--bg-tertiary)]' : ''"
+            class="kit-tui-menu-item pl-0 ml-[1ch] pr-0 gap-0 flex items-center cursor-pointer"
+            :class="selectedChannel === channel.id ? 'active' : ''"
             @click="selectChannel(channel)"
           >
-            <span class="text-[var(--text-secondary)] font-bold">{{ channel.prefix }}</span>
+            <span class="inline-block" style="width: 2ch;">{{ selectedChannel === channel.id ? '>' : '' }}</span>
+            <span>{{ channel.prefix }}</span>
             <span class="truncate">{{ channel.name }}</span>
           </div>
         </div>
-        <KitSidebarFooter padded>
-          <KitButton icon="search" />
-          <KitButton icon="plus" />
-        </KitSidebarFooter>
       </template>
 
       <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <div class="px-4 py-3 border-b border-[var(--border-color)] flex items-center gap-2 shrink-0">
-          <span class="text-[var(--text-secondary)] text-base font-bold">{{ currentPrefix }}</span>
-          <span class="font-bold text-sm text-[var(--text-primary)]">{{ currentChannelName }}</span>
-        </div>
-        <div class="flex-1 overflow-y-auto flex flex-col p-4 gap-3" ref="messagesRef">
-          <div v-for="(msg, idx) in messages" :key="idx" class="flex items-start gap-3">
-            <span class="text-[var(--text-secondary)] text-[10px] shrink-0 w-[50px] pt-0.5">{{ msg.time }}</span>
+        <div class="flex-1 overflow-y-auto flex flex-col p-0 gap-0" ref="messagesRef">
+          <div v-for="(msg, idx) in messages" :key="idx" class="flex items-start gap-0">
             <div class="flex-1 min-w-0">
-              <div class="font-bold mb-0.5 text-[var(--text-primary)]">{{ msg.author }}</div>
-              <div class="leading-[1.4] break-words text-[var(--text-primary)]">{{ msg.text }}</div>
+              <span class="font-bold">{{ msg.author }}: </span>
+              <span>{{ msg.text }}</span>
             </div>
           </div>
         </div>
-        <div class="px-4 py-3 border-t border-[var(--border-color)] shrink-0">
-          <input
-            type="text"
-            class="w-full px-3 py-2.5 bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] text-xs rounded outline-none focus:border-[var(--accent)] placeholder:text-[var(--text-secondary)]"
-            :placeholder="'Message ' + currentPrefix + currentChannelName"
-            v-model="inputText"
-            @keydown.enter="sendMessage"
-          >
+        <div class="shrink-0" style="border-top: 1px solid var(--tui-fg); border-bottom: 1px solid var(--tui-fg); margin-bottom: 1ch;">
+          <div class="flex items-center">
+            <span style="width: 2ch;">&gt;</span>
+            <input
+              type="text"
+              class="flex-1 bg-transparent outline-none"
+              :placeholder="'Message ' + currentPrefix + currentChannelName"
+              v-model="inputText"
+              @keydown.enter="sendMessage"
+            >
+          </div>
         </div>
       </div>
-    </KitViewLayout>
+    </KitTUIViewLayout>
   `,
   setup() {
     const selectedChannel = Vue.ref('general');

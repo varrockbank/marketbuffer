@@ -66,6 +66,7 @@ export const store = reactive({
 
   // Theme
   theme: 'dark', // 'dark' | 'light'
+  tuiMode: false, // TUI mode with ASCII box-drawing
   contrast: true, // contrast mode for sidenavs
   wallpaper: 'hokusai',
   wallpapers: [
@@ -118,6 +119,10 @@ export const actions = {
 
   toggleContrast() {
     store.contrast = !store.contrast;
+  },
+
+  toggleTuiMode() {
+    store.tuiMode = !store.tuiMode;
   },
 
   toggleSidenav() {

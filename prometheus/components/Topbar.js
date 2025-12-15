@@ -5,11 +5,27 @@ import { KitBrand } from './kit/KitBrand.js';
 import { KitMenu } from './kit/KitMenu.js';
 import { KitMenuItem } from './kit/KitMenuItem.js';
 import { KitMenuSeparator } from './kit/KitMenuSeparator.js';
+import { KitTUIBar } from './kit/tui/KitTUIBar.js';
+import { KitTUIButton } from './kit/tui/KitTUIButton.js';
 
 export const Topbar = {
-  components: { KitBar, KitButton, KitBrand, KitMenu, KitMenuItem, KitMenuSeparator },
+  components: { KitBar, KitButton, KitBrand, KitMenu, KitMenuItem, KitMenuSeparator, KitTUIBar, KitTUIButton },
   template: `
-    <KitBar class="topbar-bar">
+    <!-- TUI Mode Bar -->
+    <KitTUIBar v-if="store.tuiMode" :brand="store.brandName">
+      <KitTUIButton char="H" tooltip="Home" :active="isHome" @click="router.push('/')" />
+      <KitTUIButton char="A" tooltip="Applications" @click="router.push('/applications')" />
+      <KitTUIButton char="⽉" tooltip="Toggle Theme" @click="actions.toggleTheme" />
+      <KitTUIButton char="#" tooltip="Exit TUI Mode" @click="actions.toggleTuiMode" />
+      <KitTUIButton char="C" tooltip="Toggle Contrast" @click="actions.toggleContrast" />
+      <KitTUIButton char="S" tooltip="Toggle Sidenav" @click="actions.toggleSidenav" />
+      <KitTUIButton char="P" tooltip="Toggle Panel" @click="actions.toggleSubSidenav" />
+      <KitTUIButton char=">" tooltip="Toggle Terminal" @click="actions.toggleTerminal" />
+      <KitTUIButton char="F" tooltip="Focus Mode" @click="actions.toggleDistractionFree" />
+    </KitTUIBar>
+
+    <!-- Normal Mode Bar -->
+    <KitBar v-else class="topbar-bar">
       <template #left>
         <KitBrand v-if="!store.distractionFree" :icon="store.brandIcon" :name="store.brandName" :subtitle="'v' + store.version" />
       </template>
@@ -37,6 +53,7 @@ export const Topbar = {
           </template>
         </KitMenu>
         <KitButton :icon="themeIcon" :tooltip="themeTitle + ' (' + store.modKey + '⇧T)'" size="sm" variant="primary" @click="actions.toggleTheme" />
+        <KitButton icon="box" tooltip="TUI Mode" size="sm" variant="primary" @click="actions.toggleTuiMode" />
         <KitButton icon="contrast" :tooltip="contrastTitle + ' (' + store.modKey + '⇧C)'" size="sm" variant="primary" @click="actions.toggleContrast" />
         <KitButton icon="sidenav" :tooltip="'Toggle Sidenav (' + store.modKey + 'B)'" size="sm" variant="primary" @click="actions.toggleSidenav" />
         <KitButton icon="subSidenav" :tooltip="'Toggle Panel (' + store.modKey + 'J)'" size="sm" variant="primary" @click="actions.toggleSubSidenav" />
